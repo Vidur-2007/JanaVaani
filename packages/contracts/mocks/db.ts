@@ -53,6 +53,8 @@ export interface ChatSession {
   asset_id?: string;
   draft?: GrievanceDraft;
   duplicates_shown: boolean;
+  /** Set when one message described several separate problems (split flow). */
+  drafts?: GrievanceDraft[];
 }
 
 export interface MockDb {

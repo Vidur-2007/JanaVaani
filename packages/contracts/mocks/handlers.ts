@@ -216,6 +216,50 @@ export function classify(text: string): { dept: DepartmentId; confidence: number
   return { dept: best, confidence: bestN === 0 ? 0.41 : Math.min(0.97, 0.72 + bestN * 0.08) };
 }
 
+// Native-script names for wards the demo story uses (the AI extracts places from free text).
+const WARD_ALIASES: Record<string, string[]> = {
+  Miyapur: ['మియాపూర్', 'मियापुर', 'میاپور'],
+  Kukatpally: ['కూకట్‌పల్లి', 'కూకట్పల్లి', 'कूकटपल्ली', 'کوکٹ پلی'],
+  Charminar: ['చార్మినార్', 'चारमीनार', 'چارمینار'],
+  Falaknuma: ['ఫలక్‌నుమా', 'फलकनुमा', 'فلک نما'],
+  Ameerpet: ['అమీర్‌పేట్', 'अमीरपेट', 'امیرپیٹ'],
+  Malakpet: ['మలక్‌పేట్', 'मलकपेट', 'ملک پیٹ'],
+  Gachibowli: ['గచ్చిబౌలి', 'गचीबावली'],
+  Secunderabad: ['సికింద్రాబాద్', 'सिकंदराबाद', 'سکندرآباد'],
+};
+const CROSS_ROADS = /x[\s-]?roads?|cross[\s-]?roads?|క్రాస్ రోడ్|चौराहे|چوراہے/i;
+
+/** Mock "AI location extraction": a ward named in the text becomes a suggested location (source 'text'). */
+export function extractLocation(text: string): Location | undefined {
+  const lower = text.toLowerCase();
+  const ward = WARDS.find((w) => lower.includes(w.name.toLowerCase()) || (WARD_ALIASES[w.name] ?? []).some((a) => text.includes(a)));
+  if (!ward) return undefined;
+  const cross = CROSS_ROADS.test(text);
+  return {
+    ...ward.centroid,
+    source: 'text',
+    landmark: cross ? `${ward.name} X Roads` : ward.name,
+    address: `${cross ? `${ward.name} X Roads` : ward.name}, Hyderabad`,
+    ward_id: ward.id,
+    ward_name: ward.name,
+    zone: ward.zone,
+  };
+}
+
+/** Split one message into separate problems when clauses point to different departments. */
+export function splitIssues(text: string): string[] {
+  const parts = text
+    .split(/(?:\.\s+|;|\balso\b|\band also\b|\band\b|\bplus\b|మరియు|ఇంకా|और|साथ ही|اور|نیز)/i)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 8);
+  const seen = new Map<DepartmentId, string>();
+  for (const p of parts) {
+    const d = classify(p).dept;
+    if (d !== 'other' && !seen.has(d)) seen.set(d, p);
+  }
+  return seen.size >= 2 ? [...seen.values()] : [text];
+}
+
 function englishFor(text: string, dept: DepartmentId, lang: Lang): string {
   const known = PHRASES.find((p) => p.text === text.trim() || p.title === text.trim());
   if (known) return known.text_en;
@@ -256,7 +300,7 @@ export function analyze(
       : 'medium';
   const en = englishFor(text, dept, det.lang);
   const fields = { ...(opts.fields ?? {}) };
-  const location = opts.location ?? (asset ? { ...asset.location, source: 'qr' as const } : undefined);
+  const location = opts.location ?? (asset ? { ...asset.location, source: 'qr' as const } : extractLocation(text));
   if (location && !location.ward_id) {
     const w = nearestWard(location.lat, location.lng);
     Object.assign(location, { ward_id: w.id, ward_name: w.name, zone: w.zone });
@@ -545,6 +589,58 @@ const BOT = {
   },
 } satisfies Record<string, Record<DeepLang, string>>;
 
+const BOT_SPLIT: Record<DeepLang, string> = {
+  en: 'I found {n} separate problems in your message. Choose which ones to register.',
+  te: 'మీ సందేశంలో {n} వేర్వేరు సమస్యలు ఉన్నాయి. ఏవి నమోదు చేయాలో ఎంచుకోండి.',
+  hi: 'आपके संदेश में {n} अलग-अलग समस्याएँ मिलीं। चुनें कि कौन-सी दर्ज करनी हैं।',
+  ur: 'آپ کے پیغام میں {n} الگ الگ مسائل ملے۔ منتخب کریں کہ کون سے درج کرنے ہیں۔',
+};
+
+/** Quick-reply options for follow-up questions: value = canonical English answer, label per language. */
+const FIELD_OPTIONS: Record<string, { value: string; label: Record<DeepLang, string> }[]> = {
+  size: [
+    { value: 'small', label: { en: 'Small', te: 'చిన్నది', hi: 'छोटा', ur: 'چھوٹا' } },
+    { value: 'large', label: { en: 'Large', te: 'పెద్దది', hi: 'बड़ा', ur: 'بڑا' } },
+    { value: 'very large', label: { en: 'Very large', te: 'చాలా పెద్దది', hi: 'बहुत बड़ा', ur: 'بہت بڑا' } },
+  ],
+  duration: [
+    { value: 'today', label: { en: 'Since today', te: 'ఈ రోజు నుంచి', hi: 'आज से', ur: 'آج سے' } },
+    { value: 'a few days', label: { en: 'A few days', te: 'కొన్ని రోజులు', hi: 'कुछ दिन', ur: 'کچھ دن' } },
+    { value: 'more than a week', label: { en: 'Over a week', te: 'వారం పైగా', hi: 'एक हफ़्ते से ज़्यादा', ur: 'ایک ہفتے سے زیادہ' } },
+  ],
+  scope: [
+    { value: 'my house', label: { en: 'Only my house', te: 'మా ఇల్లు మాత్రమే', hi: 'सिर्फ़ मेरा घर', ur: 'صرف میرا گھر' } },
+    { value: 'the street', label: { en: 'The street', te: 'వీధి మొత్తం', hi: 'पूरी गली', ur: 'پوری گلی' } },
+    { value: 'whole area', label: { en: 'Whole area', te: 'మొత్తం ప్రాంతం', hi: 'पूरा इलाका', ur: 'پورا علاقہ' } },
+  ],
+  households_affected: [
+    { value: '1-5', label: { en: '1–5 homes', te: '1–5 ఇళ్లు', hi: '1–5 घर', ur: '1–5 گھر' } },
+    { value: '5-20', label: { en: '5–20 homes', te: '5–20 ఇళ్లు', hi: '5–20 घर', ur: '5–20 گھر' } },
+    { value: 'more than 20', label: { en: 'More than 20', te: '20 కంటే ఎక్కువ', hi: '20 से ज़्यादा', ur: '20 سے زیادہ' } },
+  ],
+  lights_count: [
+    { value: '1', label: { en: 'One', te: 'ఒకటి', hi: 'एक', ur: 'ایک' } },
+    { value: '2-5', label: { en: '2 to 5', te: '2 నుంచి 5', hi: '2 से 5', ur: '2 سے 5' } },
+    { value: 'more than 5', label: { en: 'More than 5', te: '5 కంటే ఎక్కువ', hi: '5 से ज़्यादा', ur: '5 سے زیادہ' } },
+  ],
+};
+const YES_NO = [
+  { value: 'yes', label: { en: 'Yes', te: 'అవును', hi: 'हाँ', ur: 'ہاں' } },
+  { value: 'no', label: { en: 'No', te: 'కాదు', hi: 'नहीं', ur: 'نہیں' } },
+];
+for (const k of ['blocking_traffic', 'entering_homes', 'sparking_or_danger', 'bin_overflow']) FIELD_OPTIONS[k] = YES_NO;
+FIELD_OPTIONS.issue_type_water = [
+  { value: 'no supply', label: { en: 'No water', te: 'నీళ్లు రావడం లేదు', hi: 'पानी नहीं', ur: 'پانی نہیں' } },
+  { value: 'leak', label: { en: 'Leak', te: 'లీకేజీ', hi: 'लीकेज', ur: 'رساؤ' } },
+  { value: 'dirty water', label: { en: 'Dirty water', te: 'మురికి నీరు', hi: 'गंदा पानी', ur: 'گندا پانی' } },
+  { value: 'low pressure', label: { en: 'Low pressure', te: 'తక్కువ ప్రెషర్', hi: 'कम प्रेशर', ur: 'کم دباؤ' } },
+];
+
+function fieldQuickReplies(dept: DepartmentId, key: string, ui: DeepLang) {
+  const opts = FIELD_OPTIONS[dept === 'water' && key === 'issue_type' ? 'issue_type_water' : key] ?? [];
+  return opts.map((o) => ({ label: o.label[ui], value: o.value }));
+}
+
 const QUICK = {
   confirm: {
     en: ['Confirm', 'Edit', 'Cancel'],
@@ -681,7 +777,30 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
     }
     case 'file_new_anyway':
       return submit();
-    case 'split_confirm':
+    case 'split_confirm': {
+      if (!s.drafts?.length) break;
+      const ids = (req.action_payload?.draft_ids as string[] | undefined) ?? s.drafts.map((d) => d.draft_id);
+      const chosen = s.drafts.filter((d) => ids.includes(d.draft_id));
+      const submitted = chosen.map((d) => {
+        const { grievance, guest_pin } = createFromDraft(ctx, d, {
+          location: s!.location,
+          media_ids: s!.media_ids,
+          asset_id: s!.asset_id,
+          is_anonymous: req.submit_options?.is_anonymous,
+          is_private: req.submit_options?.is_private,
+        });
+        return { grievance_id: grievance.id, guest_pin };
+      });
+      s.stage = 'submitted';
+      const idsText = submitted.map((x) => x.grievance_id).join(', ');
+      return base({
+        stage: 'submitted',
+        draft: undefined,
+        drafts: undefined,
+        reply: L(BOT.submitted[ui].replace('{id}', idsText), ui, BOT.submitted.en.replace('{id}', idsText)),
+        submitted,
+      });
+    }
     case 'confirm': {
       if (!s.draft) break;
       if (!s.duplicates_shown) {
@@ -716,9 +835,10 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
     });
   }
   const det = detectLang(text, req.lang_hint);
-  if (s.stage === 'collecting' && s.draft && s.draft.missing_fields.length) {
-    // Answer to the previous question fills the first missing field.
-    s.fields[s.draft.missing_fields[0]] = text;
+  const lastAsked = s.asked[s.asked.length - 1];
+  if (s.stage === 'collecting' && s.draft && lastAsked && !s.fields[lastAsked]) {
+    // The reply answers the question we just asked.
+    s.fields[lastAsked] = text;
   } else {
     s.text = s.text ? `${s.text} ${text}` : text;
     s.lang = det.lang;
@@ -745,6 +865,25 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
     s.stage = 'answered';
     return base({ intent: 'ask_info', stage: 'answered', reply: L(BOT.info[ui], ui, BOT.info.en) });
   }
+  // First message describing several different problems → one draft each (feature 37).
+  if (!s.draft && !s.drafts) {
+    const parts = splitIssues(s.text);
+    if (parts.length > 1) {
+      s.drafts = parts.map((p) =>
+        analyze(p, ui, { location: s!.location, media_ids: s!.media_ids, asset_id: s!.asset_id }),
+      );
+      s.stage = 'confirming';
+      const msg = (lang: DeepLang) => BOT_SPLIT[lang].replace('{n}', String(parts.length));
+      return base({
+        stage: 'confirming',
+        detected_language: det.lang,
+        reply: L(msg(ui), ui, msg('en')),
+        drafts: s.drafts,
+        draft: undefined,
+        missing_fields: [],
+      });
+    }
+  }
   s.draft = analyze(s.text, ui, {
     location: s.location,
     media_ids: s.media_ids,
@@ -760,8 +899,9 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
     const q = deptById(s.draft.category).required_fields.find((f) => f.key === next)!;
     return base({
       stage: 'collecting',
-      detected_language: det.lang,
+      detected_language: s.lang,
       reply: L(q.question[ui], ui, q.question.en),
+      quick_replies: fieldQuickReplies(s.draft.category, next, ui),
       missing_fields: s.draft.missing_fields,
     });
   }
@@ -889,8 +1029,10 @@ function upload(ctx: MockCtx): Media {
   let lat: number | undefined;
   let lng: number | undefined;
   let uploaded_by: Media['uploaded_by'] = 'citizen';
+  let size = 0;
   if (typeof FormData !== 'undefined' && body instanceof FormData) {
     const file = body.get('file');
+    if (file && typeof file !== 'string') size = file.size;
     if (file && typeof file !== 'string' && typeof URL !== 'undefined' && 'createObjectURL' in URL)
       url = URL.createObjectURL(file);
     purpose = (body.get('purpose') as Media['purpose']) ?? purpose;
@@ -904,7 +1046,8 @@ function upload(ctx: MockCtx): Media {
     kind: 'image',
     uploaded_by,
     purpose,
-    quality: { ok: true, issue: 'none' },
+    // Mock quality check: tiny files are treated as too small to be useful evidence.
+    quality: size > 0 && size < 15_000 ? { ok: false, issue: 'too_small' } : { ok: true, issue: 'none' },
     ai: { description_en: 'Photo uploaded by the user (mock analysis)', matches_text: true },
     geo: lat != null && lng != null ? { lat, lng } : undefined,
     created_at: nowIso(),

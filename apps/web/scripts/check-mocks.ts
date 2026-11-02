@@ -45,6 +45,23 @@ async function main() {
   const em = await call<ChatTurnResponse>('POST', '/chat/turn', { text: 'మా స్కూల్ దగ్గర కరెంటు తీగ తెగి రోడ్డుపై పడింది', input_mode: 'voice', ui_lang: 'te' }, citizen);
   if (em.stage !== 'emergency') throw new Error(`expected emergency, got ${em.stage}`);
 
+  // Text-only Miyapur pothole: location extracted from text → duplicate check against the incident.
+  let mp = await call<ChatTurnResponse>('POST', '/chat/turn', { text: 'Miyapur X roads lo pedda gunta undi', input_mode: 'text', ui_lang: 'te' }, citizen);
+  if (mp.draft?.location?.source !== 'text') throw new Error('expected location extracted from text');
+  if (mp.stage === 'collecting' && !mp.quick_replies.length) throw new Error('expected quick replies for follow-up');
+  for (let i = 0; i < 4 && mp.stage === 'collecting'; i++)
+    mp = await call('POST', '/chat/turn', { session_id: mp.session_id, text: mp.quick_replies[0]?.value ?? 'yes', input_mode: 'text', ui_lang: 'te' }, citizen);
+  mp = await call('POST', '/chat/turn', { session_id: mp.session_id, action: 'confirm', input_mode: 'text', ui_lang: 'te' }, citizen);
+  if (mp.stage !== 'duplicate_check' || !mp.duplicates?.some((d) => d.incident_id)) throw new Error(`expected incident duplicate, got ${mp.stage}`);
+  mp = await call('POST', '/chat/turn', { session_id: mp.session_id, action: 'support_existing', action_payload: { incident_id: mp.duplicates![0].incident_id }, input_mode: 'text', ui_lang: 'te' }, citizen);
+  if (mp.stage !== 'submitted') throw new Error('support_existing should finish');
+
+  // Two problems in one message → drafts[] → split_confirm submits both.
+  let sp = await call<ChatTurnResponse>('POST', '/chat/turn', { text: 'There is a big pothole on our road and also garbage not collected for a week', input_mode: 'text', ui_lang: 'en' }, GUEST_PROFILE);
+  if (sp.drafts?.length !== 2) throw new Error(`expected 2 drafts, got ${sp.drafts?.length}`);
+  sp = await call('POST', '/chat/turn', { session_id: sp.session_id, action: 'split_confirm', action_payload: { draft_ids: sp.drafts.map((d) => d.draft_id) }, input_mode: 'text', ui_lang: 'en' }, GUEST_PROFILE);
+  if (sp.submitted?.length !== 2 || !sp.submitted[0].guest_pin) throw new Error('split_confirm should submit 2 with guest pins');
+
   const draft = await call<GrievanceDraft>('POST', '/grievances/analyze', { text: 'Garbage not collected for a week near the park', ui_lang: 'en', location: ward }, citizen, '/grievances/analyze');
   const created = await call<{ grievance: Grievance }>('POST', '/grievances', { draft, location: ward, media_ids: [], is_anonymous: false, is_private: false }, citizen, '/grievances');
   await call('POST', '/grievances/check-duplicates', { text: 'pothole', location: { lat: 17.4968, lng: 78.3614, source: 'gps' }, category: 'roads' }, citizen, '/grievances/check-duplicates');
