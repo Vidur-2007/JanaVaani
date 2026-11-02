@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, ExternalLink, PartyPopper, Timer } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, Timer } from 'lucide-react';
 import { toast } from 'sonner';
 import type { DepartmentId, Grievance } from '@contracts/types';
 import { Button } from '@/design/ui/button';
@@ -13,7 +13,6 @@ import { Textarea } from '@/design/ui/textarea';
 import {
   BeforeAfterSlider,
   DEPARTMENT_ICONS,
-  EmptyState,
   ErrorState,
   ListSkeleton,
   PageTransition,
@@ -24,6 +23,7 @@ import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { CaseHeader } from '@/portals/gov-shared/components/CaseHeader';
 import { EmergencyDecision } from '@/portals/gov-shared/components/EmergencyDecision';
 import { beforeAfter } from '@/portals/gov-shared/components/EvidenceViewer';
+import { GovEmpty } from '@/portals/gov-shared/components/GovEmpty';
 import { RoutingExplain } from '@/portals/gov-shared/components/RoutingExplain';
 import { TranslationSplit } from '@/portals/gov-shared/components/TranslationSplit';
 import { VerificationBadge } from '@/portals/gov-shared/components/VerificationBadge';
@@ -296,11 +296,7 @@ export default function SupervisorQueues() {
               ) : q.isError ? (
                 <ErrorState error={q.error} onRetry={() => q.refetch()} />
               ) : q.data.items.length === 0 ? (
-                <EmptyState
-                  icon={PartyPopper}
-                  title={t('queues.clear')}
-                  description={t('queues.clear_hint')}
-                />
+                <GovEmpty title={t('queues.clear')} description={t('queues.clear_hint')} />
               ) : (
                 <div className="space-y-3">
                   {q.data.items.map((g) => (

@@ -5,13 +5,13 @@ import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { BellOff } from 'lucide-react';
 import type { Alert, TrendPoint } from '@contracts/types';
 import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
-import { EmptyState, ErrorState, ListSkeleton, PageTransition } from '@/design/components';
+import { ErrorState, ListSkeleton, PageTransition } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { AlertCard, alertTarget } from '@/portals/gov-shared/components/AlertCard';
+import { GovEmpty } from '@/portals/gov-shared/components/GovEmpty';
 import { useAcknowledged } from '@/portals/gov-shared/hooks/useAcknowledged';
 import { useFreshIds } from '@/portals/gov-shared/hooks/useFreshIds';
 import { axisTick, CHART_ANIMATION_MS, tooltipStyle } from '@/portals/gov-shared/lib/chart';
@@ -121,13 +121,14 @@ export default function Alerts() {
       ) : q.isError ? (
         <ErrorState error={q.error} onRetry={() => q.refetch()} />
       ) : list.length === 0 ? (
-        <EmptyState icon={BellOff} title={t('admin.no_alerts')} />
+        <GovEmpty title={t('admin.no_alerts')} />
       ) : (
         <div className="grid items-start gap-3 lg:grid-cols-2">
-          {list.map((a) => (
+          {list.map((a, i) => (
             <div key={a.id}>
               <AlertCard
                 alert={a}
+                index={i}
                 fresh={fresh.has(a.id)}
                 acknowledged={acknowledged.includes(a.id)}
                 onAcknowledge={() => acknowledge(a.id)}

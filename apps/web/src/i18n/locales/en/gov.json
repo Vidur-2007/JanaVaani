@@ -40,7 +40,9 @@
     "pages": "Pages",
     "critical_overdue": "Critical overdue in my zone",
     "overdue": "All overdue cases",
-    "due_today": "Due today"
+    "due_today": "Due today",
+    "searching": "Searching…",
+    "legend": "↑ ↓ move · Enter open · Esc close"
   },
   "notifications": {
     "label_one": "Notifications, {{count}} unread",
@@ -596,7 +598,16 @@
     "health": "Provider health",
     "mode": "API mode",
     "api_mode": "Mode",
-    "fallbacks": "Mock fallbacks"
+    "fallbacks": "Mock fallbacks",
+    "moments": "Demo moments",
+    "moment": {
+      "inbox": "Officer inbox",
+      "suspicious": "Suspicious streetlight",
+      "emergency": "Live wire emergency",
+      "spike": "Charminar spike",
+      "ai": "AI model and retrain"
+    },
+    "resetting": "Resetting, about 10 seconds…"
   },
   "reports": {
     "title_one": "JanaVaani report, last {{count}} day",

@@ -16,7 +16,7 @@ import {
 import type { Alert } from '@contracts/types';
 import { Button } from '@/design/ui/button';
 import { DepartmentBadge, LangBadge } from '@/design/components';
-import { fadeUp } from '@/design/motion';
+import { durations, easeOutExpo, maxStaggered, staggerMs } from '@/design/motion';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { useReducedMotion } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
@@ -58,9 +58,12 @@ export function AlertCard({
   acknowledged,
   onAcknowledge,
   fresh,
+  index = 0,
   className,
 }: {
   alert: Alert;
+  /** Position in its list, for the entrance cascade. */
+  index?: number;
   acknowledged?: boolean;
   fresh?: boolean;
   onAcknowledge?: () => void;
@@ -72,9 +75,13 @@ export function AlertCard({
   const Icon = KIND_ICON[alert.kind];
   return (
     <motion.article
-      variants={reduced ? undefined : fadeUp}
-      initial="initial"
-      animate="animate"
+      initial={reduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: durations.slow,
+        ease: easeOutExpo,
+        delay: Math.min(index, maxStaggered) * (staggerMs / 1000),
+      }}
       data-testid="alert-card"
       data-severity={alert.severity}
       data-fresh={fresh || undefined}
@@ -101,7 +108,9 @@ export function AlertCard({
           {(alert.category || alert.languages?.length) && (
             <div className="mt-2 flex flex-wrap items-center gap-1">
               {alert.category && <DepartmentBadge department={alert.category} size="sm" />}
-              {alert.languages?.map((l) => <LangBadge key={l} lang={l} />)}
+              {alert.languages?.map((l) => (
+                <LangBadge key={l} lang={l} />
+              ))}
             </div>
           )}
           <div className="mt-2 flex items-center justify-between gap-2">
@@ -109,7 +118,9 @@ export function AlertCard({
               to={alertTarget(alert)}
               className="text-signal inline-flex min-h-11 min-w-11 items-center gap-0.5 text-xs font-medium hover:underline md:min-h-6 md:min-w-0"
             >
-              {alert.grievance_ids.length ? t('alert.view_cases', { count: alert.grievance_ids.length }) : t('alert.open_queue')}
+              {alert.grievance_ids.length
+                ? t('alert.view_cases', { count: alert.grievance_ids.length })
+                : t('alert.open_queue')}
               <ChevronRight className="rtl-flip size-3.5" aria-hidden />
             </Link>
             {onAcknowledge && (

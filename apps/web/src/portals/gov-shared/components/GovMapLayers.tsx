@@ -84,26 +84,29 @@ function ClusterLayer({
   return null;
 }
 
-const pulseIcon = () =>
+const PULSE_CYCLE_MS = 2400;
+const PULSE_GROUPS = 6;
+
+const pulseIcon = (group: number) =>
   L.divIcon({
     className: '',
     iconSize: [14, 14],
     html: `<span style="position:relative;display:block;width:14px;height:14px">
-      <span class="motion-safe:animate-pulse-ring" style="position:absolute;inset:0;border-radius:999px;background:var(--prio-critical)"></span>
+      <span class="motion-safe:animate-pulse-ring" style="position:absolute;inset:0;border-radius:999px;background:var(--prio-critical);animation-delay:${(group * PULSE_CYCLE_MS) / PULSE_GROUPS}ms"></span>
       <span style="position:absolute;inset:3px;border-radius:999px;background:var(--prio-critical)"></span>
     </span>`,
   });
 
 function CriticalPulses({ points, onClick }: { points: MapPoint[]; onClick?: (p: MapPoint) => void }) {
   const { t } = useTranslation('gov');
-  const icon = useMemo(() => pulseIcon(), []);
+  const icons = useMemo(() => Array.from({ length: PULSE_GROUPS }, (_, i) => pulseIcon(i)), []);
   return (
     <>
       {points.map((p, i) => (
         <Marker
           key={p.id ?? i}
           position={[p.lat, p.lng]}
-          icon={icon}
+          icon={icons[i % PULSE_GROUPS]}
           title={t('map.critical_case')}
           eventHandlers={onClick ? { click: () => onClick(p) } : undefined}
         />

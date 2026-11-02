@@ -167,7 +167,7 @@ export default function CommandCenter() {
           ) : alerts.data.length === 0 ? (
             <p className="text-muted-foreground p-4 text-center text-sm">{t('admin.no_alerts')}</p>
           ) : (
-            alerts.data.map((a) => <AlertCard key={a.id} alert={a} fresh={fresh.has(a.id)} />)
+            alerts.data.map((a, i) => <AlertCard key={a.id} alert={a} index={i} fresh={fresh.has(a.id)} />)
           )}
         </section>
       </div>

@@ -32,7 +32,13 @@ import { ChartCard } from '@/portals/gov-shared/components/ChartCard';
 import { DaysSelector, useDays } from '@/portals/gov-shared/components/DaysSelector';
 import { Panel } from '@/portals/gov-shared/components/Panel';
 import { SLACountdownGov } from '@/portals/gov-shared/components/SLACountdownGov';
-import { axisTick, CHART_ANIMATION_MS, deptColor, tooltipStyle } from '@/portals/gov-shared/lib/chart';
+import {
+  axisTick,
+  CHART_ANIMATION_MS,
+  CHART_FOLLOW_MS,
+  deptColor,
+  tooltipStyle,
+} from '@/portals/gov-shared/lib/chart';
 
 const DEPARTMENTS = Object.keys(DEPARTMENT_ICONS) as DepartmentId[];
 type By = 'ward' | 'zone' | 'category';
@@ -186,6 +192,7 @@ export default function Analytics() {
                   stackId="c"
                   name={tc(`departments.${d}`)}
                   fill={deptColor(d)}
+                  animationBegin={CHART_FOLLOW_MS}
                   animationDuration={CHART_ANIMATION_MS}
                 />
               ))}

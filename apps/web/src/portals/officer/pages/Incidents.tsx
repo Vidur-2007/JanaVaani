@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CircleMarker } from 'react-leaflet';
-import { CheckCheck, Upload, Users, Waypoints } from 'lucide-react';
+import { CheckCheck, Upload, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Incident } from '@contracts/types';
 import { Button } from '@/design/ui/button';
@@ -20,7 +20,6 @@ import { Textarea } from '@/design/ui/textarea';
 import {
   CardSkeleton,
   DepartmentBadge,
-  EmptyState,
   ErrorState,
   LangBadge,
   MapView,
@@ -29,6 +28,7 @@ import {
 import { errorMessage } from '@/lib/api/client';
 import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
+import { GovEmpty } from '@/portals/gov-shared/components/GovEmpty';
 import { GovStatusChip } from '@/portals/gov-shared/components/GovStatusChip';
 import { canResolve } from '@/portals/gov-shared/lib/inbox';
 import { InboxTabs } from '../components/InboxTabs';
@@ -187,7 +187,7 @@ export default function Incidents() {
       ) : q.isError ? (
         <ErrorState error={q.error} onRetry={() => q.refetch()} />
       ) : q.data.length === 0 ? (
-        <EmptyState icon={Waypoints} title={t('incidents.empty')} description={t('incidents.empty_hint')} />
+        <GovEmpty title={t('incidents.empty')} description={t('incidents.empty_hint')} />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {q.data.map((i) => (

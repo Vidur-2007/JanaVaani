@@ -11,7 +11,8 @@ import { errorMessage } from '@/lib/api/client';
 import { useReducedMotion } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
 
-const STEP_MS = 90;
+const MAX_STEP_MS = 120;
+const WALK_MS = 1500;
 
 export interface AuditChainHandle {
   verify: () => void;
@@ -77,7 +78,7 @@ export function AuditChain({
           if (s > last) window.clearInterval(id);
           return Math.min(s + 1, last + 1);
         }),
-      STEP_MS,
+      Math.min(MAX_STEP_MS, WALK_MS / (last + 1)),
     );
     return () => window.clearInterval(id);
   }, [result, last, reduced]);
@@ -98,7 +99,11 @@ export function AuditChain({
             <Fragment key={e.id}>
               <li
                 data-state={i < step ? (i === broken ? 'broken' : 'ok') : 'idle'}
-                className={cn('w-36 rounded-[var(--radius-sm)] border p-2 transition-colors duration-150', tone(i))}
+                className={cn(
+                  'w-36 rounded-[var(--radius-sm)] border p-2 transition-[colors,transform] duration-150',
+                  tone(i),
+                  i === step - 1 && step <= last && 'scale-105',
+                )}
               >
                 <p className="flex items-center justify-between gap-1 text-[11px] font-medium">
                   <span className="truncate">{tc(`timeline.types.${e.type}`, { defaultValue: e.type })}</span>

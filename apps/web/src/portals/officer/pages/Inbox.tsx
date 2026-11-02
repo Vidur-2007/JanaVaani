@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Inbox as InboxIcon, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import type { RowSelectionState } from '@tanstack/react-table';
 import type { Grievance } from '@contracts/types';
@@ -10,7 +10,6 @@ import { Button } from '@/design/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/design/ui/select';
 import {
   DepartmentBadge,
-  EmptyState,
   ErrorState,
   ListSkeleton,
   PageTransition,
@@ -20,6 +19,7 @@ import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { useLiveEvent } from '@/lib/live/useLiveEvents';
 import { DataTable, type DataColumn } from '@/portals/gov-shared/components/DataTable';
 import { FilterBar } from '@/portals/gov-shared/components/FilterBar';
+import { GovEmpty } from '@/portals/gov-shared/components/GovEmpty';
 import { GovStatusChip } from '@/portals/gov-shared/components/GovStatusChip';
 import { SLACountdownGov } from '@/portals/gov-shared/components/SLACountdownGov';
 import { useFreshIds } from '@/portals/gov-shared/hooks/useFreshIds';
@@ -155,8 +155,7 @@ export default function Inbox() {
       ) : data.isError ? (
         <ErrorState error={data.error} onRetry={() => data.refetch()} />
       ) : data.items.length === 0 ? (
-        <EmptyState
-          icon={InboxIcon}
+        <GovEmpty
           title={activeCount ? t('inbox.empty_filtered') : t('inbox.empty')}
           description={activeCount ? t('inbox.empty_filtered_hint') : t('inbox.empty_hint')}
           action={

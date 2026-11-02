@@ -11,6 +11,8 @@ export const tooltipStyle: CSSProperties = {
   fontSize: 12,
 };
 export const CHART_ANIMATION_MS = 600;
+/** Head start the first chart of a pair gets. Total stays within the 600 ms budget of §8 plus this beat. */
+export const CHART_FOLLOW_MS = 120;
 export const deptColor = (d: DepartmentId) => `var(--dept-${d})`;
 
 export const median = (xs: number[]) => {
