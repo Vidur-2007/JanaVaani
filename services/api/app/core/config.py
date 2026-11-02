@@ -2,21 +2,25 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 API_DIR = Path(__file__).resolve().parents[2]          # services/api
 REPO_DIR = API_DIR.parents[1]                          # repo root
 DATA_DIR = REPO_DIR / "data"
 MODELS_DIR = REPO_DIR / "ml" / "models"
+SQLITE_URL = f"sqlite:///{API_DIR / 'janavaani.db'}"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=str(API_DIR / ".env"), extra="ignore")
 
-    database_url: str = f"sqlite:///{API_DIR / 'janavaani.db'}"
+    database_url: str = SQLITE_URL
     supabase_url: str = ""
+    supabase_service_role_key: str = ""    # backend only: seed_db creates auth users with it
     supabase_jwt_secret: str = ""          # legacy HS256 Supabase projects
-    app_jwt_secret: str = "dev-only-change-me-janavaani-secret-key"
+    app_jwt_secret: str = ""               # empty/placeholder = random per process (security.py)
+    allow_demo_login: bool = False         # /auth/demo-login while Supabase is configured (outage fallback)
     gemini_api_key: str = ""
     gemini_model_main: str = "gemini-flash-latest"
     gemini_model_lite: str = "gemini-flash-lite-latest"
@@ -34,6 +38,11 @@ class Settings(BaseSettings):
     upload_dir: str = str(API_DIR / "uploads")
     ai_cache_dir: str = str(API_DIR / ".ai_cache")
     enable_scheduler: bool = True
+
+    @field_validator("database_url")
+    @classmethod
+    def _empty_database_url_means_sqlite(cls, v: str) -> str:
+        return v or SQLITE_URL
 
     @property
     def origins(self) -> list[str]:

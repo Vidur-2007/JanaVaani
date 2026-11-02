@@ -26,6 +26,9 @@ class DemoLoginIn(BaseModel):
 def demo_login(body: DemoLoginIn, db: Session = Depends(get_db)):
     """DEMO_MODE helper when Supabase Auth is not configured: issues a signed token for a seeded demo account."""
     _demo_only()
+    s = get_settings()
+    if s.supabase_url and not s.allow_demo_login:   # passwordless admin must not be open on a Supabase deployment
+        raise err(403, "demo_login_disabled", "Sign in with Supabase. Set ALLOW_DEMO_LOGIN=true only during an outage.")
     p = db.execute(select(Profile).where(Profile.email == body.email.lower())).scalar_one_or_none()
     if not p or not p.email.endswith("@janavaani.test"):
         raise err(404, "unknown_demo_account", "Not a seeded demo account.")
