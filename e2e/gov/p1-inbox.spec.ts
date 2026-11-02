@@ -144,6 +144,7 @@ test('gov map draws heat, ward and cluster layers', async ({ page }) => {
   await signInAs(page, 'admin');
   await page.goto('/admin');
   await expect(page.locator('canvas.leaflet-heatmap-layer')).toBeAttached();
+  await page.getByTestId('gov-map').getByText('Wards').click();
   await expect(page.locator('path.leaflet-interactive').first()).toBeAttached();
   await page.getByTestId('gov-map').getByText('Clusters').click();
   await expect(page.locator('.marker-cluster').first()).toBeAttached();

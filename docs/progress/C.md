@@ -4,19 +4,28 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 ## Status
 
-- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`.
-- **In progress:** nothing.
-- **Next:** P3: connect to B's API in hybrid mode, then the admin pages.
+- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
+- **In progress:** P3 Step 1 is unfinished: B has no deployed URL, so `.env.local` is not set and the UI has not run in hybrid mode.
+- **Next:** finish Step 1 when B posts the URL, then P4.
 - **Blockers:**
+  - **B's API is not deployed** (needs Supabase project, keys and HF Space, per B's handover).
   - **CARTO tiles are watermarked "API KEY REQUIRED"** on every anonymous request, with or without a referrer. The URL is hardcoded in A's `MapViewImpl.tsx`, and CARTO is in the locked stack (master §4), so this needs a team decision. It affects every map, including landing and citizen. Proposed: A adds an optional tile URL/attribution prop to `MapView`.
   - A's `e2e/citizen/smoke.spec.ts` "gov routes render" test asserts the `gov-placeholder` and `inbox-stub` test ids on `/officer` and `/admin`, which P1 replaced. A should update it; C does not own that file.
-  - Items B1–B3 below need B's human.
-- **Contract notes:** see section 6. Copy the agreed ones to `docs/contract-notes/C.md`.
+  - Items B2 and B3 below need B's human. B1 is resolved: B allows supervisors on the admin GETs.
+- **Contract notes:** see section 6 and `docs/contract-notes/C.md`.
+
+### P3 notes for later phases
+
+- Map replay diffs six `days=` windows by point id, because `MapPoint` has no date (G2). It gives 5-day frames.
+- Spec departures forced by missing data: satisfaction shows averages, not a distribution (G5); officer bars stack critical against other open (G4); "resolution vs SLA target" uses a 96 h reference line, since there is no per-department target.
+- `KPIStat` re-counts from 0 when a value changes, because it is A's component. Spec §8 asks for a tween; raise it with A or wrap it in P5.
+- Insights uses its own query key, like the AI brief, so live events don't re-run the LLM.
+- To rerun the API checks: `git archive origin/feat/ai-engine services ml data scripts supabase`, blank `.env`, `PYTHONUTF8=1`, `python ml/seed_db.py`, then uvicorn.
 
 ### P2 notes for later phases
 
-- Disputed-closure buttons use #30 as a stopgap until B answers B3: "demand new proof" sets `in_progress`, "close as disputed" sets `closed`, each with a note. The closure type stays whatever B sets.
-- Mock `/admin/audit/verify` allows officers, but the contract says admin-only (B2). "Verify chain" will show an error for officers on the live API until B changes it.
+- Disputed-closure buttons use #30 as a stopgap until B answers B3: "demand new proof" sets `reopened` (from pending) or `in_progress`, and "close as disputed" sets `closed`, only from pending, with a note. B leaves `closure_type` null.
+- "Verify chain" returns 403 for officers on B's API until B2 is done. The mock is looser than B here.
 - My stats is computed client-side from up to 100 finished cases from #28 (G1), so it undercounts beyond that.
 - The AI brief uses its own query key (`jv-brief`), outside `qk.officer`, so live events don't re-run the LLM.
 - Mock resolve always returns `suspicious` for streetlights, to rehearse the Ameerpet story. The red "broken chain" state has no fixture until P4.
@@ -25,11 +34,9 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 ### P1 notes for later phases
 
-- `CommandCenterStub.tsx` is an interim page that exercises `KPIStatGov`, `GovMap`, `AlertCard` and `ChartCard`. P3 replaces it.
 - `.touch-target` beats responsive `md:min-h-*` utilities. On dense gov controls use `min-h-11 min-w-11 md:min-h-9 md:min-w-0` instead.
 - `DataTable` uses `content-visibility` for lists over 100 rows instead of a virtualizer, since data is server-paged. Revisit in P6 if needed.
 - `@tanstack/react-table` is v9: the option is `features`, not v8's API.
-- Mock `/officer/inbox` accepts a zone in `ward`; the live API may not (G7).
 
 ## 1. Pages, routes and endpoints
 
@@ -176,7 +183,7 @@ Found by comparing Spec C with master §8–9. Nothing below is agreed with B ye
 | G8 | Summary strip has no counts endpoint and no "due today" filter | Count from a fetched page | `counts?` on #28 |
 | G9 | #51 has no actor or date filter | Filter the fetched page | Extra params |
 | G10 | `human_test` has no macro-F1, though Spec C §6.8 wants both | Show accuracy only for the human set | `macro_f1?` |
-| G11 | "Resolve all with one proof" has no endpoint | Call #38 per open member | `action: 'resolve'` on #40 |
+| G11 | "Resolve all with one proof" has no endpoint | Call #38 per resolvable member; B carries merged members with the parent | `action: 'resolve'` on #40 |
 | G12 | Bulk actions have no undo | Delay the POST 5 s behind the undo toast | None |
 | G13 | Alert acknowledge has no endpoint (spec allows this) | Client-side store | None |
 | G14 | Cluster → case list needs N calls to #6 | Cap at 20, link the rest to inbox | `ids` param on #28 |
