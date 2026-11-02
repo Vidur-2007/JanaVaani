@@ -331,5 +331,28 @@
     "officer": "Officer",
     "download": "Download PDF",
     "footer": "JanaVaani · Demo data only · This receipt is generated from the complaint record; the timeline is tamper-evident."
+  },
+  "quick": {
+    "title": "Report with a photo",
+    "subtitle": "Photo, place, done. Three taps.",
+    "steps": "Steps",
+    "step_photo": "Photo",
+    "step_location": "Place",
+    "step_text": "Note (optional)",
+    "take_photo": "Take a photo of the problem",
+    "add_another": "Add another photo",
+    "add_location": "Add where it is",
+    "change": "Change",
+    "add": "Add",
+    "one_line": "One line about it (optional)",
+    "one_line_placeholder": "e.g. big pothole, bikes are falling",
+    "photo_only": "Problem shown in the photo",
+    "continue": "Continue"
+  },
+  "outbox": {
+    "queued_title": "Saved — you are offline",
+    "queued_body": "Will send automatically when you're back online. You'll get your ticket number then.",
+    "sent": "Your complaint {{id}} was sent",
+    "sent_pin": "Guest PIN: {{pin}}. Save it to track."
   }
 }
