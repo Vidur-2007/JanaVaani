@@ -95,7 +95,7 @@ export function GovMap({
           aria-label={t('map.layers')}
         >
           {availableLayers.map((l) => (
-            <ToggleGroupItem key={l} value={l} className="touch-target px-2 text-xs md:min-h-8">
+            <ToggleGroupItem key={l} value={l} className="data-[state=on]:bg-primary/15 data-[state=on]:text-primary min-h-11 px-2 text-xs md:min-h-8">
               {t(`map.layer.${l}`)}
             </ToggleGroupItem>
           ))}

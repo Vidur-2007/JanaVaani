@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Search, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import type { DepartmentId, Priority, Status } from '@contracts/types';
 import { Button } from '@/design/ui/button';
 import { Input } from '@/design/ui/input';
@@ -21,6 +21,7 @@ import { api, qk } from '@/lib/api/endpoints';
 import { LANGUAGE_NAMES } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { useDebounced } from '../hooks/useDebounced';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { useUrlFilters, type FilterKey } from '../hooks/useUrlFilters';
 
 const DEPARTMENTS: DepartmentId[] = [
@@ -69,7 +70,7 @@ function FilterSelect({
       <SelectTrigger
         size="sm"
         aria-label={label}
-        className={cn('touch-target w-full md:min-h-9 md:w-auto', filters[field] && 'border-primary/60')}
+        className={cn('min-h-11 w-full md:min-h-9 md:w-auto', filters[field] && 'border-primary/60')}
       >
         <SelectValue placeholder={label} />
       </SelectTrigger>
@@ -97,7 +98,10 @@ export function FilterBar({
   const { t } = useTranslation('gov');
   const { t: tc } = useTranslation('common');
   const { filters, setFilters, clear, activeCount } = useUrlFilters();
-  const has = (c: Control) => controls.includes(c);
+  const mobile = useIsMobile();
+  const [expanded, setExpanded] = useState(false);
+  // On phones the filters fold away so the first case stays on screen; search always shows.
+  const has = (c: Control) => controls.includes(c) && (c === 'q' || !mobile || expanded);
 
   const wards = useQuery({
     queryKey: qk.meta.wards,
@@ -105,6 +109,7 @@ export function FilterBar({
     staleTime: Infinity,
     enabled: has('ward'),
   });
+  const others = controls.filter((c) => c !== 'q').length;
   const zones = useMemo(
     () => [...new Set((wards.data ?? []).map((w) => w.zone))].sort(),
     [wards.data],
@@ -140,10 +145,22 @@ export function FilterBar({
             onChange={(e) => setText(e.target.value)}
             placeholder={searchPlaceholder ?? t('filters.search')}
             aria-label={searchPlaceholder ?? t('filters.search')}
-            className="touch-target ps-9 md:min-h-9"
+            className="min-h-11 min-w-11 ps-9 md:min-h-9 md:min-w-0"
             data-testid="filter-search"
           />
         </div>
+      )}
+      {mobile && others > 0 && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="col-span-2 min-h-11"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((v) => !v)}
+        >
+          <SlidersHorizontal className="size-4" aria-hidden />
+          {activeCount > 0 ? `${t('filters.label')} (${activeCount})` : t('filters.label')}
+        </Button>
       )}
       {has('category') && (
         <FilterSelect field="category" label={t('filters.department')}>
@@ -203,7 +220,7 @@ export function FilterBar({
       )}
       {has('dates') && (
         <>
-          <div className="flex min-w-0 items-center gap-1.5">
+          <div className="col-span-2 flex min-w-0 items-center gap-1.5 md:col-auto">
             <Label htmlFor="filter-from" className="text-muted-foreground shrink-0 text-xs">
               {t('filters.from')}
             </Label>
@@ -213,10 +230,10 @@ export function FilterBar({
               value={filters.from ?? ''}
               max={filters.to}
               onChange={(e) => setFilters({ from: e.target.value })}
-              className="touch-target min-w-0 md:min-h-9 md:w-36"
+              className="min-h-11 min-w-0 md:min-h-9 md:w-36"
             />
           </div>
-          <div className="flex min-w-0 items-center gap-1.5">
+          <div className="col-span-2 flex min-w-0 items-center gap-1.5 md:col-auto">
             <Label htmlFor="filter-to" className="text-muted-foreground shrink-0 text-xs">
               {t('filters.to')}
             </Label>
@@ -226,7 +243,7 @@ export function FilterBar({
               value={filters.to ?? ''}
               min={filters.from}
               onChange={(e) => setFilters({ to: e.target.value })}
-              className="touch-target min-w-0 md:min-h-9 md:w-36"
+              className="min-h-11 min-w-0 md:min-h-9 md:w-36"
             />
           </div>
         </>
@@ -244,7 +261,7 @@ export function FilterBar({
         </div>
       )}
       {activeCount > 0 && (
-        <Button variant="ghost" size="sm" className="touch-target md:min-h-9" onClick={clear}>
+        <Button variant="ghost" size="sm" className="min-h-11 min-w-11 md:min-h-9 md:min-w-0" onClick={clear}>
           <X className="size-4" aria-hidden />
           {t('filters.clear', { count: activeCount })}
         </Button>

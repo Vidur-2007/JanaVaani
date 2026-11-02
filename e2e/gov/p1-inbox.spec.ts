@@ -166,3 +166,24 @@ test('inbox is usable at 360 px', async ({ page }) => {
   await page.getByRole('button', { name: 'Menu' }).click();
   await expect(page.getByRole('link', { name: 'Review queues' })).toBeVisible();
 });
+
+test('rows do not glow as new on first load or after filtering', async ({ page }) => {
+  await signInAs(page, 'supervisor');
+  await page.goto('/officer');
+  await expect(rows(page).first()).toBeVisible();
+  await expect(page.locator('[data-fresh]')).toHaveCount(0);
+  await page.getByTestId('summary-overdue').click();
+  await expect(page).toHaveURL(/overdue=true/);
+  await expect(rows(page).first()).toBeVisible();
+  await expect(page.locator('[data-fresh]')).toHaveCount(0);
+});
+
+test('first case is on screen at 360 px, with filters folded away', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await signInAs(page, 'supervisor');
+  await page.goto('/officer');
+  await expect(page.getByTestId('case-card').first()).toBeInViewport();
+  await page.getByRole('button', { name: 'Filters' }).click();
+  await expect(page.getByLabel('Overdue only')).toBeVisible();
+  await noOverflow(page);
+});

@@ -7,7 +7,7 @@ export function InboxTabs() {
   const { t } = useTranslation('gov');
   const tab = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'touch-target inline-flex items-center border-b-2 px-3 text-sm transition-colors md:min-h-9',
+      'inline-flex min-h-11 items-center border-b-2 px-3 text-sm transition-colors md:min-h-9',
       isActive ? 'border-primary text-text font-medium' : 'text-muted-foreground hover:text-text border-transparent',
     );
   return (

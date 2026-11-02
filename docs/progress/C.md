@@ -4,11 +4,23 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 ## Status
 
-- **Done:** P0 planning (this file).
-- **In progress:** nothing; waiting for `v0-scaffold`.
-- **Next:** P1 once A announces the scaffold.
-- **Blockers:** `v0-scaffold` is not on origin yet. Items B1–B3 below need B's human.
+- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`.
+- **In progress:** nothing.
+- **Next:** P2 case cockpit and supervisor queues.
+- **Blockers:**
+  - **CARTO tiles are watermarked "API KEY REQUIRED"** on every anonymous request, with or without a referrer. The URL is hardcoded in A's `MapViewImpl.tsx`, and CARTO is in the locked stack (master §4), so this needs a team decision. It affects every map, including landing and citizen. Proposed: A adds an optional tile URL/attribution prop to `MapView`.
+  - A's `e2e/citizen/smoke.spec.ts` "gov routes render" test asserts the `gov-placeholder` and `inbox-stub` test ids on `/officer` and `/admin`, which P1 replaced. A should update it; C does not own that file.
+  - Items B1–B3 below need B's human.
 - **Contract notes:** see section 6. Copy the agreed ones to `docs/contract-notes/C.md`.
+
+### P1 notes for later phases
+
+- `CommandCenterStub.tsx` is an interim page that exercises `KPIStatGov`, `GovMap`, `AlertCard` and `ChartCard`. P3 replaces it.
+- `PriorityFactorList`, `RoutingExplain` and `VerificationBadge` compile but have no page or test until P2.
+- `.touch-target` beats responsive `md:min-h-*` utilities. On dense gov controls use `min-h-11 min-w-11 md:min-h-9 md:min-w-0` instead.
+- `DataTable` uses `content-visibility` for lists over 100 rows instead of a virtualizer, since data is server-paged. Revisit in P6 if needed.
+- `@tanstack/react-table` is v9: the option is `features`, not v8's API.
+- Mock `/officer/inbox` accepts a zone in `ward`; the live API may not (G7).
 
 ## 1. Pages, routes and endpoints
 
@@ -122,10 +134,12 @@ If time runs short, cut in this order: time slider, report builder, charts on th
 
 ## 5. Check against the scaffold
 
-- **Supervisor routes:** only `officer`, `admin`, `public` and `gov-shared` stubs are specified. Confirm `/supervisor` can be registered from `portals/officer/routes.tsx`. If the router mounts that file under `/officer`, ask A; `src/app` is not ours to edit.
-- **Mock hook:** does the mock layer accept additions? If not, use the `gov-shared/api.ts` wrapper.
-- **#22 mock:** does it return real polygons?
-- **Dependencies:** is SheetJS installed? `@tanstack/react-virtual` is not in master §4, and `DataTable` needs virtualization over 100 rows. Use server paging until P6, then add it.
+Resolved at P1:
+
+- **Supervisor routes:** mounted through the `SupervisorRoutes` named export. No change needed from A.
+- **Mock hook:** `registerMockHandler` exists; use it from `gov-shared/mocks/` instead of an `api.ts` wrapper.
+- **#22 mock:** returns real ward polygons.
+- **Dependencies:** SheetJS is installed. `@tanstack/react-virtual` is not; see the `DataTable` note in Status.
 
 ## 6. Contract gaps
 

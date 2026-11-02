@@ -73,6 +73,7 @@ export function useInboxData(filters: Filters, sort: InboxSort, page: number) {
     total: text || clientOnly ? items.length : (inbox.data?.total ?? 0),
     paged: !text && !clientOnly,
     isPending: active.isPending,
+    settled: !active.isPending && !inbox.isPlaceholderData,
     // A ticket that doesn't exist is an empty result, not a failure.
     isError: ticket ? false : active.isError,
     error: active.error,

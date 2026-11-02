@@ -132,7 +132,7 @@ export function DataTable<T extends RowData>({
   const columnsMenu = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="touch-target md:min-h-9">
+        <Button variant="outline" size="sm" className="min-h-11 min-w-11 md:min-h-9 md:min-w-0">
           <Columns3 className="size-4" aria-hidden />
           {t('table.columns')}
         </Button>
@@ -237,6 +237,7 @@ export function DataTable<T extends RowData>({
                   key={row.id}
                   data-row-index={i}
                   data-testid="table-row"
+                  data-fresh={fresh || undefined}
                   aria-selected={selectable ? selected : undefined}
                   tabIndex={-1}
                   initial={fresh && !reduced ? { opacity: 0, y: -10 } : false}

@@ -65,12 +65,15 @@ export function SummaryStrip({
     Object.keys(f).length === Object.keys(filters).length;
 
   return (
-    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-label={t('inbox.summary')}>
+    <ul
+      className="flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-5 md:overflow-visible md:pb-0"
+      aria-label={t('inbox.summary')}
+    >
       {TILES.map((tile, i) => {
         const r = results[i];
         const active = activeKey(tile.filter);
         return (
-          <li key={tile.key} className={cn(i === 0 && 'col-span-2 sm:col-span-1')}>
+          <li key={tile.key} className="w-36 shrink-0 md:w-auto">
             <button
               type="button"
               aria-pressed={active}

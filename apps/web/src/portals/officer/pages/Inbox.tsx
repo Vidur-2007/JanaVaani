@@ -33,10 +33,12 @@ const FRESH_MS = 4000;
 const getRowId = (g: Grievance) => g.id;
 
 /** Ids that appeared since the last refetch of the same view, held briefly so they can glow. */
-function useFreshIds(items: Grievance[], viewKey: string) {
+function useFreshIds(items: Grievance[], viewKey: string, settled: boolean) {
   const seen = useRef<{ key: string; ids: Set<string> } | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
   useEffect(() => {
+    // Skip loading and placeholder frames: only two real results of one view can reveal an arrival.
+    if (!settled) return;
     const ids = new Set(items.map((g) => g.id));
     const prev = seen.current;
     seen.current = { key: viewKey, ids };
@@ -46,7 +48,7 @@ function useFreshIds(items: Grievance[], viewKey: string) {
     setFresh(new Set(arrived));
     const timer = window.setTimeout(() => setFresh(new Set()), FRESH_MS);
     return () => window.clearTimeout(timer);
-  }, [items, viewKey]);
+  }, [items, viewKey, settled]);
   return fresh;
 }
 
@@ -61,7 +63,7 @@ export default function Inbox() {
   const [selection, setSelection] = useState<RowSelectionState>({});
 
   const data = useInboxData(filters, sort, page);
-  const fresh = useFreshIds(data.items, JSON.stringify(data.query));
+  const fresh = useFreshIds(data.items, JSON.stringify(data.query), data.settled);
 
   useLiveEvent((e) => {
     if (e.kind === 'grievance_created') toast(t('inbox.new_case'));
@@ -101,7 +103,7 @@ export default function Inbox() {
           <div className="space-y-0.5">
             <DepartmentBadge department={row.original.category} size="sm" />
             <p className="text-muted-foreground max-w-40 truncate text-xs">
-              {[row.original.routing.sub_department, row.original.location.ward_name]
+              {[row.original.routing.sub_department?.replace(/_/g, ' '), row.original.location.ward_name]
                 .filter(Boolean)
                 .join(' · ')}
             </p>
@@ -205,7 +207,7 @@ export default function Inbox() {
                     {t('inbox.count', { count: data.total })}
                   </span>
                   <Select value={sort} onValueChange={(v) => setParam('sort', v === 'priority' ? '' : v)}>
-                    <SelectTrigger size="sm" aria-label={t('inbox.sort.label')} className="touch-target md:min-h-9">
+                    <SelectTrigger size="sm" aria-label={t('inbox.sort.label')} className="min-h-11 min-w-11 md:min-h-9 md:min-w-0">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -226,7 +228,7 @@ export default function Inbox() {
               <Button
                 variant="outline"
                 size="icon"
-                className="touch-target md:min-h-9 md:min-w-9"
+                className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"
                 disabled={page <= 1}
                 aria-label={t('table.previous')}
                 onClick={() => setParam('page', page > 2 ? String(page - 1) : '')}
@@ -237,7 +239,7 @@ export default function Inbox() {
               <Button
                 variant="outline"
                 size="icon"
-                className="touch-target md:min-h-9 md:min-w-9"
+                className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"
                 disabled={page >= lastPage}
                 aria-label={t('table.next')}
                 onClick={() => setParam('page', String(page + 1))}

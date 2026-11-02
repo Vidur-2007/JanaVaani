@@ -5,6 +5,7 @@ import { LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from '@/design/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/design/ui/tooltip';
 import { LanguageSwitcher, LiveIndicator, Logo, ThemeToggle } from '@/design/components';
+import { DEMO_MODE } from '@/lib/api/client';
 import { useAuth } from '@/lib/auth/useAuth';
 import { cn } from '@/lib/utils';
 import { navForRole, type NavItem } from './nav';
@@ -31,7 +32,7 @@ function NavEntry({
       aria-label={collapsed ? t(item.labelKey) : undefined}
       className={({ isActive }) =>
         cn(
-          'touch-target group relative flex items-center gap-3 rounded-[var(--radius-sm)] px-3 text-sm transition-colors md:min-h-10',
+          'group relative flex min-h-11 items-center gap-3 rounded-[var(--radius-sm)] px-3 text-sm transition-colors md:min-h-10',
           collapsed && 'justify-center px-0',
           isActive
             ? 'bg-primary/12 text-primary font-medium'
@@ -75,14 +76,14 @@ export function SidebarBody({ collapsed = false, onToggle, onNavigate }: Sidebar
     ? tc(`departments.${profile.department_id}`)
     : t('shell.all_departments');
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 p-3">
+    <div className={cn('flex h-full min-h-0 flex-col gap-3 p-3', onToggle && DEMO_MODE && 'pb-16')}>
       <div className={cn('flex items-center gap-2', collapsed ? 'flex-col' : 'justify-between')}>
         <Logo showName={!collapsed} />
         {onToggle && (
           <Button
             variant="ghost"
             size="icon"
-            className="touch-target md:min-h-9 md:min-w-9"
+            className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"
             onClick={onToggle}
             aria-expanded={!collapsed}
             aria-label={collapsed ? t('shell.expand') : t('shell.collapse')}

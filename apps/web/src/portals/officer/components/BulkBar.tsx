@@ -102,16 +102,16 @@ export function BulkBar({
         <span className="tabular px-1 text-sm font-medium" aria-live="polite">
           {t('bulk.selected', { count: selected.length })}
         </span>
-        <Button variant="outline" size="sm" className="touch-target md:min-h-9" onClick={() => setAction('status')}>
+        <Button variant="outline" size="sm" className="min-h-11 min-w-11 md:min-h-9 md:min-w-0" onClick={() => setAction('status')}>
           <ListChecks className="size-4" aria-hidden />
           {t('bulk.set_status')}
         </Button>
-        <Button variant="outline" size="sm" className="touch-target md:min-h-9" onClick={() => setAction('assign')}>
+        <Button variant="outline" size="sm" className="min-h-11 min-w-11 md:min-h-9 md:min-w-0" onClick={() => setAction('assign')}>
           <UserRoundCheck className="size-4" aria-hidden />
           {t('bulk.assign')}
         </Button>
         {canMerge && (
-          <Button variant="outline" size="sm" className="touch-target md:min-h-9" onClick={() => setAction('merge')}>
+          <Button variant="outline" size="sm" className="min-h-11 min-w-11 md:min-h-9 md:min-w-0" onClick={() => setAction('merge')}>
             <GitMerge className="size-4" aria-hidden />
             {t('bulk.merge')}
           </Button>
@@ -119,7 +119,7 @@ export function BulkBar({
         <Button
           variant="ghost"
           size="icon"
-          className="touch-target md:min-h-9 md:min-w-9"
+          className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"
           aria-label={t('bulk.clear')}
           onClick={onClear}
         >

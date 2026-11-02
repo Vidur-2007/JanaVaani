@@ -69,7 +69,7 @@ export function NotificationsBell() {
             size="sm"
             disabled={unread === 0}
             onClick={() => read.mutate('all')}
-            className="touch-target md:min-h-8"
+            className="min-h-11 min-w-11 md:min-h-8 md:min-w-0"
           >
             <CheckCheck className="size-4" aria-hidden />
             {t('notifications.mark_all')}

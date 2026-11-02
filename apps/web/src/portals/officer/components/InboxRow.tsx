@@ -111,7 +111,7 @@ export function CaseCard({
     >
       <div className="flex items-center gap-2">
         {selectable && (
-          <span className="touch-target -ms-2 -my-2 grid place-items-center">
+          <span className="-ms-2 -my-2 grid min-h-11 min-w-11 place-items-center">
             <Checkbox
               checked={selected}
               onCheckedChange={onToggle}

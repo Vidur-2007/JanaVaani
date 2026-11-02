@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AnimatedOutlet } from '@/app/AnimatedOutlet';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/design/ui/sheet';
 import { PageSkeleton } from '@/design/components';
+import { DEMO_MODE } from '@/lib/api/client';
 import { useSurfaceTheme } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
 import '../mocks';
@@ -70,7 +71,7 @@ export function GovLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onSearch={() => setPaletteOpen(true)} onMenu={() => setMenuOpen(true)} />
-        <main id="main" className="min-w-0 flex-1 overflow-y-auto p-3 md:p-6">
+        <main id="main" className={cn('min-w-0 flex-1 overflow-y-auto p-3 md:p-6', DEMO_MODE && 'pb-20 md:pb-20')}>
           <Suspense fallback={<PageSkeleton />}>
             <AnimatedOutlet />
           </Suspense>

@@ -101,7 +101,7 @@ export function AlertCard({
           <div className="mt-2 flex items-center justify-between gap-2">
             <Link
               to={alertTarget(alert)}
-              className="text-signal touch-target inline-flex items-center gap-0.5 text-xs font-medium hover:underline md:min-h-6 md:min-w-0"
+              className="text-signal inline-flex min-h-11 min-w-11 items-center gap-0.5 text-xs font-medium hover:underline md:min-h-6 md:min-w-0"
             >
               {t('alert.view_cases', { count: alert.grievance_ids.length })}
               <ChevronRight className="rtl-flip size-3.5" aria-hidden />
@@ -110,7 +110,7 @@ export function AlertCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="touch-target md:min-h-7"
+                className="min-h-11 min-w-11 md:min-h-7 md:min-w-0"
                 disabled={acknowledged}
                 onClick={onAcknowledge}
               >

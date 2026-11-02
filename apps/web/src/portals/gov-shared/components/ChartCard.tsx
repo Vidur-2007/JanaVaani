@@ -89,7 +89,7 @@ export function ChartCard({
         <div className="flex shrink-0 items-center" data-no-export>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className="touch-target md:min-h-8 md:min-w-8" aria-label={t('chart.how_computed')}>
+              <Button variant="ghost" size="icon-sm" className="min-h-11 min-w-11 md:min-h-8 md:min-w-8" aria-label={t('chart.how_computed')}>
                 <Info className="size-4" aria-hidden />
               </Button>
             </PopoverTrigger>
@@ -101,7 +101,7 @@ export function ChartCard({
           <Button
             variant="ghost"
             size="icon-sm"
-            className="touch-target md:min-h-8 md:min-w-8"
+            className="min-h-11 min-w-11 md:min-h-8 md:min-w-8"
             aria-pressed={asTable}
             aria-label={asTable ? t('chart.view_chart') : t('chart.view_table')}
             disabled={!ready}
@@ -116,7 +116,7 @@ export function ChartCard({
           <Button
             variant="ghost"
             size="icon-sm"
-            className="touch-target md:min-h-8 md:min-w-8"
+            className="min-h-11 min-w-11 md:min-h-8 md:min-w-8"
             aria-label={t('chart.export_png')}
             disabled={!ready || exporting}
             onClick={exportPng}

@@ -23,7 +23,13 @@ function HeatLayer({ points }: { points: MapPoint[] }) {
   useEffect(() => {
     const layer = L.heatLayer(
       points.map((p) => [p.lat, p.lng, HEAT_WEIGHT[p.priority]]),
-      { radius: 26, blur: 22, minOpacity: 0.3, maxZoom: 14 },
+      {
+        radius: 26,
+        blur: 22,
+        minOpacity: 0.3,
+        maxZoom: 14,
+        gradient: { 0.2: '#22D3C5', 0.5: '#FFC23D', 0.8: '#FF7A1A', 1: '#FF4D5E' },
+      },
     );
     layer.addTo(map);
     return () => {
@@ -161,7 +167,12 @@ export default function GovMapLayers({
   onWardClick,
   onPointClick,
 }: GovMapLayersProps) {
+  const map = useMap();
   const [ready, setReady] = useState(false);
+  // The default corner sits on top of the boundary note.
+  useEffect(() => {
+    map.zoomControl?.setPosition('bottomright');
+  }, [map]);
   useEffect(() => {
     let live = true;
     pluginsReady.then(() => live && setReady(true));

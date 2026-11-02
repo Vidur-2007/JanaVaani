@@ -155,7 +155,7 @@ function IncidentCard({ incident, onResolve }: { incident: Incident; onResolve: 
             <LangBadge key={l} lang={l} />
           ))}
         </div>
-        <Button variant="outline" size="sm" className="touch-target mt-auto md:min-h-9" onClick={onResolve}>
+        <Button variant="outline" size="sm" className="min-h-11 mt-auto md:min-h-9" onClick={onResolve}>
           <CheckCheck className="size-4" aria-hidden />
           {t('incidents.resolve_all')}
         </Button>
