@@ -74,6 +74,8 @@ export interface MockDb {
   live_events: LiveEvent[];
   ai_metrics: AIMetrics;
   routing_corrections: number;
+  /** grievance id → user ids who added support (for "the issue you supported is fixed" updates). */
+  supporters: Record<string, string[]>;
 }
 
 // ---------------------------------------------------------------- clock
@@ -780,6 +782,7 @@ export function buildDb(baseNow = Math.floor(Date.now() / HOUR) * HOUR): MockDb 
     live_events: [],
     ai_metrics: undefined as unknown as AIMetrics,
     routing_corrections: 0,
+    supporters: {},
   };
   db.assets = buildAssets(rng);
   db.ai_metrics = buildMetrics();
@@ -970,6 +973,9 @@ export function buildDb(baseNow = Math.floor(Date.now() / HOUR) * HOUR): MockDb 
       created_at: iso(N - HOUR),
     });
 
+  // Lakshmi supported the Miyapur pothole incident (drives a community update when it is fixed).
+  db.supporters[cluster[0]] = ['u-lakshmi'];
+
   // ---- Notifications for demo citizens
   for (const uid of ['u-lakshmi', 'u-imran']) {
     const mine = db.grievances.filter((g) => db.owners[g.id] === uid).slice(0, 4);
@@ -994,6 +1000,18 @@ export function buildDb(baseNow = Math.floor(Date.now() / HOUR) * HOUR): MockDb 
       created_at: g.updated_at,
     }));
   }
+  const fixedNearby = db.grievances.find((g) => g.status === 'closed' && g.category === 'roads' && db.owners[g.id] !== 'u-lakshmi');
+  if (fixedNearby)
+    db.notifications['u-lakshmi'].push({
+      id: 'N-u-lakshmi-cu',
+      grievance_id: undefined,
+      type: 'community_update',
+      title: { original: 'మీరు మద్దతు ఇచ్చిన సమస్య పరిష్కారమైంది', en: 'An issue you supported is fixed', lang: 'te' },
+      body: { original: fixedNearby.title.original, en: fixedNearby.title.en, lang: fixedNearby.language },
+      read: false,
+      created_at: fixedNearby.closed_at ?? fixedNearby.updated_at,
+    });
+
   for (const o of ['u-ravi', 'u-sunitha', 'u-farhan', 'u-supervisor', 'u-admin']) {
     db.notifications[o] = db.alerts.slice(0, 3).map((a, i) => ({
       id: `N-${o}-${i + 1}`,

@@ -581,6 +581,12 @@ const BOT = {
     hi: 'आपकी शिकायत की ताज़ा स्थिति यह है।',
     ur: 'آپ کی شکایت کی تازہ صورتحال یہ ہے۔',
   },
+  track_none: {
+    en: 'I could not find a matching complaint. You can type its ticket ID, like GRV-2026-000123.',
+    te: 'సరిపోయే ఫిర్యాదు కనబడలేదు. దాని టికెట్ ID టైప్ చేయండి, ఉదా. GRV-2026-000123.',
+    hi: 'मिलती-जुलती शिकायत नहीं मिली। उसका टिकट ID लिखें, जैसे GRV-2026-000123।',
+    ur: 'ملتی جلتی شکایت نہیں ملی۔ اس کا ٹکٹ ID لکھیں، مثلاً GRV-2026-000123۔',
+  },
   info: {
     en: 'You can report any civic problem here: roads, water, garbage, streetlights, power, drains and more. Each complaint gets a ticket and a deadline.',
     te: 'ఇక్కడ మీరు ఏ పౌర సమస్యనైనా నివేదించవచ్చు: రోడ్లు, నీరు, చెత్త, వీధి దీపాలు, కరెంటు, డ్రైనేజీ మరియు మరిన్ని. ప్రతి ఫిర్యాదుకు టికెట్ మరియు గడువు ఉంటుంది.',
@@ -588,6 +594,9 @@ const BOT = {
     ur: 'یہاں آپ کوئی بھی شہری مسئلہ درج کر سکتے ہیں: سڑک، پانی، کچرا، اسٹریٹ لائٹ، بجلی، نالی اور بہت کچھ۔ ہر شکایت کو ٹکٹ اور مدت ملتی ہے۔',
   },
 } satisfies Record<string, Record<DeepLang, string>>;
+
+/** Status questions in any script ("what happened", "status", "ఏమైంది", "क्या हुआ", "کیا ہوا"). */
+const TRACK_WORDS = /what happened|status of|any update|where is my|ఏమైంది|ఏమయింది|స్థితి|क्या हुआ|स्थिति|कहाँ तक|کیا ہوا|کیا بنا|kya hua|emaindi/i;
 
 const BOT_SPLIT: Record<DeepLang, string> = {
   en: 'I found {n} separate problems in your message. Choose which ones to register.',
@@ -834,6 +843,18 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
       tracked: g ? [strip(refresh(g))] : [],
     });
   }
+  if (!s.draft && TRACK_WORDS.test(text) && ctx.user) {
+    const mine = db.grievances.filter((g) => db.owners[g.id] === ctx.user!.id);
+    const dept = classify(text).dept;
+    const pick = (dept !== 'other' ? mine.filter((g) => g.category === dept) : mine.filter((g) => isOpen(g.status))).slice(0, 3);
+    s.stage = 'answered';
+    return base({
+      intent: 'track_status',
+      stage: 'answered',
+      reply: L(pick.length ? BOT.track[ui] : BOT.track_none[ui], ui, pick.length ? BOT.track.en : BOT.track_none.en),
+      tracked: pick.map((g) => strip(refresh(g))),
+    });
+  }
   const det = detectLang(text, req.lang_hint);
   const lastAsked = s.asked[s.asked.length - 1];
   if (s.stage === 'collecting' && s.draft && lastAsked && !s.fields[lastAsked]) {
@@ -916,6 +937,7 @@ function support(ctx: MockCtx, id: string) {
   const g = inc ? findGrievance(inc.grievance_ids[0]) : findGrievance(id);
   if (!g) throw new MockHttpError(404, 'not_found', `${id} not found`);
   g.support_count += 1;
+  if (ctx.user) db.supporters[g.id] = [...new Set([...(db.supporters[g.id] ?? []), ctx.user.id])];
   const incident = g.incident_id ? db.incidents.find((i) => i.id === g.incident_id) : undefined;
   if (incident) incident.support_count += 1;
   pushEvent(
@@ -1221,6 +1243,15 @@ function resolve(ctx: MockCtx) {
       title: g.title,
       body: L('Please confirm whether the issue is fixed.', 'en'),
     });
+  // Community update for everyone who supported it (feature 105).
+  for (const uid of db.supporters[g.id] ?? [])
+    if (uid !== owner)
+      notify(uid, {
+        grievance_id: undefined,
+        type: 'community_update',
+        title: L('An issue you supported is fixed', 'en'),
+        body: g.title,
+      });
   touch(g);
   return g;
 }
@@ -1691,7 +1722,10 @@ export const handlers: MockHandler[] = [
       if (scope === 'mine') pool = pool.filter((g) => ctx.user && db.owners[g.id] === ctx.user.id);
       else if (scope === 'gov') pool = scopeForOfficer(ctx, pool);
       else pool = pool.filter((g) => !g.is_private);
-      const grievances = q ? filterList(pool, new URLSearchParams({ q })).slice(0, 20).map(strip) : [];
+      // Cross-language: a query also matches complaints of the department it describes (any script).
+      const qDept = q ? classify(q).dept : 'other';
+      const hits = q ? pool.filter((g) => filterList([g], new URLSearchParams({ q })).length > 0 || (qDept !== 'other' && g.category === qDept)) : [];
+      const grievances = hits.slice(0, 20).map((g) => strip(refresh(g)));
       const guide = q ? GUIDE.filter((s) => (s.title + s.snippet).toLowerCase().includes(q)) : [];
       return { grievances, guide };
     },

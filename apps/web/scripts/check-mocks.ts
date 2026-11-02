@@ -62,6 +62,22 @@ async function main() {
   sp = await call('POST', '/chat/turn', { session_id: sp.session_id, action: 'split_confirm', action_payload: { draft_ids: sp.drafts.map((d) => d.draft_id) }, input_mode: 'text', ui_lang: 'en' }, GUEST_PROFILE);
   if (sp.submitted?.length !== 2 || !sp.submitted[0].guest_pin) throw new Error('split_confirm should submit 2 with guest pins');
 
+  // Cross-language search: a Telugu "street light" query finds the citizen's English streetlight complaint.
+  const found = await call<{ grievances: Grievance[] }>('GET', '/search?q=' + encodeURIComponent('వీధి లైట్') + '&scope=mine', null, citizen);
+  if (!found.grievances.some((x) => x.category === 'streetlights')) throw new Error('cross-language search should find streetlights');
+
+  // Chat tracking: "what happened to my water complaint?" → tracked[] (Imran owns water complaints).
+  const imran = DEMO_USERS.find((u) => u.id === 'u-imran')!;
+  const tr = await call<ChatTurnResponse>('POST', '/chat/turn', { text: 'What happened to my water complaint?', input_mode: 'text', ui_lang: 'en' }, imran);
+  if (tr.intent !== 'track_status' || !tr.tracked?.length || tr.tracked.some((x) => x.category !== 'water')) throw new Error('expected tracked water complaints');
+
+  // Community update: resolving the Miyapur incident lead notifies Lakshmi, who supported it.
+  const lead = getDb().incidents[0].grievance_ids[0];
+  const before = getDb().notifications['u-lakshmi']?.length ?? 0;
+  await call('POST', `/officer/grievances/${lead}/resolve`, { media_ids: [], note: 'patched' }, officer);
+  const notes = getDb().notifications['u-lakshmi'] ?? [];
+  if (notes.length !== before + 1 || notes[0].type !== 'community_update') throw new Error('supporter should get a community update');
+
   const draft = await call<GrievanceDraft>('POST', '/grievances/analyze', { text: 'Garbage not collected for a week near the park', ui_lang: 'en', location: ward }, citizen, '/grievances/analyze');
   const created = await call<{ grievance: Grievance }>('POST', '/grievances', { draft, location: ward, media_ids: [], is_anonymous: false, is_private: false }, citizen, '/grievances');
   await call('POST', '/grievances/check-duplicates', { text: 'pothole', location: { lat: 17.4968, lng: 78.3614, source: 'gps' }, category: 'roads' }, citizen, '/grievances/check-duplicates');
