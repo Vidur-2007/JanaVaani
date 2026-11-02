@@ -4,10 +4,10 @@ Embeddings are stored as JSON float lists; on Postgres a pgvector migration can 
 import uuid
 from datetime import datetime
 
-from sqlalchemy import (JSON, Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text,
+from sqlalchemy import (JSON, Boolean, Float, ForeignKey, Index, Integer, String, Text,
                         UniqueConstraint, Uuid)
 
-from .core.types import JSONB, Embedding, StrList
+from .core.types import JSONB, Embedding, StrList, UTCDateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .core import clock
@@ -36,7 +36,7 @@ class Profile(Base):
     office_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
     office_phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
 
 
 class Asset(Base):
@@ -65,7 +65,7 @@ class Incident(Base):
     lat: Mapped[float] = mapped_column(Float)
     lng: Mapped[float] = mapped_column(Float)
     status: Mapped[str] = mapped_column(String(40), default="assigned")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
 
 
 class Grievance(Base):
@@ -107,8 +107,8 @@ class Grievance(Base):
     assigned_officer_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), ForeignKey("profiles.id", ondelete="SET NULL"), nullable=True)
     escalation_level: Mapped[int] = mapped_column(Integer, default=0)
     sla_hours: Mapped[int] = mapped_column(Integer, default=96)
-    sla_due_at: Mapped[datetime] = mapped_column(DateTime)
-    eta_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    sla_due_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    eta_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
     delay_reason: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     incident_id: Mapped[str | None] = mapped_column(ForeignKey("incidents.id", ondelete="SET NULL"), nullable=True)
     support_count: Mapped[int] = mapped_column(Integer, default=1)
@@ -122,11 +122,11 @@ class Grievance(Base):
     embedding: Mapped[list | None] = mapped_column(Embedding, nullable=True)
     embedding_kind: Mapped[str | None] = mapped_column(String(16), nullable=True)  # semantic|lexical
     pipeline_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    first_response_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now)
-    resolved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    first_response_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now, index=True)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now, onupdate=_now)
+    resolved_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
+    closed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
     media: Mapped[list["Media"]] = relationship(back_populates="grievance", order_by="Media.created_at")
     officer: Mapped["Profile | None"] = relationship(foreign_keys=[assigned_officer_id])
@@ -143,7 +143,7 @@ class Supporter(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     grievance_id: Mapped[str] = mapped_column(ForeignKey("grievances.id", ondelete="CASCADE"))
     user_key: Mapped[str] = mapped_column(String(64))  # profile id or guest session key
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
     __table_args__ = (UniqueConstraint("grievance_id", "user_key", name="uq_supporter"),)
 
 
@@ -159,7 +159,7 @@ class Media(Base):
     ai: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     geo: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     phash: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
     grievance: Mapped["Grievance | None"] = relationship(back_populates="media")
 
 
@@ -176,7 +176,7 @@ class TimelineEvent(Base):
     message: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     internal: Mapped[bool] = mapped_column(Boolean, default=False)
     payload: Mapped[dict] = mapped_column(JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
     prev_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     hash: Mapped[str] = mapped_column(String(64))
     __table_args__ = (UniqueConstraint("grievance_id", "seq", name="uq_event_seq"),)
@@ -190,7 +190,7 @@ class Message(Base):
     sender: Mapped[str] = mapped_column(String(16))
     sender_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     text: Mapped[dict] = mapped_column(JSONB)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
 
 
 class ChatSession(Base):
@@ -198,8 +198,8 @@ class ChatSession(Base):
     id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True, default=_uuid)
     user_id: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), nullable=True)
     state: Mapped[dict] = mapped_column(JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
+    updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now, onupdate=_now)
 
 
 class Appeal(Base):
@@ -210,8 +210,8 @@ class Appeal(Base):
     status: Mapped[str] = mapped_column(String(16), default="filed")
     decision_note: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     decided_by: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
-    decided_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
+    decided_at: Mapped[datetime | None] = mapped_column(UTCDateTime, nullable=True)
 
 
 class Notification(Base):
@@ -223,7 +223,7 @@ class Notification(Base):
     title: Mapped[dict] = mapped_column(JSONB)
     body: Mapped[dict] = mapped_column(JSONB)
     read: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
 
 
 class LiveEvent(Base):
@@ -232,7 +232,7 @@ class LiveEvent(Base):
     audience: Mapped[str] = mapped_column(String(64), index=True)
     kind: Mapped[str] = mapped_column(String(24))
     grievance_id: Mapped[str | None] = mapped_column(String(24), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
 
 
 class AlertRow(Base):
@@ -246,7 +246,7 @@ class AlertRow(Base):
     category: Mapped[str | None] = mapped_column(String(32), nullable=True)
     grievance_ids: Mapped[list] = mapped_column(StrList, default=list)
     dedupe_key: Mapped[str] = mapped_column(String(120), unique=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
 
 
 class RoutingCorrection(Base):
@@ -257,7 +257,7 @@ class RoutingCorrection(Base):
     to_department: Mapped[str] = mapped_column(String(32))
     text_original: Mapped[str] = mapped_column(Text)   # masked text only
     by_user: Mapped[str | None] = mapped_column(Uuid(as_uuid=False), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
 
 
 class AICall(Base):
@@ -270,7 +270,7 @@ class AICall(Base):
     ok: Mapped[bool] = mapped_column(Boolean)
     fallback_used: Mapped[bool] = mapped_column(Boolean, default=False)
     error_code: Mapped[str | None] = mapped_column(String(40), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now, index=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now, index=True)
 
 
 class ModelVersion(Base):
@@ -278,7 +278,7 @@ class ModelVersion(Base):
     version: Mapped[str] = mapped_column(String(32), primary_key=True)
     metrics: Mapped[dict] = mapped_column(JSONB)
     corrections_used: Mapped[int] = mapped_column(Integer, default=0)
-    trained_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    trained_at: Mapped[datetime] = mapped_column(UTCDateTime, default=_now)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
