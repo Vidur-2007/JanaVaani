@@ -4,15 +4,27 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 ## Status
 
-- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
+- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P4: alerts, audit explorer and block chain, AI model page, demo controls, CSV/Excel/PDF exports, report builder, `e2e/gov/p4-trust.spec.ts`. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
 - **In progress:** P3 Step 1 is unfinished: B has no deployed URL, so `.env.local` is not set and the UI has not run in hybrid mode.
-- **Next:** finish Step 1 when B posts the URL, then P4.
+- **Next:** finish Step 1 when B posts the URL; P5 public portal, realtime, i18n, accessibility.
 - **Blockers:**
   - **B's API is not deployed** (needs Supabase project, keys and HF Space, per B's handover).
   - **CARTO tiles are watermarked "API KEY REQUIRED"** on every anonymous request, with or without a referrer. The URL is hardcoded in A's `MapViewImpl.tsx`, and CARTO is in the locked stack (master §4), so this needs a team decision. It affects every map, including landing and citizen. Proposed: A adds an optional tile URL/attribution prop to `MapView`.
   - A's `e2e/citizen/smoke.spec.ts` "gov routes render" test asserts the `gov-placeholder` and `inbox-stub` test ids on `/officer` and `/admin`, which P1 replaced. A should update it; C does not own that file.
   - Items B2 and B3 below need B's human. B1 is resolved: B allows supervisors on the admin GETs.
 - **Contract notes:** see section 6 and `docs/contract-notes/C.md`.
+
+### P4 notes for later phases
+
+- "Hybrid" so far means a dead API: every call falls back to mocks and the counter rises. Real hybrid needs B's URL and a login.
+- P4 endpoints were checked on B's local API with scripts: audit, verify, metrics, retrain, clock (+48 h gave 396 escalations, alerts 6 to 13), reset and health. No mismatches.
+- Demo toast uses B's `escalations` stats, with an alert-count diff as fallback (`ClockResult` in `types-ext.ts`). G3 is resolved.
+- Spike mini-chart uses citywide category counts from #46 (G6), so its baseline can differ from the ward-level figure in the alert text.
+- "Verify all chains" checks every chain, not the sample of 50 in the spec, because #52 without an id does that.
+- Human-set macro-F1 shows a dash: B computes it but #53 drops it (G10).
+- Alert acknowledgement is stored per browser.
+- Mock verify reports GRV-2026-000119 as tampered, to rehearse the red state. Real tampering needs B's `scripts/tamper_demo.py`.
+- `GovPlaceholder` stays until the P5 public portal replaces its last use.
 
 ### P3 notes for later phases
 
