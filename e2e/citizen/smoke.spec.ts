@@ -126,7 +126,7 @@ test('guarded route redirects to login; unknown route shows 404', async ({ page 
 test('signed-in citizen switches to Urdu → RTL', async ({ page }) => {
   await signInAs(page, 'citizen');
   await page.goto('/app/settings');
-  await page.getByRole('radio', { name: 'اردو' }).click();
+  await page.getByRole('radiogroup', { name: 'Language', exact: true }).getByRole('radio', { name: 'اردو' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ur');
   await expectRendered(page);
