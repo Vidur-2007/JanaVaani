@@ -13,6 +13,9 @@ HAZARD_LABEL = {"live_wire": "Live wire", "fire": "Fire", "gas_leak": "Gas leak"
 
 
 # ---------- routing vote ----------
+RULE_CONFIDENCE = 0.9
+
+
 def route(classifier: dict, gemini: str | None, groq: str | None, key_phrases: list[str] | None = None,
           rule_department: str | None = None) -> dict:
     votes = [{"source": "classifier", "department": classifier["department"], "confidence": round(classifier["confidence"], 3)}]
@@ -20,17 +23,23 @@ def route(classifier: dict, gemini: str | None, groq: str | None, key_phrases: l
         votes.append({"source": "gemini", "department": gemini})
     if groq:
         votes.append({"source": "groq", "department": groq})
+    if rule_department:
+        votes.append({"source": "rule", "department": rule_department})
     labels = [v["department"] for v in votes]
     counts = {l: labels.count(l) for l in labels}
     top = max(counts.values())
     if top >= 2:
         label = max(counts, key=counts.get)
+    elif rule_department:
+        label = rule_department
     elif classifier["confidence"] >= 0.6 or not gemini:
         label = classifier["department"]
     else:
         label = gemini
     p = classifier.get("proba", {}).get(label, 0.0)
-    llm_votes = [v for v in votes if v["source"] != "classifier"]
+    if label == rule_department:     # a safety keyword settles it; a model that lacks the phrase must not drag confidence down
+        p = max(p, RULE_CONFIDENCE)
+    llm_votes = [v for v in votes if v["source"] in ("gemini", "groq")]
     if llm_votes:
         conf = 0.5 * p + 0.25 * (gemini == label) + 0.25 * (groq == label)
         if not gemini or not groq:   # one LLM missing: renormalise over available signals
@@ -48,6 +57,8 @@ def route(classifier: dict, gemini: str | None, groq: str | None, key_phrases: l
     agree = [v["source"] for v in votes if v["department"] == label]
     who = {1: "only {}".format(agree[0] if agree else "classifier"), 2: " and ".join(agree) + " agree",
            3: "our model, Gemini and Groq all agree"}.get(len(agree), ", ".join(agree))
+    if "rule" in agree:
+        who = "safety keyword rule" + (", " + " and ".join(a for a in agree if a != "rule") + " agree" if len(agree) > 1 else "")
     expl = f"Routed to {name}: {who} (model p={p:.2f}, confidence {conf:.2f})"
     if key_phrases:
         expl += "; key phrases: " + ", ".join(f"'{k}'" for k in key_phrases[:3])

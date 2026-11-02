@@ -16,6 +16,7 @@ from ..refdata import DEPARTMENT_IDS, department, ward_by_mention, ward_for_poin
 from . import safety, scoring
 
 URGENCY = ["critical", "high", "medium", "low"]
+HAZARD_DEPARTMENT = {"live_wire": "power", "open_manhole": "drainage"}   # keyword hazards with one obvious owner
 DISTRESS_WORDS = ["please help", "urgent", "immediately", "dying", "scared", "fed up", "nobody is responding", "sick",
                   "దయచేసి", "వెంటనే", "कृपया", "तुरंत", "براہ کرم", "فوری", "help karo", "chala ibbandi"]
 VULNERABLE_WORDS = {"children": ["child", "children", "kids", "school", "పిల్ల", "बच्च", "بچ", "pillalu", "bachon"],
@@ -128,7 +129,8 @@ def analyze(original_text: str, location: dict | None = None, images=None) -> di
         second = _clean_cat(so["department"]) if so else None
     gemini_vote = a["category"] if a.get("analysis_source") == "gemini" else None
     groq_vote = second if second else (a["category"] if a.get("analysis_source") == "groq" else None)
-    routing = scoring.route(cls, gemini_vote, groq_vote, a.get("category_evidence"))
+    rule = next((d for h, d in HAZARD_DEPARTMENT.items() if h in emergency["hazards"]), None)
+    routing = scoring.route(cls, gemini_vote, groq_vote, a.get("category_evidence"), rule)
     routing["sub_department"] = a.get("sub_department") or None
     routing["secondary_departments"] = [c for c in a.get("secondary_categories", []) if c in DEPARTMENT_IDS and c != routing["department"]]
 
