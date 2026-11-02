@@ -2,6 +2,8 @@
 
 Additive changes to the shared contract (new optional fields, new endpoints). Newest first.
 
+- **2026-11-02 (Fix Phase 4A)** `Media.url` and `PublicStats.recent_resolved[].after_url` are now absolute and expire after 24 h (`…/api/v1/uploads/{id}?exp=&sig=`), replacing the relative path. Use them directly as an image source; C's `mediaUrl()` passes them through unchanged. Don't store them, refetch instead. `GET /uploads/{id}` may answer 307 to a Supabase signed URL; a bad or expired link gets 403. `/health` gains `providers.storage` (`supabase|local`).
+
 - **2026-11-02 (Fix Phase 2)** Behaviour now matches what A's portal sends: `POST /grievances/{id}/support` and chat `support_existing` accept an incident id (support lands on the oldest open member; #5 returns the incident total). Chat `edit` applies `action_payload.text` and `location`. `split_confirm` files one grievance per `action_payload.draft_ids` entry, with `related_ids` cross-filled and its own `guest_pin` for guests. `continue_after_emergency` with no text goes straight on. While the location is missing, `missing_fields` is always `["location_detail"]`. `stage: emergency` can now also come from the AI's `is_emergency`, in which case `matched_terms` holds hazard ids such as `live_wire`.
 
 - **2026-11-02 (Fix Phase 1)** `POST /auth/demo-login` now returns 403 `demo_login_disabled` when `SUPABASE_URL` is set, unless `ALLOW_DEMO_LOGIN=true`. App-issued tokens are accepted only while `DEMO_MODE=true`. Frontends that sign in through Supabase are unaffected.

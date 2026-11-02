@@ -72,7 +72,7 @@
 - Fixed: `0003_asset_incident_coords.sql` (lat/lng on assets and incidents, geom/centroid kept in sync); `UTCDateTime` column type (timestamptz on Postgres, naive UTC in the app); `seed_db` and `/admin/demo/reset` can re-seed over existing data (append-only trigger bypassed for that transaction only); `SUPABASE_SERVICE_ROLE_KEY` read through Settings, so `.env` works; empty `DATABASE_URL` means SQLite, so `cp .env.example .env` starts.
 - Security: an unset or placeholder `APP_JWT_SECRET` now uses a random per-process secret (demo tokens end on restart; guest PIN hashes are unaffected); app tokens accepted only with `DEMO_MODE=true`; `/auth/demo-login` closed when Supabase is configured unless `ALLOW_DEMO_LOGIN=true`.
 - Tests: `tests/test_p6_live_mode.py`. **71 passed on SQLite; 71 passed on a throwaway Postgres 16 + pgvector with the real migrations and session TZ Asia/Kolkata.** PostGIS and pgcrypto were stubbed there, so Supabase itself is still untested.
-- Open, found by verification (Fix Phases 3-5): `intake_turn`/`ask_info`/`smalltalk` not implemented; relative media URLs and no Supabase Storage; Dockerfile not built and likely not Space-ready.
+- Open, found by verification (Fix Phases 3-5): `intake_turn`/`ask_info`/`smalltalk` not implemented; Dockerfile not yet built or deployed.
 
 ### Fix Phase 2 (citizen flow)
 - Fixed: `continue_after_emergency` continues without retyping; AI-flagged emergencies show the emergency screen once, with no rule floor (a human confirms); `split_confirm` files one linked grievance per selected draft, each draft with its own title, summary, routing and officer; `edit` applies new text or location; support accepts incident ids (A's quick report sends them); `check-duplicates` titles carry `lang`.
@@ -87,6 +87,12 @@
 - `live_wire` and `open_manhole` keyword hits add a `rule` routing vote (power, drainage). Two LLMs plus the model can still overrule it.
 - Seeded Miyapur parent now describes the story, and incident members report the incident total: "32 people" appears in duplicate matches. Pinned `scikit-learn==1.9.1` (pickled artefacts).
 - Verified with real e5 on throwaway Postgres; LLM responses were fake (real text_en may score differently).
+
+### Fix Phase 4A (photos, storage, deployment packaging)
+- `app/core/storage.py`: photos go to the private Supabase `evidence` bucket when configured, otherwise local disk; a Supabase failure falls back to disk. `Media.url` is an absolute API link with a 24 h signature; `GET /uploads/{id}` redirects to a cached Supabase signed URL (deviation from Spec B §4: no signed URL inside `Media.url`, which would cost one network call per photo on every list). The same-photo check uses the hash saved at upload.
+- Space image: runs as uid 1000, writes only to `/app/runtime` and `ml/models`, `--proxy-headers` for HTTPS links, SQLite + `AUTO_SEED` by default. `scripts/deploy_space.py` stages and pushes it, because Spaces need a root Dockerfile and the repo root belongs to A.
+- Verified by simulation only: staged folder with read-only code and the Dockerfile's env and command (seeded itself in 18 s; black box 236 passed, 4 known failures); fake Supabase Storage + Auth with Postgres and real migrations (black box 235 passed, same 4). **Not run: `docker build`, a real Space, real Supabase.** Tests: `tests/test_p9_storage_deploy.py`, 140 passed on SQLite and Postgres.
+- Known limits: uploads and retrained models are lost on restart without Supabase; retrained models revert on restart in any mode; each re-seed makes about 3 Supabase admin calls per seeded user.
 
 ## In progress
 Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys / HF Space.

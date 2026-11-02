@@ -52,12 +52,20 @@ cd services/api && uvicorn app.main:app --reload --port 8000
 **Live mode:** fill `.env` (Supabase Session pooler URI, keys) → `python ml/apply_migrations.py` → `python ml/seed_db.py` → start.
 
 ## 5. Deployment (Hugging Face Space, Docker SDK)
-`docker build -f services/api/Dockerfile -t janavaani-api .` from the repo root; on HF set the `.env` values as Space secrets; port 7860. Then `python scripts/record_demo.py --base https://<space>.hf.space/api/v1`.
+`scripts/deploy_space.py` stages only what the image needs (Dockerfile at the Space root, no frontend, tests or `.env`) and pushes it. The Space must be public so the frontends can reach it.
+```bash
+python scripts/deploy_space.py --stage-only /tmp/space                                   # inspect without pushing
+HF_TOKEN=<write token> python scripts/deploy_space.py --space <user>/<name> --secrets-from services/api/.env
+```
+- **Before Supabase exists:** with no `DATABASE_URL` secret the image runs on SQLite and seeds itself at startup, so A and C can use it straight away. That data and any uploads are lost on every restart.
+- **With Supabase:** enable `postgis` and `vector`, then locally fill `.env` → `python ml/apply_migrations.py` → `python ml/seed_db.py` (creates auth users and the seeded photo) → deploy with the secrets. Set a fixed `APP_JWT_SECRET` and add the Vercel URL to `ALLOWED_ORIGINS`.
+- **Then:** `python scripts/record_demo.py --base https://<space>.hf.space/api/v1`.
+- Retrained models are written inside the container and revert to the committed model on restart.
 
 ## 6. Integration — Laptop A and C
 - Base URL `VITE_API_BASE_URL=<api>/api/v1`, `VITE_API_MODE=hybrid`. All paths/shapes follow master §8/§9; additive fields are in `docs/contract-notes/B.md`.
 - Auth: Supabase access token as Bearer. Without Supabase (or with `ALLOW_DEMO_LOGIN=true`), `POST /api/v1/auth/demo-login {"email": "<demo>@janavaani.test"}` (DEMO_MODE) returns a token + profile.
-- Media URLs are `/api/v1/uploads/{id}` (relative to the API host) in offline mode.
+- `Media.url` is an absolute link that expires after 24 h; use it directly as an image source. Refetch to get a fresh one.
 - Realtime: subscribe to `live_events` (audiences `user:<id>`, `dept:<id>`, `role:admin`, `public`); signals only.
 - `/api/v1/translate` returns 503 `translation_unavailable` when providers are down — show the original text.
 
