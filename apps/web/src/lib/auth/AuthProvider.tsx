@@ -12,8 +12,10 @@ import {
   mockGuest,
   mockMagicLink,
   mockPasswordLogin,
+  readApiToken,
   readMockSession,
   toProfile,
+  writeApiToken,
   writeMockSession,
 } from './mockAuth';
 import type { AuthContextValue, AuthStatus, AuthUser, Profile } from './types';
@@ -63,6 +65,25 @@ async function profileFromSupabase(user: User): Promise<Profile> {
         'en') as DeepLang,
       department_id: (meta.department_id as Profile['department_id']) ?? demo?.department_id,
     };
+  }
+}
+
+/**
+ * Hybrid/live without Supabase Auth (B's offline/DEMO_MODE deployment): exchange a seeded demo email for an
+ * app token via `POST /auth/demo-login`, so user-scoped endpoints answer instead of 401. Any failure leaves
+ * the session token-less; hybrid mode then falls back to mocks for those calls.
+ */
+async function fetchDemoToken(m: MockProfile | null): Promise<void> {
+  writeApiToken(null);
+  if (API_MODE === 'mock' || !m?.email?.endsWith('@janavaani.test')) return;
+  try {
+    const res = await request<{ access_token: string }>('POST', '/auth/demo-login', {
+      body: { email: m.email },
+      mode: 'live',
+    });
+    if (res?.access_token) writeApiToken(res.access_token);
+  } catch {
+    /* API down, 403 on a Supabase deployment, or unknown account: stay on mocks */
   }
 }
 
@@ -122,7 +143,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setAuthBridge({
       getToken: async () =>
-        SUPABASE_AUTH ? ((await supabase!.auth.getSession()).data.session?.access_token ?? null) : null,
+        SUPABASE_AUTH
+          ? ((await supabase!.auth.getSession()).data.session?.access_token ?? null)
+          : API_MODE === 'mock'
+            ? null
+            : readApiToken(),
       getMockUser: () => (SUPABASE_AUTH ? mockUserFor(profile) : readMockSession()),
     });
   }, [profile, session]);
@@ -138,7 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(() => {
     if (!SUPABASE_AUTH) {
-      const signIn = (m: MockProfile) => {
+      const signIn = async (m: MockProfile) => {
+        await fetchDemoToken(m);
         applyMock(m);
         afterChange();
         return toProfile(m);
@@ -157,10 +183,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return signIn(m.role === 'guest' ? mockGuest() : m);
         },
         signOut: async () => {
+          writeApiToken(null);
           applyMock(null);
           afterChange();
         },
-        getAccessToken: async () => null,
+        getAccessToken: async () => (API_MODE === 'mock' ? null : readApiToken()),
       };
     }
     const sb = supabase!;

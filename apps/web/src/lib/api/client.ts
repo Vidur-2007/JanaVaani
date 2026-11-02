@@ -125,8 +125,14 @@ async function viaLive<T>(
   return (await res.json()) as T;
 }
 
-const shouldFallback = (e: unknown) =>
-  e instanceof TypeError || (e instanceof ApiRequestError && (e.status === 404 || e.status === 501));
+const shouldFallback = (e: unknown, hadToken: boolean) =>
+  e instanceof TypeError ||
+  (e instanceof ApiRequestError &&
+    (e.status === 404 ||
+      e.status === 501 ||
+      // P6: a token-less session (mock sign-in, API without auth) gets 401 on user-scoped routes.
+      // Hybrid must not show broken UI for that; with a real token a 401 is a genuine error.
+      (e.status === 401 && !hadToken)));
 
 // ---------------------------------------------------------------- public API
 
@@ -165,7 +171,9 @@ export async function request<T>(
   try {
     return await viaLive<T>(method, full, opts.body, opts.signal, opts.raw);
   } catch (e) {
-    if ((e as Error)?.name === 'AbortError' || !shouldFallback(e)) throw e;
+    if ((e as Error)?.name === 'AbortError') throw e;
+    const hadToken = !!(await bridge.getToken().catch(() => null));
+    if (!shouldFallback(e, hadToken)) throw e;
     console.info('[mock-fallback]', path);
     useMockFallbacks.getState().record(path);
     return viaMock<T>(method, full, opts.body, opts.signal, opts.raw);
