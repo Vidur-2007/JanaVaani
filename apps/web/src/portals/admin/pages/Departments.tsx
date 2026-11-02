@@ -26,6 +26,7 @@ import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { ChartCard } from '@/portals/gov-shared/components/ChartCard';
 import { DaysSelector, useDays } from '@/portals/gov-shared/components/DaysSelector';
 import { DeptLeaderboard, ScoreFormula } from '@/portals/gov-shared/components/DeptLeaderboard';
+import { ExportMenu } from '@/portals/gov-shared/components/ExportMenu';
 import { Panel } from '@/portals/gov-shared/components/Panel';
 import { SLACountdownGov } from '@/portals/gov-shared/components/SLACountdownGov';
 import { axisTick, CHART_ANIMATION_MS, deptColor, tooltipStyle } from '@/portals/gov-shared/lib/chart';
@@ -181,12 +182,27 @@ export default function Departments() {
     columns: [t('inbox.column.department'), t('admin.value')],
     rows: sorted(key).map((r) => [r.name, Number(r[key])]),
   });
+  const sheets = [
+    {
+      name: t('nav.departments'),
+      columns: ['#', t('inbox.column.department'), t('departments.score'), t('departments.sla'), t('departments.avg_resolution'), t('departments.satisfaction'), t('departments.reopen'), t('kpi.open'), t('kpi.overdue')],
+      rows: sorted('score').map((d) => [d.rank, d.name, d.score, d.sla_compliance_pct, d.avg_resolution_hours, d.satisfaction_avg, d.reopen_rate, d.open, d.overdue]),
+    },
+  ];
   const shared = { isLoading: q.isPending, error: q.error, onRetry: () => q.refetch(), isEmpty: rows.length === 0 };
   return (
     <PageTransition className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.departments')}</h1>
-        <DaysSelector />
+        <div className="flex items-center gap-2">
+          <DaysSelector />
+          <ExportMenu
+            sheets={sheets}
+            filename={`departments-${days}d`}
+            title={t('nav.departments')}
+            disabled={rows.length === 0}
+          />
+        </div>
       </header>
       <Panel title={t('admin.leaderboard')} action={<ScoreFormula />}>
         {q.isPending ? (

@@ -12,6 +12,7 @@ import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { cn } from '@/lib/utils';
 import { ChartCard } from '@/portals/gov-shared/components/ChartCard';
 import { DataTable, type DataColumn } from '@/portals/gov-shared/components/DataTable';
+import { ExportMenu } from '@/portals/gov-shared/components/ExportMenu';
 import { axisTick, CHART_ANIMATION_MS, median, tooltipStyle } from '@/portals/gov-shared/lib/chart';
 
 const OVERLOAD_RATIO = 1.5;
@@ -74,6 +75,13 @@ export default function Officers() {
     ],
     [t, fmt],
   );
+  const sheets = [
+    {
+      name: t('nav.officers'),
+      columns: [t('officers.officer'), t('inbox.column.department'), t('officers.open'), t('officers.critical'), t('officers.overdue'), t('officers.resolved_7d')],
+      rows: rows.map((r) => [r.officer.name, r.officer.department_id, r.open, r.critical, r.overdue, r.resolved_7d]),
+    },
+  ];
   const chart = rows.slice(0, 12).map((r) => ({
     name: r.officer.name,
     critical: r.critical,
@@ -81,7 +89,10 @@ export default function Officers() {
   }));
   return (
     <PageTransition className="space-y-4">
-      <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.officers')}</h1>
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.officers')}</h1>
+        <ExportMenu sheets={sheets} filename="officer-workload" title={t('nav.officers')} disabled={rows.length === 0} />
+      </header>
       {q.isPending ? (
         <ListSkeleton rows={4} />
       ) : q.isError ? (
