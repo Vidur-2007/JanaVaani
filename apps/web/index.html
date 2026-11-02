@@ -10,8 +10,90 @@
     <meta name="theme-color" content="#070A12" />
     <meta name="description" content="JanaVaani — speak your complaint in any language. Multilingual citizen grievance platform." />
     <title>JanaVaani</title>
+    <script>
+      // P6 boot: apply the saved theme/lang before first paint (no light→dark flash on the landing) and pick
+      // which static shell to show until React mounts. Mirrors lib/prefs (jv.prefs) — keep it tiny and safe.
+      (function () {
+        var d = document.documentElement;
+        var s = {};
+        try {
+          s = (JSON.parse(localStorage.getItem('jv.prefs') || '{}').state || {});
+        } catch (e) {}
+        var path = location.pathname;
+        var landing = path === '/' || path === '';
+        var gov = /^\/(officer|supervisor|admin|public)(\/|$)/.test(path);
+        var surface = landing || gov ? 'ink' : 'paper';
+        var dark = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = s.theme === 'ink' || s.theme === 'paper' ? s.theme : s.theme === 'system' ? (dark ? 'ink' : 'paper') : surface;
+        d.setAttribute('data-theme', theme);
+        if (s.contrast === 'high') d.setAttribute('data-contrast', 'high');
+        if (s.font === 'large') d.setAttribute('data-font', 'large');
+        var lang = s.ui_lang || (navigator.language || 'en').slice(0, 2);
+        if (lang === 'ur') d.dir = 'rtl';
+        if (['en', 'te', 'hi', 'ur'].indexOf(lang) >= 0) d.lang = lang;
+        d.setAttribute('data-boot', landing && d.lang === 'en' ? 'landing' : 'app');
+        window.__jvBootLang = d.lang;
+      })();
+    </script>
+    <style>
+      /* Static first paint, shown until React has rendered the real page (app/boot.ts removes #boot). Self-contained
+         (no dependency on the CSS bundle, which loads without blocking render), so it paints as soon as the HTML
+         arrives. It covers #root as an overlay: React lays out normally underneath (maps size correctly, autofocus
+         works) and a route skeleton never flashes in between. Colours mirror design/tokens.css. */
+      #boot { --b-bg: #f7f5f0; --b-text: #12141a; --b-muted: #5b6272; --b-primary: #a83c06; --b-primary-fg: #fff; --b-accent: #0a736b; --b-sk: #f0ede6; --b-border: #e3ded3; }
+      [data-theme='ink'] #boot { --b-bg: #070a12; --b-text: #eaf0fa; --b-muted: #8c97ad; --b-primary: #ff7a1a; --b-primary-fg: #1a0b00; --b-accent: #22d3c5; --b-sk: #131a2c; --b-border: rgb(148 163 184 / 0.14); }
+      [data-contrast='high'] #boot { --b-bg: #000; --b-text: #fff; --b-muted: #fff; --b-primary: #ffd400; --b-primary-fg: #000; --b-accent: #ffd400; --b-sk: #222; --b-border: #fff; }
+      html:has(#boot) { background: var(--bg, #f7f5f0); }
+      #boot { position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; background: var(--b-bg); color: var(--b-text); font-family: 'Noto Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+      #boot .bar { height: 4rem; display: flex; align-items: center; gap: .6rem; padding: 0 1rem; max-width: 72rem; margin: 0 auto; font-family: 'Anek Latin Variable', system-ui, sans-serif; font-weight: 700; font-size: 1.125rem; }
+      #boot .dot { width: 2rem; height: 2rem; border-radius: .6rem; background: var(--b-primary); }
+      #boot .sk { display: block; border-radius: .75rem; background: var(--b-sk); }
+      #boot .app { max-width: 64rem; margin: 0 auto; padding: 1rem; gap: 1rem; }
+      #boot .hero, #boot .app { display: none; }
+      [data-boot='landing'] #boot .hero { display: flex; }
+      [data-boot='app'] #boot .app { display: grid; }
+      #boot .hero { position: relative; isolation: isolate; overflow: hidden; min-height: calc(100dvh - 4rem); align-items: flex-end; }
+      #boot .hero::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(55% 45% at 72% 38%, color-mix(in oklab, var(--b-primary) 30%, transparent), transparent 70%), radial-gradient(45% 40% at 18% 72%, color-mix(in oklab, var(--b-accent) 24%, transparent), transparent 70%); }
+      #boot .in { width: 100%; max-width: 72rem; margin: 0 auto; padding: 6rem 1rem 4rem; }
+      #boot .eyebrow { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: var(--b-accent); margin: 0 0 1.25rem; }
+      #boot h1 { font-family: 'Anek Latin Variable', system-ui, sans-serif; font-weight: 600; font-size: 2.25rem; line-height: 1.15; letter-spacing: -.025em; margin: 0; min-height: 2.4em; display: flex; align-items: flex-end; }
+      #boot .sub { max-width: 36rem; margin: 1.5rem 0 0; font-size: 1.3rem; line-height: 1.9; color: var(--b-muted); }
+      #boot .ctas { margin-top: 2rem; display: flex; flex-wrap: wrap; gap: .75rem; }
+      #boot .ctas a { display: inline-flex; align-items: center; height: 3rem; padding: 0 1.5rem; border-radius: 999px; font-weight: 500; text-decoration: none; color: inherit; border: 1px solid var(--b-border); }
+      #boot .ctas a:first-child { background: var(--b-primary); color: var(--b-primary-fg); border-color: transparent; }
+      #boot .greet { margin: .5rem 0 .25rem; font-family: 'Anek Latin Variable', system-ui, sans-serif; font-weight: 600; font-size: 2.6rem; line-height: 1.2; letter-spacing: -.02em; color: var(--b-text); }
+      @media (min-width: 640px) { #boot h1 { font-size: 3.75rem; min-height: 1.3em; } }
+      @media (min-width: 768px) { #boot h1 { font-size: 4.5rem; } #boot .hero { align-items: center; } #boot .in { padding: 6rem 1rem; } }
+      @media (prefers-reduced-motion: no-preference) { #boot .sk { animation: boot-pulse 1.4s ease-in-out infinite; } }
+      @keyframes boot-pulse { 50% { opacity: .55; } }
+    </style>
   </head>
   <body>
+    <div id="boot" aria-busy="true">
+        <div class="bar"><span class="dot"></span>JanaVaani</div>
+        <section class="hero" aria-labelledby="boot-title">
+          <div class="in">
+            <p class="eyebrow">Hyderabad · Telangana</p>
+            <h1 id="boot-title">Speak your problem.</h1>
+            <p class="sub">Report a civic problem by voice, photo or text in Telugu, Hindi, Urdu or English. AI routes it to the right office, and you track it until it is really fixed.</p>
+            <div class="ctas"><a href="/app/report?mode=voice">Report by voice</a><a href="/track">Track a complaint</a></div>
+          </div>
+        </section>
+        <div class="app" role="status" aria-label="Loading">
+          <p class="greet" id="boot-greet">Speak your problem.</p>
+          <span class="sk" style="height: 2rem; width: 40%"></span>
+          <span class="sk" style="height: 7rem"></span>
+          <span class="sk" style="height: 7rem"></span>
+          <span class="sk" style="height: 4rem"></span>
+        </div>
+    </div>
+    <script>
+      // Localized splash line (same greetings as landing.json hero.greetings).
+      (function () {
+        var g = { te: 'మీ సమస్యను చెప్పండి.', hi: 'अपनी शिकायत बताइए।', ur: 'اپنی شکایت بتائیں۔' }[window.__jvBootLang];
+        if (g) document.getElementById('boot-greet').textContent = g;
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/app/main.tsx"></script>
   </body>

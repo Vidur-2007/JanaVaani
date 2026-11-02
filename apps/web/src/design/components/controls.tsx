@@ -1,5 +1,5 @@
 // Controls: ListenButton (TTS), LanguageSwitcher, ThemeToggle, PageTransition, Logo.
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, Languages, Loader2, Moon, Square, Sun, Volume2, VolumeX } from 'lucide-react';
@@ -164,10 +164,13 @@ export function ThemeToggle({ className }: { className?: string }) {
 /** Wrap each routed page. Pair with `<AnimatePresence mode="wait">` keyed by location (done in the app router). */
 export function PageTransition({ children, className }: { children: ReactNode; className?: string }) {
   const reduced = useReducedMotion();
+  // P6: the first page replaces the static boot shell (index.html) — show it as-is instead of fading in from
+  // blank, so the screen never dims between the shell and the app.
+  const [firstPaint] = useState(() => typeof document !== 'undefined' && !!document.getElementById('boot'));
   return (
     <motion.div
       variants={reduced ? pageTransitionReduced : pageTransition}
-      initial="initial"
+      initial={firstPaint ? false : 'initial'}
       animate="animate"
       exit="exit"
       className={className}

@@ -27,7 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/design/ui/dropdown-menu';
-import { LanguageSwitcher, Logo, PageSkeleton, ThemeToggle } from '@/design/components';
+import { LanguageSwitcher, Logo, RouteFallback, ThemeToggle } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useLiveEvent } from '@/lib/live/useLiveEvents';
@@ -233,7 +233,7 @@ export function CitizenLayout() {
           )}
         </nav>
         <main id="main" className="min-w-0 flex-1 px-4 pt-4 pb-28 md:px-8 md:pt-8 md:pb-12">
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={<RouteFallback />}>
             <AnimatedOutlet />
           </Suspense>
         </main>
@@ -290,7 +290,7 @@ export function PublicCitizenLayout() {
     <div className="min-h-dvh">
       <TopBarPublic />
       <main id="main" className="mx-auto max-w-3xl px-4 py-6 md:py-10">
-        <Suspense fallback={<PageSkeleton />}>
+        <Suspense fallback={<RouteFallback />}>
           <AnimatedOutlet />
         </Suspense>
       </main>

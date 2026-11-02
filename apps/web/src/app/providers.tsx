@@ -1,14 +1,14 @@
 // App-wide providers: QueryClient, prefs → <html>, i18n, Auth, live events, toasts, tooltips.
-import { Suspense, useEffect, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
-import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/design/ui/tooltip';
-import { PageSkeleton } from '@/design/components/Skeletons';
+import { RouteFallback } from '@/design/components/Skeletons';
 import { ApiRequestError } from '@/lib/api/client';
 import { AuthProvider } from '@/lib/auth/AuthProvider';
 import { i18n } from '@/lib/i18n';
 import { useLiveEvents } from '@/lib/live/useLiveEvents';
+import { AfterIdle } from './AfterIdle';
 import { usePrefsToDocument, useReducedMotion, useTheme } from '@/lib/prefs/store';
 
 export const queryClient = new QueryClient({
@@ -33,9 +33,18 @@ function LiveEventsMount() {
   return null;
 }
 
+// P6: sonner loads after idle (off the critical path). Toasts are only raised by user actions and live events.
+const Toaster = lazy(() => import('sonner').then((m) => ({ default: m.Toaster })));
+
 function ThemedToaster() {
   const theme = useTheme();
-  return <Toaster theme={theme === 'ink' ? 'dark' : 'light'} position="top-center" richColors closeButton />;
+  return (
+    <AfterIdle timeout={1500}>
+      <Suspense fallback={null}>
+        <Toaster theme={theme === 'ink' ? 'dark' : 'light'} position="top-center" richColors closeButton />
+      </Suspense>
+    </AfterIdle>
+  );
 }
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -44,7 +53,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <I18nextProvider i18n={i18n}>
         <PrefsSync />
         <TooltipProvider delayDuration={300}>
-          <Suspense fallback={<PageSkeleton />}>
+          <Suspense fallback={<RouteFallback />}>
             <AuthProvider>
               <LiveEventsMount />
               {children}

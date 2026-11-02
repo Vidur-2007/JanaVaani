@@ -3,6 +3,51 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import type { Plugin } from 'vite';
+
+/**
+ * P6 first paint: index.html carries a self-contained static boot shell. Nothing else may compete with it, so
+ * the entry module, its modulepreloads, the app stylesheet and the two critical Latin fonts are injected one
+ * frame after first paint (all at once, so they still download in parallel). app/boot.ts keeps the shell up
+ * until the stylesheet (`data-jv-css`) has applied and React has rendered the real page.
+ */
+function deferBootAssets(fontPatterns: RegExp[]): Plugin {
+  return {
+    name: 'jv-defer-boot-assets',
+    enforce: 'post',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        const entry = /<script type="module" crossorigin src="([^"]+)"><\/script>\s*/.exec(html);
+        if (!entry) return html;
+        const preloads: string[] = [];
+        const css: string[] = [];
+        let out = html.replace(entry[0], '');
+        out = out.replace(/<link rel="modulepreload" crossorigin href="([^"]+)">\s*/g, (_m, h: string) => {
+          preloads.push(h);
+          return '';
+        });
+        out = out.replace(/<link rel="stylesheet" crossorigin href="([^"]+\.css)">\s*/g, (_m, h: string) => {
+          css.push(h);
+          return '';
+        });
+        const fonts = Object.keys(ctx.bundle ?? {})
+          .filter((f) => f.endsWith('.woff2') && fontPatterns.some((re) => re.test(f)))
+          .map((f) => `/${f}`);
+        const data = JSON.stringify({ e: entry[1], m: preloads, c: css, f: fonts });
+        const loader =
+          `<script>(function(a){var done=false;function el(t,p){var x=document.createElement(t);for(var k in p)x.setAttribute(k,p[k]);document.head.appendChild(x);}` +
+          `function go(){if(done)return;done=true;a.c.forEach(function(h){el('link',{rel:'stylesheet',href:h,crossorigin:'','data-jv-css':''});});` +
+          `a.f.forEach(function(h){el('link',{rel:'preload',as:'font',type:'font/woff2',href:h,crossorigin:''});});` +
+          `a.m.forEach(function(h){el('link',{rel:'modulepreload',href:h,crossorigin:''});});el('script',{type:'module',src:a.e,crossorigin:''});}` +
+          `requestAnimationFrame(function(){setTimeout(go,0);});setTimeout(go,120);})(${data});</script>` +
+          css.map((h) => `<noscript><link rel="stylesheet" href="${h}"></noscript>`).join('');
+        return out.replace('</body>', `${loader}\n  </body>`);
+      },
+    },
+  };
+}
 
 const root = path.resolve(import.meta.dirname, '../..');
 
@@ -10,10 +55,12 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    deferBootAssets([/anek-latin-latin-wght-normal/, /noto-sans-latin-400-normal/]),
     // PWA (Spec A §5.17): installable, offline app shell, cache-first fonts/images/map tiles, network-first API.
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // Deferred: the registration script must never block first paint.
+      injectRegister: 'script-defer',
       devOptions: { enabled: false },
       includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
@@ -57,8 +104,14 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//],
         // Fonts (several Indic subsets) are cached at runtime as they're used, not precached.
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        // P6: don't make every first visit download ~1 MB of optional lazy code (3D hero/orb, PDF export).
+        // They're cached at runtime once used (see the jv-lazy-js rule below); offline they degrade gracefully.
+        globIgnores: ['**/react-three-fiber*.js', '**/CityPulse*.js', '**/VoiceOrbGL*.js', '**/jspdf*.js', '**/html2canvas*.js', '**/purify.es*.js', '**/index.es*.js'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         cleanupOutdatedCaches: true,
+        // Explicit: with injectRegister 'script-defer' the plugin no longer implies these for autoUpdate.
+        clientsClaim: true,
+        skipWaiting: true,
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.includes('/api/v1/'),
@@ -68,6 +121,11 @@ export default defineConfig({
               networkTimeoutSeconds: 6,
               expiration: { maxEntries: 200, maxAgeSeconds: 24 * 3600 },
             },
+          },
+          {
+            urlPattern: ({ url, request }) => request.destination === 'script' && url.pathname.startsWith('/assets/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'jv-lazy-js', expiration: { maxEntries: 40, maxAgeSeconds: 30 * 24 * 3600 } },
           },
           {
             urlPattern: ({ request }) => request.destination === 'font',
