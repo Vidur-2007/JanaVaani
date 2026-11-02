@@ -24,6 +24,7 @@ import { pickLocalized } from '@/lib/localized';
 import { useReducedMotion } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
 import { countUpMs, easeOutExpo, listItem, stagger } from '@/design/motion';
+import { mediaUrl } from '@/lib/api/client';
 
 // ---------------------------------------------------------------- KPIStat
 
@@ -302,14 +303,14 @@ export function BeforeAfterSlider({ before, after, beforeAlt, afterAlt, classNam
       dir="ltr"
     >
       <img
-        src={after}
+        src={mediaUrl(after)}
         alt={afterAlt ?? t('before_after.after')}
         className="absolute inset-0 size-full object-cover"
         draggable={false}
       />
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <img
-          src={before}
+          src={mediaUrl(before)}
           alt={beforeAlt ?? t('before_after.before')}
           className="absolute inset-0 size-full object-cover"
           draggable={false}

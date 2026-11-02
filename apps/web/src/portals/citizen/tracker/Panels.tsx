@@ -13,6 +13,7 @@ import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { isRtl } from '@/lib/i18n';
 import { pickLocalized } from '@/lib/localized';
 import { cn } from '@/lib/utils';
+import { mediaUrl } from '@/lib/api/client';
 
 export function Panel({ title, icon: Icon, children, className, testId }: { title: string; icon?: typeof Building2; children: ReactNode; className?: string; testId?: string }) {
   return (
@@ -119,7 +120,7 @@ export function EvidencePanel({ g }: { g: GrievanceDetail }) {
       ) : (
         <div className="flex gap-2 overflow-x-auto">
           {[...before, ...after].map((m) => (
-            <img key={m.id} src={m.url} alt={m.ai?.description_en ?? t('report.photo_alt')} className="size-28 shrink-0 rounded-xl border object-cover" />
+            <img key={m.id} src={mediaUrl(m.url)} alt={m.ai?.description_en ?? t('report.photo_alt')} className="size-28 shrink-0 rounded-xl border object-cover" />
           ))}
         </div>
       )}

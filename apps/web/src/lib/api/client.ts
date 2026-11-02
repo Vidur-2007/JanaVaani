@@ -215,3 +215,18 @@ export function errorMessage(e: unknown): string {
   if (e instanceof Error) return e.message;
   return String(e);
 }
+
+/**
+ * P6: media URLs from B's offline mode are relative to the API host (`/api/v1/uploads/{id}`).
+ * Resolve them against the API origin so <img> doesn't hit the frontend host. Absolute, data: and blob:
+ * URLs pass through unchanged, so it is safe to apply more than once.
+ */
+export function mediaUrl(url: string | undefined | null): string {
+  if (!url) return '';
+  if (/^(https?:|data:|blob:)/i.test(url) || !url.startsWith('/')) return url;
+  try {
+    return new URL(url, new URL(API_BASE).origin).toString();
+  } catch {
+    return url;
+  }
+}

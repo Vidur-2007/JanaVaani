@@ -15,6 +15,7 @@ import { useSpeak } from '@/lib/tts/useSpeak';
 import { cn } from '@/lib/utils';
 import { MiniSteps } from '../tracker/StepProgress';
 import type { ChatMessage } from './useChatSession';
+import { mediaUrl } from '@/lib/api/client';
 
 /** Reveals words over 400–900 ms. The full text is always available to screen readers. */
 function WordReveal({ text, animate, onDone }: { text: string; animate: boolean; onDone: () => void }) {
@@ -188,7 +189,7 @@ function UserBubble({ m }: { m: ChatMessage }) {
           {m.media.map((x) => (
             <img
               key={x.id}
-              src={x.url}
+              src={mediaUrl(x.url)}
               alt={x.ai?.description_en ?? ''}
               className="size-20 rounded-xl border object-cover"
             />

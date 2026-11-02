@@ -9,6 +9,7 @@ import { Button } from '@/design/ui/button';
 import { errorMessage } from '@/lib/api/client';
 import { api } from '@/lib/api/endpoints';
 import { cn } from '@/lib/utils';
+import { mediaUrl } from '@/lib/api/client';
 
 export async function compressImage(file: File): Promise<File> {
   const { default: imageCompression } = await import('browser-image-compression');
@@ -75,7 +76,7 @@ export function PhotoTray({ media, onRemove, onRetake }: { media: Media[]; onRem
           const ok = m.quality?.ok !== false;
           return (
             <li key={m.id} className="relative shrink-0">
-              <img src={m.url} alt={m.ai?.description_en ?? t('report.photo_alt')} className={cn('size-20 rounded-xl border-2 object-cover', ok ? 'border-transparent' : 'border-warning')} />
+              <img src={mediaUrl(m.url)} alt={m.ai?.description_en ?? t('report.photo_alt')} className={cn('size-20 rounded-xl border-2 object-cover', ok ? 'border-transparent' : 'border-warning')} />
               <span
                 className={cn('absolute start-1 bottom-1 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium text-white', ok ? 'bg-success' : 'bg-warning')}
                 data-testid={ok ? 'photo-ok' : 'photo-bad'}

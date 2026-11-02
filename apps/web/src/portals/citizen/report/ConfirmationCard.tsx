@@ -14,6 +14,7 @@ import { pickRecord } from '@/lib/localized';
 import { usePrefs } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
 import { locationLabel } from './LocationSheet';
+import { mediaUrl } from '@/lib/api/client';
 
 const LocationMap = lazy(() => import('./LocationMap'));
 
@@ -310,7 +311,7 @@ export function ConfirmationCard({
             {media.map((m) => (
               <img
                 key={m.id}
-                src={m.url}
+                src={mediaUrl(m.url)}
                 alt={m.ai?.description_en ?? t('report.photo_alt')}
                 className="size-20 shrink-0 rounded-xl border object-cover"
               />
