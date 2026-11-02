@@ -8,7 +8,6 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { Droplets, Pause, Play, Recycle, Route as RouteIcon, Waves, X } from 'lucide-react';
 import type { DepartmentId, MapPoint, Priority, Status } from '@contracts/types';
 import { Button } from '@/design/ui/button';
-import { Slider } from '@/design/ui/slider';
 import { DepartmentBadge, ErrorState, PageTransition, TextSkeleton } from '@/design/components';
 import { api, qk, type WardsGeoJSON } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
@@ -318,16 +317,19 @@ export default function CityMap() {
           {playing ? <Pause className="size-4" aria-hidden /> : <Play className="size-4" aria-hidden />}
           {t('admin.replay')}
         </Button>
-        <Slider
+        <input
+          type="range"
           min={0}
           max={WINDOWS.length - 1}
           step={1}
-          value={[replay ? frame : WINDOWS.length - 1]}
+          value={replay ? frame : WINDOWS.length - 1}
           aria-label={t('admin.replay')}
+          aria-valuetext={t('admin.replay_frame', { day: ((replay ? frame : WINDOWS.length - 1) + 1) * 5 })}
           disabled={!replay}
-          onValueChange={([v]) => {
+          className="accent-primary min-h-11 min-w-0 flex-1 md:min-h-8"
+          onChange={(e) => {
             setPlaying(false);
-            setFrame(v);
+            setFrame(Number(e.target.value));
           }}
         />
         <span className="text-muted-foreground tabular shrink-0 text-xs" data-testid="replay-label" aria-live="polite">

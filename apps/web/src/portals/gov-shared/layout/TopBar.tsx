@@ -61,7 +61,6 @@ export function TopBar({ onSearch, onMenu }: { onSearch: () => void; onMenu: () 
         type="button"
         onClick={onSearch}
         data-testid="global-search"
-        aria-label={t('palette.title')}
         aria-keyshortcuts="Control+K Meta+K"
         className="bg-surface hover:bg-surface-2 text-muted-foreground hidden h-9 w-64 items-center gap-2 rounded-[var(--radius-sm)] border px-3 text-sm transition-colors md:flex lg:w-80"
       >

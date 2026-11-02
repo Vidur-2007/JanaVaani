@@ -4,15 +4,31 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 ## Status
 
-- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P4: alerts, audit explorer and block chain, AI model page, demo controls, CSV/Excel/PDF exports, report builder, `e2e/gov/p4-trust.spec.ts`. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
+- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P4: alerts, audit explorer and block chain, AI model page, demo controls, CSV/Excel/PDF exports, report builder, `e2e/gov/p4-trust.spec.ts`. P5: public portal, realtime highlights, gov.json (en/te/hi complete; Urdu for the public portal, nav and charts), accessibility pass, `e2e/gov/p5-public.spec.ts`. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
 - **In progress:** P3 Step 1 is unfinished: B has no deployed URL, so `.env.local` is not set and the UI has not run in hybrid mode.
-- **Next:** finish Step 1 when B posts the URL; P5 public portal, realtime, i18n, accessibility.
+- **Next:** open PR "Integration: gov portals" (`gh` is not on this laptop, so a human opens it). Finish Step 1 when B posts the URL. P6 after the H30 merge.
 - **Blockers:**
   - **B's API is not deployed** (needs Supabase project, keys and HF Space, per B's handover).
-  - **CARTO tiles are watermarked "API KEY REQUIRED"** on every anonymous request, with or without a referrer. The URL is hardcoded in A's `MapViewImpl.tsx`, and CARTO is in the locked stack (master §4), so this needs a team decision. It affects every map, including landing and citizen. Proposed: A adds an optional tile URL/attribution prop to `MapView`.
-  - A's `e2e/citizen/smoke.spec.ts` "gov routes render" test asserts the `gov-placeholder` and `inbox-stub` test ids on `/officer` and `/admin`, which P1 replaced. A should update it; C does not own that file.
+  - After the merge, two tests in A's `e2e/citizen/smoke.spec.ts` fail because they expect P0 placeholder test ids (`gov-placeholder`, `inbox-stub`). Fix at H30: assert the real pages instead.
   - Items B2 and B3 below need B's human. B1 is resolved: B allows supervisors on the admin GETs.
 - **Contract notes:** see section 6 and `docs/contract-notes/C.md`.
+
+### Integration rehearsal
+
+Throwaway clone in the scratchpad, merged in the integrator's order (B, A, C), nothing pushed:
+
+- No merge conflicts. Typecheck and lint pass.
+- CARTO watermark: fixed by A's `MapView` (OpenStreetMap tiles). It still shows on this branch until the merge.
+- Paper contrast, the language switcher name and the `DepartmentBadge` role are fixed by A's shared changes.
+
+### P5 notes for later phases
+
+- After the merge, `Slider` has `thumbProps`, but the replay control is a native range input, so nothing depends on it.
+- `errorMessage` becomes friendly and translated after the merge; `common:errors.*` covers gov too.
+- Realtime uses the existing `useLiveEvents`: lists refetch on invalidation, and `useFreshIds` plus `data-pulsing` add the highlights.
+- `window.__jvMockDb` exists outside `live` mode so e2e can stage live events.
+- Urdu covers the public portal, nav, charts and map. Other gov screens fall back to English; the gov language switcher stays en/te/hi.
+- Bulk selection, keyboard flows and exports have no automated screen-reader test. axe found no table issues, but nobody has used a real screen reader yet.
 
 ### P4 notes for later phases
 
@@ -24,7 +40,6 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 - Human-set macro-F1 shows a dash: B computes it but #53 drops it (G10).
 - Alert acknowledgement is stored per browser.
 - Mock verify reports GRV-2026-000119 as tampered, to rehearse the red state. Real tampering needs B's `scripts/tamper_demo.py`.
-- `GovPlaceholder` stays until the P5 public portal replaces its last use.
 
 ### P3 notes for later phases
 

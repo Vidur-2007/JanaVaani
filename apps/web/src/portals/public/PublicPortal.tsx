@@ -1,5 +1,5 @@
 // Public transparency portal (Spec C §7): proof of accountability, with no login and no personal data.
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -77,10 +77,7 @@ export default function PublicPortal() {
   const fmt = useLangFormat();
   const q = useQuery({ queryKey: qk.public.stats, queryFn: ({ signal }) => api.publicStats(signal) });
   const stats = q.data;
-  const fixed = useMemo(
-    () => (stats?.recent_resolved ?? []).filter((r) => r.before_url && r.after_url),
-    [stats],
-  );
+  const fixed = stats?.recent_resolved ?? [];
   const zones = stats?.by_zone ?? [];
   return (
     <div className="min-h-dvh">
@@ -179,8 +176,14 @@ export default function PublicPortal() {
               ) : (
                 <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {fixed.map((r) => (
-                    <li key={`${r.title_en}-${r.resolved_at}`} data-testid="fixed-card" className="space-y-2">
-                      <BeforeAfterSlider before={mediaUrl(r.before_url!)} after={mediaUrl(r.after_url!)} />
+                    <li
+                      key={`${r.title_en}-${r.resolved_at}`}
+                      data-testid="fixed-card"
+                      className="bg-surface space-y-2 rounded-[var(--radius-lg)] border p-3"
+                    >
+                      {r.before_url && r.after_url && (
+                        <BeforeAfterSlider before={mediaUrl(r.before_url)} after={mediaUrl(r.after_url)} />
+                      )}
                       <p className="text-sm font-medium">{r.title_en}</p>
                       <p className="text-muted-foreground flex items-center gap-2 text-xs">
                         {tc(`departments.${r.category}`)} · {r.zone} · {fmt.date(r.resolved_at)}

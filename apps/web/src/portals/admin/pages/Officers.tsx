@@ -50,7 +50,7 @@ export default function Officers() {
             <p className="font-medium">
               {r.officer.name}
               {r.overloaded && (
-                <span data-testid="overloaded" className="bg-warning/15 text-warning ms-2 rounded-full px-1.5 py-0.5 text-[11px] font-medium">
+                <span data-testid="overloaded" className="bg-surface text-warning border-warning/50 ms-2 rounded-full border px-1.5 py-0.5 text-[11px] font-medium">
                   {t('officers.overloaded')}
                 </span>
               )}

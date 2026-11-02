@@ -109,7 +109,7 @@ test('a new case slides into the inbox with a toast', async ({ page }, info) => 
   await expect(page.getByText('New case assigned')).toBeVisible();
 });
 
-test('command center KPIs pulse and the open case shows it was updated', async ({ page }, info) => {
+test('the open case shows it was updated', async ({ page }, info) => {
   test.skip(info.project.name !== 'chromium', 'waits on the 20 s poll');
   test.setTimeout(60_000);
   await signIn(page);
@@ -120,9 +120,15 @@ test('command center KPIs pulse and the open case shows it was updated', async (
     `db.live_events.push({ id: 'ev-c', audience: 'role:admin', kind: 'grievance_updated', grievance_id: 'GRV-2026-000101', created_at: new Date().toISOString() });`,
   );
   await expect(page.getByTestId('case-updated')).toContainText('Updated just now', { timeout: POLL_MS });
+});
 
+test('command center KPIs pulse when a value changes', async ({ page }, info) => {
+  test.skip(info.project.name !== 'chromium', 'waits on the 20 s poll');
+  test.setTimeout(60_000);
+  await signIn(page);
   await page.goto('/admin');
-  await expect(page.getByTestId('kpi-grid').locator('> *')).toHaveCount(8);
+  // Skeletons also fill the grid; staging before the first response would leave no change to pulse on.
+  await expect(page.getByTestId('kpi-grid').getByText('Satisfaction')).toBeVisible();
   await page.evaluate(() => {
     new MutationObserver((records) => {
       if (records.some((r) => (r.target as Element).hasAttribute('data-pulsing'))) {
