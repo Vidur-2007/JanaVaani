@@ -1,14 +1,77 @@
 # Progress — Laptop A (foundation, landing, citizen portal)
 
 ## Current phase
-**P5 — QR entry, Nearby, Guide, PWA, accessibility, i18n: DONE. Integration PR open: `feat/citizen` → `main`, "Integration: citizen portal" (not merged; merging is the team's H30 step).**
-Hybrid testing is still not possible. As of 2026-11-02, B has pushed `feat/ai-engine` (PR #1, P1–P8) but the API is **not deployed**: B's progress says "URL: not deployed yet (local: `http://localhost:8000/api/v1`)", running in offline mode until Supabase/Gemini/Groq/HF are set up. Use the P3 Step 1 checklist below once a URL exists (or point `VITE_API_BASE_URL` at B's local API). B has also implemented A's requests: `GET /me` and role/name metadata on the seeded users.
+**P6 — integration QA, tests, performance: DONE (on `feat/citizen`). Next: P7 polish; final merge at H42.**
 
-### P3 Step 1: do this as soon as B posts the API URL
-1. Read-only check: `git fetch origin && git show origin/feat/ai-engine:docs/progress/B.md` (and `docs/contract-notes/B.md`).
-2. `apps/web/.env.local` (gitignored): `VITE_API_MODE=hybrid` and `VITE_API_BASE_URL=<B's URL>/api/v1`.
-3. Run the report flow live: chat (Telugu, emergency, Miyapur duplicate), upload, analyze, create, track with PIN, `/speech/transcribe`.
-4. Fix our side (extra types go in `portals/citizen/types-ext.ts`). Log API-side mismatches in `docs/contract-notes/A.md`. The MOCK badge shows how many calls fell back to mocks.
+### Heads-up: the H30 integration merge has not happened yet
+- As of this session, `origin/main` is still at `v0-scaffold`. PRs Vidur-2007/JanaVaani#1 (AI engine) and Vidur-2007/JanaVaani#2 (citizen) are open and unmerged, and C has no PR.
+- So `git merge origin/main` was a no-op ("Already up to date"). When the team does the H30 merge (B → A → C), run it once on `feat/citizen` as planned.
+- B's API is still not deployed. P6 ran the demo path against **B's API run locally from `origin/feat/ai-engine`**: a read-only worktree, offline mode (SQLite, no LLM keys), `ml/seed_db.py`, and `uvicorn` on :8000. Our app ran in a `VITE_API_MODE=hybrid` build pointed at it.
+
+### Re-run P6 against the deployed API (once B posts the URL)
+1. `apps/web/.env.local`: `VITE_API_MODE=hybrid`, `VITE_API_BASE_URL=<url>/api/v1`; `npm run build && npm run preview -w apps/web`.
+2. Follow master §16 steps 1–3 and 5 as Lakshmi (demo button). Watch the HYBRID badge's fallback count; it should stay at 0 for the citizen path.
+3. `E2E_HYBRID=1 E2E_BASE_URL=http://localhost:4173 npx playwright test e2e/citizen/hybrid.spec.ts` (needs a hybrid build).
+
+## Done (P6)
+- **Demo path vs B's API** (master §16 steps 1–3 and 5, citizen side). Bugs found and fixed:
+  - **Auth without Supabase:** hybrid/live sessions now get a token from B's `POST /auth/demo-login`. Without one, user-scoped calls got 401 → error screens.
+  - **Token-less 401** now falls back to mocks in hybrid, instead of a broken screen.
+  - **`share_location` quick reply** (B) was sent back as text and looped. It now opens the location sheet, and the duplicate chip is gone.
+  - **API-relative media URLs** (`/api/v1/uploads/…`) rendered as broken images. New `mediaUrl()` resolves them against the API origin.
+  - **Image compression fetched its worker from jsDelivr at runtime** (stalls offline, or where the CDN is blocked). Now self-hosted, max 4 passes, 10 s cap.
+  - **React Router warning** on every landing visit (nested `<Routes>` under the index route).
+  - **No request timeouts:** a sleeping HF Space hung screens. Now 12 s GET / 25 s POST / 45 s uploads+speech, and hybrid falls back on timeout.
+  - B-side findings are logged in `docs/contract-notes/A.md` (P6): English-only quick-reply labels, Tenglish→seeded-incident duplicate miss with lexical embeddings, no translation offline.
+- **Voice (real bug, mostly Android):** Web Speech `audio-capture` (the mic is already held by our recorder; standard on Android Chrome) ended every turn at once and left the UI stuck on "Listening…". Now the recorder → `/speech/transcribe` path takes over, a failed recognizer never ends the turn, and a turn with no speech returns to "tap to speak".
+- **Edge/Android:**
+  - The photo input has no `capture`, so Android offers Camera *and* gallery. Empty-MIME images from some pickers are accepted. Non-images get a translated message.
+  - Safe-area insets: report composer, bottom sheets, emergency + voice overlays, guide input, main padding.
+  - TTS: sentence-by-sentence speech (Chrome's ~15 s cut-off), a watchdog for Android's missing `end` event, resume of a paused queue, and Edge "Natural" voices preferred.
+  - The Android back button closes voice mode instead of leaving the report and losing the chat.
+  - `dvh` everywhere (no `100vh`/`h-screen` in A's code).
+- **Performance:**
+  - **Static boot shell** in `index.html`: landing hero, or a localized splash for app routes; self-contained CSS; theme applied before first paint, so no light→dark flash.
+  - A Vite plugin injects the entry, modulepreloads, CSS and 2 Latin font preloads one frame after first paint.
+  - `app/boot.ts` swaps to React once the stylesheet has applied and no `RouteFallback` is showing (no skeleton flash, no fade from blank).
+  - `app/preload.ts` fetches the route's chunks and i18n namespace in parallel at boot.
+  - The first render runs in `startTransition` (time-sliced).
+  - The demo switcher (Radix menu + floating-ui) and sonner load after idle.
+  - Heavy Indic display fonts load only in their own UI language: landing fonts went from 817 KB to 411 KB.
+  - On phones the 3D hero waits for the first interaction (or 8 s). Below-fold landing sections use `content-visibility`.
+  - PWA precache went from 3.4 MB to 1.9 MB (3D/PDF chunks are runtime-cached instead).
+  - Home CLS fix: banners no longer push the list down.
+  - **Critical JS 153.5 KB gzipped** (budget 250 KB). See it with `npm run analyze -w apps/web` (dependency-free bundle report: gzip per chunk, contents, critical total).
+  - **Lighthouse mobile** (simulated throttling, brotli server like Vercel, mock build):
+
+    | Page | Before | After |
+    |---|---|---|
+    | `/` | 40–57 | **84–89** |
+    | `/app` (signed in) | 74 | **90–93** |
+    | `/app/report` | 68–80 | **93** |
+    | `/login` | 72 | **94** |
+    | `/track` | 70 | **97** |
+- **States:** a hybrid resilience suite renders 9 pages with the API unreachable, 404/501, token-less 401, or hanging: no error boundary or error state anywhere. The submitted screen now shows a retryable error when ticket details fail to load. `ErrorState` has `data-testid="error-state"`.
+- **Tests:**
+  - New `e2e/citizen/landing.spec.ts` (Spec A §7.1: reduced-motion poster, no canvas, CTA navigates).
+  - New `e2e/citizen/hybrid.spec.ts` (opt-in, `E2E_HYBRID=1`, run against a hybrid build).
+  - New voice back-button test.
+  - `playwright.config.ts` accepts `PW_CHROMIUM_PATH` for preinstalled Chromium builds.
+  - The full Spec A §7 suite is covered (1 landing, 2 Telugu guest report, 3 emergency, 4 duplicate, 5 tracker reopen, 6 Urdu RTL 360 px, 7 keyboard-only).
+- **Quality:**
+  - Build, lint (0/0), `test:mocks`, `test:voice` (24), `test:i18n` pass.
+  - **Playwright 215 passed, 0 failed, 65 skipped** (chromium + mobile-chrome; skips are the chromium-only theme matrices and the opt-in hybrid suite).
+  - Hybrid suite 8/8 (chromium + mobile-chrome).
+  - The report/voice/tracker specs ×3 on mobile-chrome: 69/69 (no flakes).
+
+## Known issues / remaining (P6)
+- **msedge project not run in this session:** no Edge in the cloud sandbox. Run `npm run test:e2e -- --project=msedge` on a laptop with Edge before H42. Nothing Edge-specific was found in code review: `color-mix`, `:has`, `content-visibility`, `dvh`, Web Speech and MediaRecorder opus are all supported in current Edge.
+- **Not yet tested on real devices:** voice on a real Android phone (the recorder path after `audio-capture`), the camera/gallery chooser, safe areas on a gesture-nav phone, and Edge Natural voices for te/hi/ur.
+- **Lighthouse:** the landing scores 84–89 across runs (target ≥ 85); it varies with TBT from React + motion. Measured on the mock build with a local brotli server; re-measure on the Vercel URL. Further wins would need motion's `LazyMotion` across the design system (a larger refactor, so it's a P7 candidate).
+- **HEIC photos:** Chrome can't decode HEIC, so those upload uncompressed (≤ 8 MB) and depend on B accepting them.
+- **B-side items** (see contract notes): localized quick-reply labels; the duplicate match for the Tenglish pothole against the seeded incident with real embeddings; translation needs keys.
+- **Sandbox-only:** `cdn.sheetjs.com` is blocked here, so `npm ci` fails. For local testing only, `xlsx` was installed from npm; `package.json`/lockfile were left untouched.
+- **Push blocked this session:** `git push` to `feat/citizen` returned 403 (GitHub access not linked for this session), so the commits are local until pushed.
 
 ## Done (P5)
 - **QR asset entry (`/r/:assetId`):**
