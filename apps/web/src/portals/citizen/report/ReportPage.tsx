@@ -31,6 +31,10 @@ import { clearDraft, loadDraft, saveDraft, userText, type SavedDraft } from './d
 import { queueOutbox } from './outbox';
 import { VoiceMode } from './voice/VoiceMode';
 
+
+/** Quick-reply values that mean "share my location" (B's API sends `share_location`). */
+const LOCATION_VALUES = new Set(['share_location', 'location', 'use_location']);
+
 export default function ReportPage() {
   const { t } = useTranslation('citizen');
   const { t: tc } = useTranslation('common');
@@ -106,6 +110,8 @@ export default function ReportPage() {
   };
 
   const pick = (q: QuickReply) => {
+    // P6: B offers a "share my location" reply; it opens the sheet instead of being sent back as text.
+    if (LOCATION_VALUES.has(q.value)) return setLocOpen(true);
     if (isActionValue(q.value)) send({ action: q.value as never, display: q.label });
     else send({ text: q.value, display: q.label });
   };
@@ -114,7 +120,10 @@ export default function ReportPage() {
   const [locOpen, setLocOpen] = useState(false);
   const aiPlace = res?.draft?.location ?? res?.drafts?.[0]?.location;
   const suggestion = !chat.snap.location && aiPlace?.source === 'text' ? aiPlace : undefined;
-  const askingLocation = stage === 'collecting' && !!res?.missing_fields.includes('location_detail');
+  const askingLocation =
+    stage === 'collecting' &&
+    (!!res?.missing_fields.some((f) => f === 'location_detail' || f === 'location') ||
+      !!res?.quick_replies.some((q) => LOCATION_VALUES.has(q.value)));
   const onLocation = (l: Location) => {
     const label = locationLabel(l);
     if (stage === 'confirming') send({ action: 'edit', location: l, display: '📍 ' + label });
@@ -129,7 +138,11 @@ export default function ReportPage() {
   const [dupClosedFor, setDupClosedFor] = useState<unknown>(null);
   const dupOpen = stage === 'duplicate_check' && !!res?.duplicates?.length && dupClosedFor !== res;
   const [supported, setSupported] = useState<{ count: number } | null>(null);
-  const quickReplies = useMemo(() => (richStage ? [] : (res?.quick_replies ?? [])), [res, richStage]);
+  // Location replies are rendered once, as our own translated "Share location" chip.
+  const quickReplies = useMemo(
+    () => (richStage ? [] : (res?.quick_replies ?? []).filter((q) => !LOCATION_VALUES.has(q.value))),
+    [res, richStage],
+  );
   const allMedia = useMemo(() => chat.snap.messages.flatMap((m) => m.media ?? []), [chat.snap.messages]);
 
   const confirm = async (o: ConfirmOptions) => {
