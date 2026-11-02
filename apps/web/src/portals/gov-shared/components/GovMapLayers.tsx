@@ -39,10 +39,29 @@ function HeatLayer({ points }: { points: MapPoint[] }) {
   return null;
 }
 
-function ClusterLayer({ points, onClick }: { points: MapPoint[]; onClick?: (p: MapPoint) => void }) {
+function ClusterLayer({
+  points,
+  onClick,
+  onCluster,
+}: {
+  points: MapPoint[];
+  onClick?: (p: MapPoint) => void;
+  onCluster?: (p: MapPoint[]) => void;
+}) {
   const map = useMap();
   useEffect(() => {
-    const group = L.markerClusterGroup({ showCoverageOnHover: false, maxClusterRadius: 48 });
+    const group = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      maxClusterRadius: 48,
+      zoomToBoundsOnClick: !onCluster,
+    });
+    const source = new WeakMap<object, MapPoint>();
+    if (onCluster) {
+      group.on('clusterclick', (e) => {
+        const children = (e as unknown as L.LeafletEvent & { layer: L.MarkerCluster }).layer.getAllChildMarkers();
+        onCluster(children.flatMap((m: L.Marker) => source.get(m) ?? []));
+      });
+    }
     group.addLayers(
       points.map((p) => {
         const m = L.circleMarker([p.lat, p.lng], {
@@ -52,6 +71,7 @@ function ClusterLayer({ points, onClick }: { points: MapPoint[]; onClick?: (p: M
           fillColor: cssVar(`--dept-${p.category}`),
           fillOpacity: 0.9,
         });
+        source.set(m, p);
         if (onClick) m.on('click', () => onClick(p));
         return m;
       }) as unknown as L.Layer[],
@@ -60,7 +80,7 @@ function ClusterLayer({ points, onClick }: { points: MapPoint[]; onClick?: (p: M
     return () => {
       group.remove();
     };
-  }, [map, points, onClick]);
+  }, [map, points, onClick, onCluster]);
   return null;
 }
 
@@ -156,6 +176,7 @@ export interface GovMapLayersProps {
   layers: MapLayer[];
   onWardClick?: (id: string) => void;
   onPointClick?: (p: MapPoint) => void;
+  onClusterClick?: (p: MapPoint[]) => void;
 }
 
 export default function GovMapLayers({
@@ -166,6 +187,7 @@ export default function GovMapLayers({
   layers,
   onWardClick,
   onPointClick,
+  onClusterClick,
 }: GovMapLayersProps) {
   const map = useMap();
   const [ready, setReady] = useState(false);
@@ -192,7 +214,7 @@ export default function GovMapLayers({
       )}
       {layers.includes('heat') && points.length > 0 && <HeatLayer points={points} />}
       {layers.includes('clusters') && points.length > 0 && (
-        <ClusterLayer points={points} onClick={onPointClick} />
+        <ClusterLayer points={points} onClick={onPointClick} onCluster={onClusterClick} />
       )}
       {layers.includes('incidents') && <IncidentLayer incidents={incidents} />}
       {layers.includes('critical') && <CriticalPulses points={critical} onClick={onPointClick} />}

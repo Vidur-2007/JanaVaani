@@ -6,13 +6,13 @@ import NotFound from '@/app/NotFound';
 import { GovLayout } from '@/portals/gov-shared/layout/GovLayout';
 import { GovPlaceholder } from '@/portals/gov-shared/components/GovPlaceholder';
 
-const CommandCenter = lazy(() => import('./pages/CommandCenterStub'));
+const CommandCenter = lazy(() => import('./pages/CommandCenter'));
+const CityMap = lazy(() => import('./pages/CityMap'));
+const Departments = lazy(() => import('./pages/Departments'));
+const Officers = lazy(() => import('./pages/Officers'));
+const Analytics = lazy(() => import('./pages/Analytics'));
 
-const ADMIN_ONLY = [
-  ['map', 'nav.map'],
-  ['departments', 'nav.departments'],
-  ['officers', 'nav.officers'],
-  ['analytics', 'nav.analytics'],
+const LATER = [
   ['audit', 'nav.audit'],
   ['ai', 'nav.ai'],
   ['reports', 'nav.reports'],
@@ -27,7 +27,11 @@ export default function AdminRoutes() {
           <Route index element={<CommandCenter />} />
           <Route path="alerts" element={<GovPlaceholder titleKey="nav.alerts" />} />
           <Route element={<RequireRole roles={['admin']} />}>
-            {ADMIN_ONLY.map(([path, titleKey]) => (
+            <Route path="map" element={<CityMap />} />
+            <Route path="departments" element={<Departments />} />
+            <Route path="officers" element={<Officers />} />
+            <Route path="analytics" element={<Analytics />} />
+            {LATER.map(([path, titleKey]) => (
               <Route key={path} path={path} element={<GovPlaceholder titleKey={titleKey} />} />
             ))}
           </Route>

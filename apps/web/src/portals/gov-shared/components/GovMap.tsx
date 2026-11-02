@@ -24,6 +24,8 @@ export interface GovMapProps {
   availableLayers?: MapLayer[];
   onWardClick?: (wardId: string) => void;
   onPointClick?: (point: MapPoint) => void;
+  /** Replaces cluster zoom-in with a case list. */
+  onClusterClick?: (points: MapPoint[]) => void;
   center?: GeoPoint;
   zoom?: number;
   height?: number | string;
@@ -43,6 +45,7 @@ export function GovMap({
   availableLayers = LAYERS,
   onWardClick,
   onPointClick,
+  onClusterClick,
   center,
   zoom = 11,
   height = 420,
@@ -80,6 +83,7 @@ export function GovMap({
             layers={layers as MapLayer[]}
             onWardClick={onWardClick}
             onPointClick={onPointClick}
+            onClusterClick={onClusterClick}
           />
         </Suspense>
         {children}
