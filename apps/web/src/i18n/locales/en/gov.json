@@ -1,1 +1,54 @@
-{}
+{
+  "nav": {
+    "group_department": "Department",
+    "group_government": "Government",
+    "group_public": "Public",
+    "inbox": "Inbox",
+    "incidents": "Incidents",
+    "my_stats": "My stats",
+    "queues": "Review queues",
+    "command_center": "Command Center",
+    "map": "City map",
+    "departments": "Departments",
+    "officers": "Officers",
+    "analytics": "Analytics",
+    "alerts": "Alerts",
+    "audit": "Audit",
+    "ai": "AI model",
+    "reports": "Reports",
+    "demo": "Demo controls",
+    "public": "Public portal"
+  },
+  "shell": {
+    "all_departments": "All departments",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "open_menu": "Menu",
+    "menu_description": "Navigate between government pages",
+    "breadcrumb": "Breadcrumb"
+  },
+  "palette": {
+    "title": "Search and jump",
+    "description": "Open a ticket by ID, jump to a page or apply a quick filter",
+    "placeholder": "Ticket ID, page or any complaint text…",
+    "search_hint": "Search tickets and pages",
+    "empty": "No matches",
+    "ticket": "Ticket",
+    "open_ticket": "Open ticket",
+    "cases": "Matching cases",
+    "quick_filters": "Quick filters",
+    "pages": "Pages",
+    "critical_overdue": "Critical overdue in my zone",
+    "overdue": "All overdue cases",
+    "due_today": "Due today"
+  },
+  "notifications": {
+    "label_one": "Notifications, {{count}} unread",
+    "label_other": "Notifications, {{count}} unread",
+    "title": "Notifications",
+    "mark_all": "Mark all read",
+    "empty": "You're all caught up",
+    "new": "New notification",
+    "new_alert": "New city alert"
+  }
+}

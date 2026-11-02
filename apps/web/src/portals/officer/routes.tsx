@@ -1,5 +1,4 @@
-// PLACEHOLDER routes created by Laptop A in P0 — Laptop C owns this file (Spec C §5).
-// Default export → /officer/*, named SupervisorRoutes → /supervisor/*. Keep both exports.
+// Department portal routes (Spec C §5). Default export → /officer/*, named SupervisorRoutes → /supervisor/*.
 import { lazy } from 'react';
 import { Route, Routes } from 'react-router';
 import { RequireRole } from '@/lib/auth/RequireRole';
@@ -15,9 +14,9 @@ export default function OfficerRoutes() {
       <Route element={<RequireRole roles={['officer', 'supervisor', 'admin']} />}>
         <Route element={<GovLayout />}>
           <Route index element={<Inbox />} />
-          <Route path="case/:id" element={<GovPlaceholder titleKey="nav.officer" />} />
-          <Route path="incidents" element={<GovPlaceholder titleKey="nav.officer" />} />
-          <Route path="stats" element={<GovPlaceholder titleKey="nav.officer" />} />
+          <Route path="case/:id" element={<GovPlaceholder titleKey="nav.inbox" />} />
+          <Route path="incidents" element={<GovPlaceholder titleKey="nav.incidents" />} />
+          <Route path="stats" element={<GovPlaceholder titleKey="nav.my_stats" />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
@@ -30,7 +29,7 @@ export function SupervisorRoutes() {
     <Routes>
       <Route element={<RequireRole roles={['supervisor', 'admin']} />}>
         <Route element={<GovLayout />}>
-          <Route index element={<GovPlaceholder titleKey="nav.supervisor" />} />
+          <Route index element={<GovPlaceholder titleKey="nav.queues" />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

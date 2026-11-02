@@ -1,4 +1,4 @@
-// PLACEHOLDER page used by the P0 gov stubs — Laptop C replaces each page.
+// Placeholder for gov pages scheduled in later phases.
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -6,7 +6,8 @@ import { Construction } from 'lucide-react';
 import { EmptyState, PageTransition } from '@/design/components';
 
 export function GovPlaceholder({ titleKey, children }: { titleKey: string; children?: ReactNode }) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('gov');
+  const { t: tc } = useTranslation('common');
   const { pathname } = useLocation();
   return (
     <PageTransition className="space-y-6">
@@ -17,8 +18,8 @@ export function GovPlaceholder({ titleKey, children }: { titleKey: string; child
       {children ?? (
         <EmptyState
           icon={Construction}
-          title={t('placeholder.coming_soon')}
-          description={t('placeholder.owner', { owner: 'C' })}
+          title={tc('placeholder.coming_soon')}
+          description={tc('placeholder.owner', { owner: 'C' })}
         />
       )}
     </PageTransition>

@@ -1,81 +1,83 @@
-// PLACEHOLDER gov shell created by Laptop A in P0 — Laptop C owns and replaces this (Spec C §3).
-import { Suspense } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router';
+// Gov shell (Spec C §3): collapsible sidebar, mobile bottom-sheet nav, top bar, command palette.
+import { Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LogOut } from 'lucide-react';
 import { AnimatedOutlet } from '@/app/AnimatedOutlet';
-import { Button } from '@/design/ui/button';
-import { LanguageSwitcher, LiveIndicator, Logo, PageSkeleton, ThemeToggle } from '@/design/components';
-import { useAuth } from '@/lib/auth/useAuth';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/design/ui/sheet';
+import { PageSkeleton } from '@/design/components';
 import { useSurfaceTheme } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
-import type { Role } from '@contracts/types';
+import '../mocks';
+import { CommandPalette } from './CommandPalette';
+import { SidebarBody } from './Sidebar';
+import { TopBar } from './TopBar';
 
-const NAV: { to: string; labelKey: string; roles: Role[]; end?: boolean }[] = [
-  { to: '/officer', labelKey: 'nav.officer', roles: ['officer', 'supervisor', 'admin'], end: true },
-  { to: '/supervisor', labelKey: 'nav.supervisor', roles: ['supervisor', 'admin'] },
-  { to: '/admin', labelKey: 'nav.admin', roles: ['supervisor', 'admin'] },
-  { to: '/public', labelKey: 'nav.public', roles: ['officer', 'supervisor', 'admin'] },
-];
+const COLLAPSE_KEY = 'jv.gov.sidebar_collapsed';
+
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 
 export function GovLayout() {
   useSurfaceTheme('ink');
-  const { t } = useTranslation('common');
-  const { profile, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { t } = useTranslation('gov');
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const toggle = () =>
+    setCollapsed((c) => {
+      try {
+        localStorage.setItem(COLLAPSE_KEY, c ? '0' : '1');
+      } catch {
+        // Preference just won't persist.
+      }
+      return !c;
+    });
+
   return (
-    <div className="min-h-dvh md:flex">
-      <aside className="bg-surface flex shrink-0 flex-col gap-2 border-b p-3 md:sticky md:top-0 md:h-dvh md:w-60 md:border-e md:border-b-0">
-        <div className="flex items-center justify-between">
-          <Link to="/">
-            <Logo />
-          </Link>
-          <ThemeToggle />
-        </div>
-        {profile && (
-          <p className="text-muted-foreground px-1 text-xs">
-            {profile.name} · {t(`roles.${profile.role}`)}
-          </p>
+    <div className="flex h-dvh overflow-hidden">
+      <aside
+        className={cn(
+          'bg-surface hidden shrink-0 border-e transition-[width] duration-250 ease-out md:block',
+          collapsed ? 'w-[68px]' : 'w-60',
         )}
-        <nav className="flex gap-1 overflow-x-auto md:flex-col" aria-label={t('nav.main_menu')}>
-          {NAV.filter((n) => profile && n.roles.includes(profile.role)).map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.end}
-              className={({ isActive }) =>
-                cn(
-                  'touch-target flex items-center rounded-lg px-3 text-sm whitespace-nowrap',
-                  isActive ? 'bg-primary/15 text-primary' : 'hover:bg-surface-2',
-                )
-              }
-            >
-              {t(n.labelKey)}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="mt-auto hidden flex-col gap-2 md:flex">
-          <LiveIndicator />
-          <LanguageSwitcher />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="touch-target justify-start"
-            onClick={async () => {
-              await signOut();
-              navigate('/login');
-            }}
-          >
-            <LogOut className="rtl-flip size-4" aria-hidden />
-            {t('auth.sign_out')}
-          </Button>
-        </div>
+      >
+        <SidebarBody collapsed={collapsed} onToggle={toggle} />
       </aside>
-      <main id="main" className="min-w-0 flex-1 p-4 md:p-8">
-        <Suspense fallback={<PageSkeleton />}>
-          <AnimatedOutlet />
-        </Suspense>
-      </main>
+
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent side="bottom" className="h-[85dvh] rounded-t-[var(--radius-xl)] p-0">
+          <SheetTitle className="sr-only">{t('shell.open_menu')}</SheetTitle>
+          <SheetDescription className="sr-only">{t('shell.menu_description')}</SheetDescription>
+          <SidebarBody onNavigate={() => setMenuOpen(false)} />
+        </SheetContent>
+      </Sheet>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar onSearch={() => setPaletteOpen(true)} onMenu={() => setMenuOpen(true)} />
+        <main id="main" className="min-w-0 flex-1 overflow-y-auto p-3 md:p-6">
+          <Suspense fallback={<PageSkeleton />}>
+            <AnimatedOutlet />
+          </Suspense>
+        </main>
+      </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
 }
