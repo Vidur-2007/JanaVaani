@@ -1,7 +1,42 @@
 # Progress — Laptop A (foundation, landing, citizen portal)
 
 ## Current phase
-**P1 — Landing, citizen shell, login, onboarding, settings: DONE** (on `feat/citizen`). Human checks pending (below). Next: **P2** report assistant.
+**P2 — Report assistant: DONE** (on `feat/citizen`, mock mode). Next: **P3**: switch to hybrid mode on B's URL, voice mode (Voice Orb), low-literacy mode.
+
+## Done (P2)
+- **Mock realism** (`packages/contracts/mocks`, additive):
+  - Places named in text (Latin or te/hi/ur script) become a suggested location, so a text-only "Miyapur X roads lo pedda gunta undi" hits the pothole incident in the duplicate check.
+  - Localized quick replies for follow-up questions.
+  - Multi-issue split (`drafts[]` + `split_confirm`).
+  - Small uploads → `quality.ok=false`.
+- **Chat (`/app/report`):**
+  - Message log with `aria-live`, typing indicator, and word-by-word reveal (off under reduced motion).
+  - AI badge + Listen on every bot message, with autoplay in voice-first/easy mode; "Show in English" toggle.
+  - Language chip (detected / Tenglish / Hinglish), progress dots, quick replies (big ✓/✗ in easy mode).
+  - Composer: Enter sends, Shift+Enter adds a newline; browser-dictation mic.
+  - QR `?asset=` is passed through.
+- **Photo:** compressed (≤ 1600 px / ~200 KB) → `/uploads` → thumbnail + quality badge + retake prompt.
+- **Location sheet:** GPS with accuracy circle, map pin with ward overlay and live ward name, typed landmark, and an AI "Did you mean …?" suggestion.
+- **ConfirmationCard** per §5.4: formal / English / original text, routing preview with officer + confidence + explanation, priority factors, SLA, mini-map, photos, fields, anonymous/private toggles, edit/cancel.
+- **Split UI** for several problems in one message.
+- **DuplicateSheet:** add my support / file new, then a celebration.
+- **EmergencyTakeover:** `tel:` buttons are rendered first and focused, then the pulse; "Continue registering".
+- **Submitted screen:** animated ticket ID, guest PIN with copy + warning, SLA due date.
+- **Receipt / report** (`/print/receipt/:id`, `/print/report/:id`): A4 HTML with QR code. The PDF is made with html-to-image + jsPDF `addImage` (no jsPDF text, so Indic shaping is preserved); Print uses `window.print`.
+- **Quick report** (`/app/report/quick`): photo → auto GPS (with ward) → optional line → analyze → ConfirmationCard → duplicate check → submit (3 taps).
+- **Drafts + outbox** (IndexedDB):
+  - Resume prompt within 24 h; the session is rebuilt from the citizen's own words.
+  - Confirming while offline queues the complaint; it is flushed on reconnect with a toast showing the ticket and PIN.
+- **Shared fix:** keyless CARTO tiles are now watermarked "API KEY REQUIRED", so `MapView` uses OpenStreetMap tiles (Ink theme = CSS-darkened). `VITE_TILE_URL` overrides. Logged for C in `docs/contract-notes/A.md`.
+- **i18n:** every P2 string is in en/te/hi/ur, with key and placeholder parity checked.
+- **Quality:**
+  - Build, lint (0/0) and `test:mocks` pass; the mock check now also covers the Miyapur duplicate and split paths.
+  - **Playwright 72/72** on chromium/msedge/mobile-chrome. New `e2e/citizen/report.spec.ts` covers: guest Telugu → ticket + PIN, emergency → call buttons first, Miyapur → duplicate → support, split, GPS ward, quick photo report, offline outbox → flush, resume prompt, receipt QR.
+
+## Human checks for P2 (to do)
+- [ ] On a phone: report by text in Telugu, attach a real camera photo, use "My location", confirm, download the receipt PDF (check that Telugu renders correctly in the PDF).
+- [ ] Emergency phrase (e.g. "current wire fell near school"): call buttons appear instantly and dial on a phone.
+- [ ] Airplane mode at confirm → "will send when back online" → turn it off → toast with ticket.
 
 ## Done (P1)
 - **Landing (Spec A §5.1), all 7 sections:**
@@ -50,13 +85,14 @@ Scaffold on `main`, tag `v0-scaffold`: workspaces + all deps, contracts (§8/§9
 ## In progress
 - Nothing.
 
-## Human checks for P1 (to do)
+## Human checks for P1 (still to do)
 - [ ] Landing on a real phone: `npm run dev -- --host`, same Wi-Fi.
 - [ ] Lighthouse mobile on `/` (target ≥ 85 performance). Run it against `npm run build && npm run preview`, not the dev server.
 - [ ] OS "reduce motion" on → the static hero shows (no 3D), and the scroll story is stacked, not pinned.
 
-## Next (P2, H7–H13)
-- Report assistant: text, photo, location, confirm, duplicates, emergency, submit (Spec A §5.4, §5.6, §5.7, §5.9).
+## Next (P3, H13–H19)
+- Read B's progress (`git show origin/feat/ai-engine:docs/progress/B.md`), set `VITE_API_BASE_URL` + `VITE_API_MODE=hybrid`, and verify chat/analyze/uploads against the live API.
+- Voice mode (Spec A §5.5): Voice Orb, Web Speech + MediaRecorder fallback, voice confirm words; low-literacy mode polish.
 
 ## Blockers
 - None. Supabase keys are not needed in mock mode.

@@ -1,4 +1,4 @@
-// P0 placeholders for citizen screens built in later phases (report P2, guide P5, print P4).
+// Placeholders for citizen screens built in later phases (guide: P5).
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Construction } from 'lucide-react';
@@ -21,8 +21,4 @@ function Placeholder({ titleKey, testId }: { titleKey: string; testId: string })
   );
 }
 
-export const Report = () => <Placeholder titleKey="actions.report" testId="page-report" />;
-export const QuickReport = () => <Placeholder titleKey="actions.report" testId="page-report-quick" />;
 export const Guide = () => <Placeholder titleKey="nav.guide" testId="page-guide" />;
-export const PrintReceipt = () => <Placeholder titleKey="actions.print" testId="page-print-receipt" />;
-export const PrintReport = () => <Placeholder titleKey="actions.print" testId="page-print-report" />;
