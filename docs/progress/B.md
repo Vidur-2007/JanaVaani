@@ -68,6 +68,12 @@
 - `docs/runbook.md` ("If something breaks during the demo") and `docs/LAPTOP_B_HANDOVER.md` (P1–P8 compliance matrix, startup, deployment, A/C integration).
 - Deploy, fresh keys, `record_demo.py` warm-up and the live tamper demo need the team's HF account + keys — steps documented, not executed.
 
+### Verification + Fix Phase 1 (live-mode blockers and security)
+- Fixed: `0003_asset_incident_coords.sql` (lat/lng on assets and incidents, geom/centroid kept in sync); `UTCDateTime` column type (timestamptz on Postgres, naive UTC in the app); `seed_db` and `/admin/demo/reset` can re-seed over existing data (append-only trigger bypassed for that transaction only); `SUPABASE_SERVICE_ROLE_KEY` read through Settings, so `.env` works; empty `DATABASE_URL` means SQLite, so `cp .env.example .env` starts.
+- Security: an unset or placeholder `APP_JWT_SECRET` now uses a random per-process secret (demo tokens end on restart; guest PIN hashes are unaffected); app tokens accepted only with `DEMO_MODE=true`; `/auth/demo-login` closed when Supabase is configured unless `ALLOW_DEMO_LOGIN=true`.
+- Tests: `tests/test_p6_live_mode.py`. **71 passed on SQLite; 71 passed on a throwaway Postgres 16 + pgvector with the real migrations and session TZ Asia/Kolkata.** PostGIS and pgcrypto were stubbed there, so Supabase itself is still untested.
+- Open, found by verification (Fix Phases 2-5): `continue_after_emergency` asks for the problem again; `split_confirm` creates one grievance; `check-duplicates` omits `title.lang`; emergency keyword misses; `intake_turn`/`ask_info`/`smalltalk` not implemented; semantic duplicate threshold 0.78 too loose with real e5 (unrelated complaints score 0.80-0.88); relative media URLs and no Supabase Storage; Dockerfile not built and likely not Space-ready. Benchmark on a scratch copy: TF-IDF human accuracy 0.750, e5 0.854, LaBSE 0.917 (n=48).
+
 ## In progress
 Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys / HF Space.
 

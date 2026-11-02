@@ -10,7 +10,7 @@
 | Demo data messed up | Admin → Demo → **Reset** (`POST /admin/demo/reset`) or `python ml/seed_db.py`. Stories are re-placed relative to now. |
 | Escalations needed for the time-travel moment | Admin → Demo → **+48h** (`POST /admin/demo/clock {"advance_hours": 48}`) — escalations run immediately. Reset sets the clock back to 0. |
 | Audit tamper demo | `python scripts/tamper_demo.py GRV-… --restore-after 60` → show `/admin/audit/verify?grievance_id=…` turning red → it restores itself. |
-| Login fails (Supabase down / not configured) | DEMO_MODE fallback: `POST /api/v1/auth/demo-login {"email": "admin@janavaani.test"}` returns a token. |
+| Login fails (Supabase down / not configured) | DEMO_MODE fallback: `POST /api/v1/auth/demo-login {"email": "admin@janavaani.test"}` returns a token. With Supabase configured it is closed: set `ALLOW_DEMO_LOGIN=true` in the Space secrets and restart, and set it back afterwards (it gives passwordless admin). |
 | DB unreachable | Unset `DATABASE_URL` in the Space secrets → API falls back to the bundled SQLite file; run `python ml/seed_db.py` in the Space shell. |
 | Wrong department on stage | Use the officer **Reassign** (logs a routing correction), then Admin → AI → **Retrain** to show learning. |
 

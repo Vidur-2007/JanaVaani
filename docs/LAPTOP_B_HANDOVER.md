@@ -56,7 +56,7 @@ cd services/api && uvicorn app.main:app --reload --port 8000
 
 ## 6. Integration — Laptop A and C
 - Base URL `VITE_API_BASE_URL=<api>/api/v1`, `VITE_API_MODE=hybrid`. All paths/shapes follow master §8/§9; additive fields are in `docs/contract-notes/B.md`.
-- Auth: Supabase access token as Bearer. Without Supabase, `POST /api/v1/auth/demo-login {"email": "<demo>@janavaani.test"}` (DEMO_MODE) returns a token + profile.
+- Auth: Supabase access token as Bearer. Without Supabase (or with `ALLOW_DEMO_LOGIN=true`), `POST /api/v1/auth/demo-login {"email": "<demo>@janavaani.test"}` (DEMO_MODE) returns a token + profile.
 - Media URLs are `/api/v1/uploads/{id}` (relative to the API host) in offline mode.
 - Realtime: subscribe to `live_events` (audiences `user:<id>`, `dept:<id>`, `role:admin`, `public`); signals only.
 - `/api/v1/translate` returns 503 `translation_unavailable` when providers are down — show the original text.

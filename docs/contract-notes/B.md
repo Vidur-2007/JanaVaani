@@ -2,6 +2,8 @@
 
 Additive changes to the shared contract (new optional fields, new endpoints). Newest first.
 
+- **2026-11-02 (Fix Phase 1)** `POST /auth/demo-login` now returns 403 `demo_login_disabled` when `SUPABASE_URL` is set, unless `ALLOW_DEMO_LOGIN=true`. App-issued tokens are accepted only while `DEMO_MODE=true`. Frontends that sign in through Supabase are unaffected.
+
 - **2026-11-02 (P2)** Additive optional fields: `DuplicateMatch.signals` (text_cosine, distance_m, same_category, age_days, embedding_mode); `AIVerification.assessment` (`verified|likely_resolved|needs_human_review|rejected_evidence`). New endpoint (DEMO_MODE only): `POST /api/v1/auth/demo-login {email}` → `{access_token, profile}` for seeded `@janavaani.test` accounts when Supabase Auth is not configured. Media URLs are `/api/v1/uploads/{id}` in offline mode (Supabase signed URLs when Storage is configured).
 
 - **2026-11-02 (requests from A, `docs/contract-notes/A.md`)**
