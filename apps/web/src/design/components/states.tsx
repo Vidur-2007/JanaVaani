@@ -51,6 +51,7 @@ export function ErrorState({ error, title, onRetry, className, compact }: ErrorS
         className,
       )}
       role="alert"
+      data-testid="error-state"
     >
       <div className="bg-danger/12 grid size-12 place-items-center rounded-2xl">
         <AlertTriangle className="text-danger size-6" aria-hidden />
