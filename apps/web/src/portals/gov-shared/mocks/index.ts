@@ -40,6 +40,7 @@ const GENERIC: Partial<Record<Lang, string>> = {
 
 /** Same demo beat as the master §15 Ameerpet story: a streetlight "fix" fails verification. */
 const SUSPICIOUS_ON_RESOLVE: Grievance['category'][] = ['streetlights'];
+const TAMPERED = 'GRV-2026-000119';
 
 async function register() {
   const { registerMockHandler, handlers, getDb } = await import('@mocks/index');
@@ -88,6 +89,53 @@ async function register() {
     const body = ctx.body as { delay_reason?: { reason?: string } };
     const reason = body.delay_reason?.reason;
     return status({ ...ctx, body: { ...body, delay_reason: reason } });
+  });
+
+  // Rehearses a broken chain on the Ameerpet case; B's scripts/tamper_demo.py does this for real.
+  const VERIFY = '/admin/audit/verify';
+  const verify = builtIn(VERIFY, 'GET');
+  registerMockHandler('GET', VERIFY, async (ctx) => {
+    const id = ctx.query.get('grievance_id');
+    const timeline = id === TAMPERED ? find(id)?.timeline : undefined;
+    if (timeline) {
+      const broken = timeline[Math.floor(timeline.length / 2)];
+      return { grievance_id: id, events_checked: timeline.indexOf(broken) + 1, valid: false, first_broken_event_id: broken.id };
+    }
+    return verify(ctx);
+  });
+
+  // Mirrors B: advancing the clock escalates breached cases, reports the counts, and raises an alert.
+  const CLOCK = '/admin/demo/clock';
+  const clock = builtIn(CLOCK);
+  registerMockHandler('POST', CLOCK, async (ctx) => {
+    const out = (await clock(ctx)) as object;
+    const db = getDb();
+    const open = db.grievances.filter((g) => !['closed', 'rejected', 'merged'].includes(g.status));
+    const escalated_l1 = open.filter((g) => g.sla.breached && g.escalation_level === 0);
+    const escalated_l2 = open.filter((g) => g.sla.breached && g.escalation_level === 1);
+    escalated_l2.forEach((g) => (g.escalation_level = 2));
+    escalated_l1.forEach((g) => (g.escalation_level = 1));
+    const total = escalated_l1.length + escalated_l2.length;
+    if (total > 0) {
+      db.alerts.unshift({
+        id: `alert-clock-${db.alerts.length}`,
+        kind: 'overdue_critical',
+        severity: 'critical',
+        title_en: `${total} cases escalated after SLA breach`,
+        detail_en: 'Overdue cases moved up the escalation ladder.',
+        grievance_ids: [...escalated_l1, ...escalated_l2].map((g) => g.id),
+        created_at: nowIso(),
+      });
+    }
+    return {
+      ...out,
+      escalations: {
+        escalated_l1: escalated_l1.length,
+        escalated_l2: escalated_l2.length,
+        auto_closed: 0,
+        alerts: total > 0 ? 1 : 0,
+      },
+    };
   });
 
   const RESOLVE = '/officer/grievances/:id/resolve';
