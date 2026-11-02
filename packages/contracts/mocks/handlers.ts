@@ -1227,6 +1227,8 @@ export const handlers: MockHandler[] = [
   /* 55 */ { method: 'GET', pattern: '/admin/demo/clock', fn: clock },
   /* 55 */ { method: 'POST', pattern: '/admin/demo/clock', fn: clock },
   /* 56 */ { method: 'POST', pattern: '/admin/demo/reset', fn: (ctx) => { requireRole(ctx, ['admin']); buildDb(); return { ok: true }; } },
+  // Additive (requested from B in docs/contract-notes/A.md): current user's profile.
+  { method: 'GET', pattern: '/me', fn: (ctx) => { const u = requireUser(ctx); return { id: u.id, role: u.role, name: u.name, email: u.email, preferred_language: u.preferred_language, department_id: u.department_id }; } },
   /* 57 */ { method: 'GET', pattern: '/health', fn: () => ({ status: 'ok', version: 'mock', providers: { gemini: 'mock', groq: 'mock', db: 'mock', embeddings: 'mock' } }) },
 ];
 

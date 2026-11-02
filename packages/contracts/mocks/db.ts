@@ -495,6 +495,9 @@ export function refresh(g: GrievanceDetail): GrievanceDetail {
 
 // ---------------------------------------------------------------- build
 
+// Asset ids follow B's seed format, e.g. SL-KKP-0042.
+const ASSET_CODE: Record<Asset['type'], string> = { streetlight: 'SL', drain: 'DR', water_pipe: 'WP', bin: 'BN', road_segment: 'RD', signal: 'TS' };
+
 function buildAssets(rng: Rng): Asset[] {
   const defs: [Asset['type'], string, string][] = [
     ['streetlight', 'Streetlight pole SL-114', 'Ameerpet'],
@@ -513,7 +516,7 @@ function buildAssets(rng: Rng): Asset[] {
   return defs.map(([type, label, ward], i) => {
     const w = wardByName(ward);
     return {
-      id: `AST-${String(i + 1).padStart(4, '0')}`,
+      id: `${ASSET_CODE[type]}-${w.id.split('-')[1]}-${String(i + 1).padStart(4, '0')}`,
       type,
       label_en: label,
       ward_id: w.id,
@@ -620,14 +623,14 @@ export function buildDb(baseNow = Math.floor(Date.now() / HOUR) * HOUR): MockDb 
   // ---- Narrative 4: suspicious closure, streetlight, Ameerpet (Lakshmi)
   const suspicious = makeGrievance(rng, {
     phrase: byTitle('Streetlights not working on our lane'), ward: 'Ameerpet', createdMs: N - 4 * DAY,
-    status: 'resolved_pending_verification', owner: 'u-lakshmi', suspicious: true, asset_id: 'AST-0001',
+    status: 'resolved_pending_verification', owner: 'u-lakshmi', suspicious: true, asset_id: 'SL-KHB-0001',
   });
   db.assets[0].open_grievance_ids.push(suspicious.id);
 
   // ---- Narrative 5: repeated reopen, drainage, Malakpet (Imran)
   const reopened = makeGrievance(rng, {
     phrase: byTitle('Drain is blocked'), ward: 'Malakpet', createdMs: N - 12 * DAY, status: 'in_progress', reopen: 3,
-    owner: 'u-imran', asset_id: 'AST-0004',
+    owner: 'u-imran', asset_id: 'DR-CHR-0004',
   });
   db.assets[3].open_grievance_ids.push(reopened.id);
   db.assets[3].history.push({ grievance_id: 'GRV-2025-000871', category: 'drainage', created_at: iso(N - 80 * DAY), closed_at: iso(N - 74 * DAY) });

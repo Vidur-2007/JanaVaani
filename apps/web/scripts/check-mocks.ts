@@ -68,7 +68,7 @@ async function main() {
   await call('POST', '/notifications/all/read', null, citizen, '/notifications/:id/read');
   for (const p of ['/meta/departments', '/meta/wards', '/meta/wards.geojson', '/meta/emergency-contacts', '/public/stats', '/public/map', '/health'])
     await call('GET', p, null, null, p);
-  await call('GET', '/meta/assets/AST-0001', null, null, '/meta/assets/:id');
+  await call('GET', '/meta/assets/SL-KHB-0001', null, null, '/meta/assets/:id');
   await call('GET', '/public/nearby?lat=17.4968&lng=78.3614&radius_m=2000', null, null, '/public/nearby');
   const inbox = await call<Paged<Grievance>>('GET', '/officer/inbox', null, officer, '/officer/inbox');
   const oid = inbox.items[0]?.id ?? g.id;
@@ -92,6 +92,7 @@ async function main() {
   const v = await call<{ valid: boolean; events_checked: number }>('GET', '/admin/audit/verify', null, admin);
   console.log('audit chain valid:', v.valid, 'events:', v.events_checked);
   await call('POST', '/admin/demo/reset', {}, admin, '/admin/demo/reset');
+  await call('GET', '/me', null, citizen, '/me');
 
   const all = handlers.map((h) => `${h.method} ${h.pattern}`);
   const missed = all.filter((k) => !seen.has(k));
