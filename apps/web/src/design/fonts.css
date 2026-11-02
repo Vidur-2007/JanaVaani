@@ -1,0 +1,58 @@
+/* Self-hosted fonts (Fontsource). Each face ships unicode-range subsets, so one combined stack
+ * covers mixed-script text and the browser only downloads the scripts actually on screen. */
+@import '@fontsource-variable/anek-latin/index.css';
+@import '@fontsource-variable/anek-telugu/index.css';
+@import '@fontsource-variable/anek-devanagari/index.css';
+@import '@fontsource-variable/jetbrains-mono/index.css';
+@import '@fontsource/noto-sans/400.css';
+@import '@fontsource/noto-sans/500.css';
+@import '@fontsource/noto-sans/600.css';
+@import '@fontsource/noto-sans/700.css';
+@import '@fontsource/noto-sans-telugu/400.css';
+@import '@fontsource/noto-sans-telugu/600.css';
+@import '@fontsource/noto-sans-devanagari/400.css';
+@import '@fontsource/noto-sans-devanagari/600.css';
+@import '@fontsource/noto-naskh-arabic/400.css';
+@import '@fontsource/noto-naskh-arabic/700.css';
+@import '@fontsource/noto-nastaliq-urdu/400.css';
+@import '@fontsource/noto-nastaliq-urdu/700.css';
+
+:root {
+  --font-body: 'Noto Sans', 'Noto Sans Telugu', 'Noto Sans Devanagari', 'Noto Naskh Arabic', system-ui, sans-serif;
+  --font-heading: 'Anek Latin Variable', 'Anek Telugu Variable', 'Anek Devanagari Variable', 'Noto Nastaliq Urdu',
+    'Noto Sans', system-ui, sans-serif;
+  --font-code: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Per-language stacks: the <html lang> attribute (set by i18n) picks the primary face. */
+:lang(te) {
+  --font-body: 'Noto Sans Telugu', 'Noto Sans', system-ui, sans-serif;
+  --font-heading: 'Anek Telugu Variable', 'Anek Latin Variable', 'Noto Sans Telugu', sans-serif;
+  line-height: 1.6;
+}
+:lang(hi) {
+  --font-body: 'Noto Sans Devanagari', 'Noto Sans', system-ui, sans-serif;
+  --font-heading: 'Anek Devanagari Variable', 'Anek Latin Variable', 'Noto Sans Devanagari', sans-serif;
+  line-height: 1.6;
+}
+:lang(ur) {
+  --font-body: 'Noto Naskh Arabic', 'Noto Sans', system-ui, sans-serif;
+  --font-heading: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', sans-serif;
+  line-height: 1.8;
+}
+:lang(ur) :where(h1, h2, h3, .font-display) {
+  line-height: 1.8;
+}
+/* Content blocks tagged with their own lang (e.g. an Urdu complaint in an English UI) also get the right face. */
+[lang='te'] {
+  font-family: 'Noto Sans Telugu', 'Noto Sans', sans-serif;
+}
+[lang='hi'] {
+  font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
+}
+[lang='ur'] {
+  font-family: 'Noto Naskh Arabic', 'Noto Sans', sans-serif;
+}
+html[lang] {
+  font-family: var(--font-body);
+}
