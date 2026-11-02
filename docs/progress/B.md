@@ -48,8 +48,17 @@
 - Tests `tests/test_p5_hardening.py` (8). **P1–P5: 41 passed.**
 - Not done: PR "Integration: AI engine" — pushing from the build session is blocked (Claude GitHub App not installed on the repo); push the branch from Cursor, then open the PR.
 
+### P6 — Evaluation hardening
+- `ml/tune_thresholds.py` (results in `ml/models/tuning.json`):
+  - **Emergency keywords** on all 1,335 seed rows: recall 0.03 → **0.824**, precision **1.0** after adding missing phrasings in en/te/hi/ur/translit (manhole cover missing, sewage entering homes, transformer smoke, low-hanging lines). Label = spec emergency hazards (live_wire, fire, gas_leak, flooding, open_manhole); remaining misses are mostly lake-bed construction rows tagged `flooding` in the dataset (label noise, not keyword emergencies). P1 false-positive tests still pass.
+  - **Routing confidence bands vs accuracy** (synthetic test, classifier-only): auto ≥0.75 → 95.9 % (n=194), flagged 0.50–0.75 → 77 % (n=100), review <0.50 → 42.9 % (n=98). Bands are well-separated, so the spec thresholds are kept.
+  - **Duplicate threshold** (lexical mode): best F1 0.984 at 0.54 on the seeded story clusters (348 pairs) → `STRONG['lexical']` 0.62 → 0.54. Optimistic because clusters are template-generated; re-tune with semantic embeddings (`STRONG['semantic']` stays 0.78) once e5 is available.
+- Failure drills: both providers down = the default offline mode for the whole suite (all citizen + officer flows pass); Gemini-down → Groq and malformed-JSON → repair → fallback covered at the gateway level with mocked providers.
+- **Not done (needs live keys):** prompt-quality pass on intake_turn/localize_reply with 20 real conversations; per-language accuracy improvement via LLM-generated Urdu/Tenglish data (Urdu remains weakest at 0.42 synthetic / 0.71 human). Note: `intake_turn` (LLM follow-up question generation) is not implemented — the chat asks the deterministic location question from `departments.json` and moves to confirm; field-by-field LLM questioning needs keys to build and test.
+- **P1–P6: 41 passed.**
+
 ## In progress
-P6 — evaluation hardening, emergency keyword precision, failure drills.
+P7 — demo story verification, model notebook, architecture docs.
 
 ## Next
 P3 tracking/notifications/officer core → P4 officer AI/verification/escalation/analytics → P5 hardening.

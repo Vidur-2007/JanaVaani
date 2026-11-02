@@ -15,7 +15,7 @@ from ..refdata import haversine_m
 RADIUS_M = 500
 WINDOW_DAYS = 30
 # Thresholds per embedding mode (lexical char-ngram cosines run lower than e5 cosines).
-STRONG = {"semantic": 0.78, "lexical": 0.62}
+STRONG = {"semantic": 0.78, "lexical": 0.54}   # lexical tuned in P6 (ml/tune_thresholds.py): best F1 0.984 on story clusters
 RELATED = {"roads": {"drainage", "traffic"}, "drainage": {"roads", "water", "health"}, "water": {"drainage", "health"},
            "power": {"streetlights"}, "streetlights": {"power"}, "sanitation": {"health", "drainage"},
            "health": {"sanitation", "drainage", "water"}}
