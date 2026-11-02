@@ -201,11 +201,17 @@ export function useVoiceInput({ lang, onFinal, silenceMs = 1500, maxMs = 20_000 
       };
       recog.onerror = (e) => {
         // Network/permission/unsupported-language failures: stop using Web Speech; the recording covers this turn.
-        if (['network', 'not-allowed', 'service-not-allowed', 'language-not-supported'].includes(e.error)) webSpeechBroken.current = true;
+        // P6: 'audio-capture' is Android Chrome (and some desktop setups) refusing to share the mic that our
+        // recorder already holds: Web Speech can't work there, so the recorder → /speech/transcribe path takes over.
+        if (['network', 'not-allowed', 'service-not-allowed', 'language-not-supported', 'audio-capture'].includes(e.error))
+          webSpeechBroken.current = true;
       };
       recog.onend = () => {
         if (rec.current === recog) rec.current = null;
         t.recDone = true;
+        // P6: a recognizer that failed (no speech service: offline, blocked network, some Edge setups) ends
+        // immediately. Keep the turn alive on the recorder; silence detection or a tap ends it.
+        if (t.active && webSpeechBroken.current) return;
         if (t.active) {
           // The recognizer stopped on its own (it does after a pause): end the turn too.
           finish();

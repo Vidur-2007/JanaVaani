@@ -72,6 +72,9 @@ export function VoiceMode({ chat, uiLang, onClose, onEdit }: { chat: ChatSession
     else if (input.status === 'listening') setPhase('listening');
     else if (input.status === 'transcribing') setPhase('thinking');
     else if (input.status === 'error') setPhase('ready');
+    // P6: a turn that produced nothing (no speech, empty recording) must not leave the UI stuck on
+    // "Listening…": show "tap to speak" again. A delivered transcript moves on to "thinking" right after.
+    else if (input.status === 'idle') setPhase((p) => (p === 'listening' ? 'ready' : p));
   }, [input.status]);
 
   const listen = useCallback(() => {
