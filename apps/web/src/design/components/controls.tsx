@@ -113,7 +113,7 @@ export function LanguageSwitcher({
           variant="ghost"
           size="sm"
           className={cn('touch-target gap-1.5', className)}
-          aria-label={t('lang.choose')}
+          aria-label={`${t('lang.choose')}: ${LANGUAGE_NAMES[current].native}`}
         >
           <Languages className="size-4" aria-hidden />
           <span lang={current}>{LANGUAGE_NAMES[current].native}</span>

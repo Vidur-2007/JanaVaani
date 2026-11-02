@@ -5,7 +5,18 @@ import { Link, Navigate, NavLink, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Bell, BookOpen, FileText, Home, LogOut, MapPinned, Mic, Search, Settings, UserRound } from 'lucide-react';
+import {
+  Bell,
+  BookOpen,
+  FileText,
+  Home,
+  LogOut,
+  MapPinned,
+  Mic,
+  Search,
+  Settings,
+  UserRound,
+} from 'lucide-react';
 import { AnimatedOutlet } from '@/app/AnimatedOutlet';
 import { Button } from '@/design/ui/button';
 import {
@@ -55,7 +66,9 @@ function useNotificationToasts() {
   useLiveEvent((e) => {
     if (e.kind !== 'notification') return;
     toast(t('shell.new_update'), {
-      action: e.grievance_id ? { label: t('shell.view'), onClick: () => navigate(`/app/complaints/${e.grievance_id}`) } : undefined,
+      action: e.grievance_id
+        ? { label: t('shell.view'), onClick: () => navigate(`/app/complaints/${e.grievance_id}`) }
+        : undefined,
     });
   });
 }
@@ -65,12 +78,23 @@ function UserMenu() {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   if (!profile) return null;
-  const initials = profile.role === 'guest' ? '' : profile.name.split(' ').map((p) => p[0]).slice(0, 2).join('');
+  const initials =
+    profile.role === 'guest'
+      ? ''
+      : profile.name
+          .split(' ')
+          .map((p) => p[0])
+          .slice(0, 2)
+          .join('');
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="touch-target rounded-full" aria-label={profile.name} data-testid="user-menu">
-          <span className="bg-primary/15 text-primary grid size-9 place-items-center rounded-full text-sm font-semibold">
+        <Button variant="ghost" size="icon" className="touch-target rounded-full" data-testid="user-menu">
+          <span className="sr-only">{profile.name}</span>
+          <span
+            className="bg-primary/15 text-primary grid size-9 place-items-center rounded-full text-sm font-semibold"
+            aria-hidden
+          >
             {initials || <UserRound className="size-4" aria-hidden />}
           </span>
         </Button>
@@ -105,8 +129,9 @@ function TopBar() {
   return (
     <header className="bg-bg/80 sticky top-0 z-40 border-b backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
-        <Link to="/app" aria-label={t('nav.home')}>
+        <Link to="/app">
           <Logo />
+          <span className="sr-only">{t('nav.home')}</span>
         </Link>
         <div className="flex items-center gap-1">
           <LanguageSwitcher />
@@ -122,7 +147,12 @@ function UnreadCount({ n, className }: { n: number; className?: string }) {
   const { t } = useTranslation('citizen');
   if (n <= 0) return null;
   return (
-    <span className={cn('bg-primary text-primary-foreground tabular min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5 font-semibold', className)}>
+    <span
+      className={cn(
+        'bg-primary text-primary-foreground tabular min-w-5 rounded-full px-1.5 text-center text-[11px] leading-5 font-semibold',
+        className,
+      )}
+    >
       {n > 9 ? '9+' : n}
       <span className="sr-only"> {t('shell.unread', { count: n })}</span>
     </span>
@@ -139,7 +169,10 @@ export function CitizenLayout() {
   const simple = usePrefs((s) => s.simple_mode);
   const location = useLocation();
   // First run: language → consent → accessibility before the app (Spec A §5.2).
-  if (!onboarded) return <Navigate to={`/onboarding?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  if (!onboarded)
+    return (
+      <Navigate to={`/onboarding?next=${encodeURIComponent(location.pathname + location.search)}`} replace />
+    );
   return (
     <div className="min-h-dvh">
       <a
@@ -151,7 +184,10 @@ export function CitizenLayout() {
       <TopBar />
       <div className="mx-auto flex max-w-6xl">
         {/* Side rail (desktop) */}
-        <nav className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-60 shrink-0 flex-col gap-1 border-e p-3 md:flex" aria-label={t('nav.main_menu')}>
+        <nav
+          className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-60 shrink-0 flex-col gap-1 border-e p-3 md:flex"
+          aria-label={t('nav.main_menu')}
+        >
           <Button asChild className="touch-target mb-3 h-12 rounded-full text-base">
             <Link to="/app/report">
               <Mic className="size-5" aria-hidden />
@@ -164,7 +200,10 @@ export function CitizenLayout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                cn('touch-target flex items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors', isActive ? 'bg-primary/12 text-primary' : 'hover:bg-surface-2')
+                cn(
+                  'touch-target flex items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors',
+                  isActive ? 'bg-primary/12 text-primary' : 'hover:bg-surface-2',
+                )
               }
             >
               <Icon className="size-5" aria-hidden />
@@ -211,7 +250,10 @@ export function CitizenLayout() {
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  cn('relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium', isActive ? 'text-primary' : 'text-muted-foreground')
+                  cn(
+                    'relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium',
+                    isActive ? 'text-primary' : 'text-muted-foreground',
+                  )
                 }
               >
                 {({ isActive }) => (
@@ -224,8 +266,12 @@ export function CitizenLayout() {
                       <Icon className="size-5" aria-hidden />
                     )}
                     <span className="max-w-full truncate px-1">{t(`nav.${key}`)}</span>
-                    {isActive && key !== 'report' && <span className="bg-primary absolute top-0 h-0.5 w-8 rounded-full" aria-hidden />}
-                    {key === 'alerts' && <UnreadCount n={unread} className="absolute top-1.5 start-[calc(50%+2px)]" />}
+                    {isActive && key !== 'report' && (
+                      <span className="bg-primary absolute top-0 h-0.5 w-8 rounded-full" aria-hidden />
+                    )}
+                    {key === 'alerts' && (
+                      <UnreadCount n={unread} className="absolute top-1.5 start-[calc(50%+2px)]" />
+                    )}
                   </>
                 )}
               </NavLink>
@@ -257,8 +303,9 @@ function TopBarPublic() {
   return (
     <header className="border-b">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
-        <Link to="/" aria-label={t('nav.home')}>
+        <Link to="/">
           <Logo />
+          <span className="sr-only">{t('nav.home')}</span>
         </Link>
         <div className="flex items-center gap-1">
           <LanguageSwitcher />

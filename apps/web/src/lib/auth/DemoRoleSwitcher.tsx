@@ -45,7 +45,7 @@ export function DemoRoleSwitcher({ className }: { className?: string }) {
           'glass fixed bottom-20 start-3 z-50 flex size-11 items-center justify-center gap-2 rounded-full text-xs font-medium opacity-80 shadow-lg hover:opacity-100 md:bottom-4 md:w-auto md:px-3 md:opacity-100',
           className,
         )}
-        aria-label={t('demo.switch_role')}
+        aria-label={`${t('demo.switch_role')}: ${profile ? t(`roles.${profile.role}`) : t('demo.signed_out')}`}
         disabled={busy}
       >
         <UserRoundCog className="size-4" aria-hidden />

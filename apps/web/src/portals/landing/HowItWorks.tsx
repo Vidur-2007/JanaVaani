@@ -4,7 +4,14 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react';
 import { BadgeCheck, Brain, Check, Landmark, Mic, X } from 'lucide-react';
-import { AIBadge, DepartmentBadge, LangBadge, PriorityChip, SLACountdown, StatusChip } from '@/design/components';
+import {
+  AIBadge,
+  DepartmentBadge,
+  LangBadge,
+  PriorityChip,
+  SLACountdown,
+  StatusChip,
+} from '@/design/components';
 import { easeOutExpo } from '@/design/motion';
 import { useReducedMotion } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
@@ -12,7 +19,13 @@ import { cn } from '@/lib/utils';
 // Synthetic demo content (the master §16 live-wire story), shown as the citizen typed it.
 const SAMPLE_TE = 'మా స్కూల్ దగ్గర కరెంటు తీగ తెగి రోడ్డుపై పడింది. పిల్లలు అటు నుంచే వెళ్తారు.';
 const SAMPLE_EN = 'A power line has snapped and fallen on the road near our school. Children walk that way.';
-const DEMO_SLA = { hours: 4, due_at: '2099-01-01T00:00:00Z', breached: false, remaining_minutes: 222, delay_risk: 'low' as const };
+const DEMO_SLA = {
+  hours: 4,
+  due_at: '2099-01-01T00:00:00Z',
+  breached: false,
+  remaining_minutes: 222,
+  delay_risk: 'low' as const,
+};
 
 const STEPS = [
   { key: 'speak', icon: Mic },
@@ -31,7 +44,9 @@ function Bars() {
           className="bg-primary w-1 rounded-full"
           initial={{ height: 6 }}
           animate={reduced ? { height: 10 + ((i * 7) % 26) } : { height: [8, 14 + ((i * 13) % 30), 8] }}
-          transition={reduced ? undefined : { duration: 0.9 + (i % 5) * 0.12, repeat: Infinity, ease: 'easeInOut' }}
+          transition={
+            reduced ? undefined : { duration: 0.9 + (i % 5) * 0.12, repeat: Infinity, ease: 'easeInOut' }
+          }
         />
       ))}
     </div>
@@ -67,8 +82,15 @@ function Vignette({ step }: { step: number }) {
             animate="animate"
             variants={{ animate: { transition: { staggerChildren: 0.15 } } }}
           >
-            {[<DepartmentBadge key="d" department="power" />, <PriorityChip key="p" priority="critical" score={92} />, <SLACountdown key="s" sla={DEMO_SLA} />].map((el, i) => (
-              <motion.span key={i} variants={{ initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 } }}>
+            {[
+              <DepartmentBadge key="d" department="power" />,
+              <PriorityChip key="p" priority="critical" score={92} />,
+              <SLACountdown key="s" sla={DEMO_SLA} />,
+            ].map((el, i) => (
+              <motion.span
+                key={i}
+                variants={{ initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 } }}
+              >
                 {el}
               </motion.span>
             ))}
@@ -113,13 +135,27 @@ function StepText({ i, active }: { i: number; active: boolean }) {
   const { t } = useTranslation('landing');
   const { key, icon: Icon } = STEPS[i];
   return (
-    <div className={cn('flex gap-4 transition-opacity duration-300', active ? 'opacity-100' : 'opacity-35')}>
-      <span className={cn('grid size-11 shrink-0 place-items-center rounded-2xl border', active && 'border-primary bg-primary/15 text-primary')}>
+    // The current step is marked by colour + a start-side bar; the others keep full text contrast (WCAG 1.4.3).
+    <div
+      className={cn(
+        'flex gap-4 border-s-2 ps-4 transition-colors duration-300',
+        active ? 'border-primary' : 'border-transparent',
+      )}
+      aria-current={active ? 'step' : undefined}
+    >
+      <span
+        className={cn(
+          'grid size-11 shrink-0 place-items-center rounded-2xl border',
+          active && 'border-primary bg-primary/15 text-primary',
+        )}
+      >
         <Icon className="size-5" aria-hidden />
       </span>
       <div>
         <p className="text-muted-foreground font-mono text-xs">0{i + 1}</p>
-        <h3 className="font-display text-xl font-semibold">{t(`how.steps.${key}.title`)}</h3>
+        <h3 className={cn('font-display text-xl font-semibold transition-colors', active && 'text-primary')}>
+          {t(`how.steps.${key}.title`)}
+        </h3>
         <p className="text-muted-foreground mt-1 max-w-sm">{t(`how.steps.${key}.body`)}</p>
       </div>
     </div>

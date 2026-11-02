@@ -91,7 +91,7 @@ function OpenIssues({ asset }: { asset: Asset }) {
                   <Link
                     to={`/app/complaints/${id}`}
                     state={{ summary }}
-                    className="line-clamp-2 block font-medium hover:underline"
+                    className="-my-2.5 line-clamp-2 block py-2.5 font-medium hover:underline"
                     lang={title.lang}
                     dir={title.dir}
                   >

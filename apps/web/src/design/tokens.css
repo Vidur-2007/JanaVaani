@@ -28,13 +28,13 @@
   --border: #e3ded3;
   --text: #12141a;
   --text-muted: #5b6272;
-  --primary: #e8620c;
+  --primary: #a83c06; /* deep saffron: AA for white-on-primary and primary text on tints (P5 a11y pass) */
   --primary-fg: #ffffff;
-  --accent: #0e9f94;
-  --ai: #4f56e8;
-  --success: #138a4b;
-  --warning: #a86a00;
-  --danger: #d12a3a;
+  --accent: #0a736b;
+  --ai: #4349d6;
+  --success: #0d7038;
+  --warning: #8a5a00;
+  --danger: #b3122a;
   /* Text-safe priority colors (AA on light surfaces); chip fills use the base colors below. */
   --prio-critical-fg: #b3122a;
   --prio-high-fg: #b04a00;
@@ -57,7 +57,7 @@
   --primary: #ff7a1a;
   --primary-fg: #1a0b00;
   --accent: #22d3c5;
-  --ai: #7c83ff;
+  --ai: #8a90ff; /* AA on its own 12% tint (P5 a11y pass) */
   --success: #2bd67b;
   --warning: #ffc23d;
   --danger: #ff4d5e;

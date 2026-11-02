@@ -241,7 +241,7 @@ export default function Nearby() {
                       <Link
                         to={`/app/complaints/${n.grievance_id}`}
                         state={{ summary }}
-                        className="line-clamp-2 min-w-0 flex-1 font-medium hover:underline"
+                        className="-my-2.5 line-clamp-2 min-w-0 flex-1 py-2.5 font-medium hover:underline"
                         lang={title.lang}
                         dir={title.dir}
                       >

@@ -7,7 +7,14 @@ import { BadgeCheck, Clock3, Download, FileText, History, Languages, MapPin, Use
 import type { GrievanceDetail, Lang } from '@contracts/types';
 import { Button } from '@/design/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/design/ui/popover';
-import { DepartmentBadge, LangBadge, ListenButton, PriorityChip, StatusChip, Timeline } from '@/design/components';
+import {
+  DepartmentBadge,
+  LangBadge,
+  ListenButton,
+  PriorityChip,
+  StatusChip,
+  Timeline,
+} from '@/design/components';
 import { fadeUp, stagger } from '@/design/motion';
 import { isRtl } from '@/lib/i18n';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
@@ -20,14 +27,23 @@ import { ActionsPanel } from './Actions';
 function ClosureLabel({ g }: { g: GrievanceDetail }) {
   const { t } = useTranslation('citizen');
   if (g.status !== 'closed' && g.status !== 'rejected') return null;
-  const key = g.closure_type === 'citizen_verified' ? 'verified' : g.closure_type === 'auto_closed_unverified' ? 'auto' : 'rejected';
+  const key =
+    g.closure_type === 'citizen_verified'
+      ? 'verified'
+      : g.closure_type === 'auto_closed_unverified'
+        ? 'auto'
+        : 'rejected';
   return (
     <p
       className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ${key === 'verified' ? 'bg-success/12 text-success' : key === 'auto' ? 'bg-warning/15 text-warning' : 'bg-surface-2 text-muted-foreground'}`}
       data-testid="closure-label"
       data-closure={g.closure_type ?? ''}
     >
-      {key === 'verified' ? <BadgeCheck className="size-4" aria-hidden /> : <Clock3 className="size-4" aria-hidden />}
+      {key === 'verified' ? (
+        <BadgeCheck className="size-4" aria-hidden />
+      ) : (
+        <Clock3 className="size-4" aria-hidden />
+      )}
       {t(`tracker.closure.${key}`)}
     </p>
   );
@@ -57,7 +73,14 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
   const pinQuery = pin ? `?pin=${pin}` : '';
 
   return (
-    <motion.article variants={stagger()} initial="initial" animate="animate" className="space-y-5" data-testid="grievance-detail" data-status={g.status}>
+    <motion.article
+      variants={stagger()}
+      initial="initial"
+      animate="animate"
+      className="space-y-5"
+      data-testid="grievance-detail"
+      data-status={g.status}
+    >
       <motion.header variants={fadeUp} className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-muted-foreground font-mono text-sm" data-testid="tracker-id">
@@ -65,11 +88,19 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
           </p>
           <ListenButton text={summary} lang={ui} variant="outline" />
         </div>
-        <h1 className="font-display text-2xl leading-snug font-semibold" lang={shownTitle.lang} dir={isRtl(shownTitle.lang) ? 'rtl' : 'ltr'}>
+        <h1
+          className="font-display text-2xl leading-snug font-semibold"
+          lang={shownTitle.lang}
+          dir={isRtl(shownTitle.lang) ? 'rtl' : 'ltr'}
+        >
           {shownTitle.text}
         </h1>
         {title.lang !== ui && (
-          <button type="button" onClick={() => setTranslate((v) => !v)} className="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline">
+          <button
+            type="button"
+            onClick={() => setTranslate((v) => !v)}
+            className="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline"
+          >
             <Languages className="size-4" aria-hidden />
             {translate && tr.data ? t('complaints.show_original') : t('complaints.translate')}
           </button>
@@ -77,8 +108,9 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
         <div className="flex flex-wrap items-center gap-2">
           <StatusChip status={g.status} />
           <Popover>
-            <PopoverTrigger className="rounded-full" aria-label={t('tracker.why_priority')} data-testid="priority-popover">
+            <PopoverTrigger className="touch-target inline-flex items-center rounded-full" data-testid="priority-popover">
               <PriorityChip priority={g.priority} score={g.priority_score} />
+              <span className="sr-only">{t('tracker.why_priority')}</span>
             </PopoverTrigger>
             <PopoverContent className="w-72 space-y-2">
               <p className="text-sm font-semibold">{t('tracker.why_priority')}</p>
@@ -104,7 +136,11 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
         <ClosureLabel g={g} />
       </motion.header>
 
-      <motion.section variants={fadeUp} className="bg-surface rounded-[var(--radius-lg)] border p-4" aria-labelledby="progress-title">
+      <motion.section
+        variants={fadeUp}
+        className="bg-surface rounded-[var(--radius-lg)] border p-4"
+        aria-labelledby="progress-title"
+      >
         <h2 id="progress-title" className="sr-only">
           {t('detail.timeline')}
         </h2>
@@ -117,12 +153,18 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
 
       <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
         <div className="space-y-5">
-          <motion.section variants={fadeUp} className="bg-surface space-y-2 rounded-[var(--radius-lg)] border p-4">
+          <motion.section
+            variants={fadeUp}
+            className="bg-surface space-y-2 rounded-[var(--radius-lg)] border p-4"
+          >
             <p className="leading-relaxed" lang={desc.lang} dir={desc.dir}>
               {desc.text}
             </p>
             {g.support_count > 0 && (
-              <p className="text-muted-foreground inline-flex items-center gap-1.5 text-sm" data-testid="affected-count">
+              <p
+                className="text-muted-foreground inline-flex items-center gap-1.5 text-sm"
+                data-testid="affected-count"
+              >
                 <Users className="size-4" aria-hidden />
                 {t('tracker.affected', { count: g.support_count + 1 })}
               </p>

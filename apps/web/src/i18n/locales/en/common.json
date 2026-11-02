@@ -98,11 +98,19 @@
   },
   "errors": {
     "generic_title": "Something went wrong",
-    "network": "Could not reach the server. Check your connection.",
+    "network": "Could not reach the server. Check your internet connection and try again.",
     "not_found_title": "Page not found",
     "not_found_body": "The page you are looking for does not exist or has moved.",
     "boundary_title": "This screen hit a problem",
-    "boundary_body": "Reload the page to try again. Your drafts are saved on this device."
+    "boundary_body": "Reload the page to try again. Your drafts are saved on this device.",
+    "unauthorized": "Please sign in again to continue.",
+    "forbidden": "You do not have access to this.",
+    "not_found": "We could not find that. Check the ticket number and try again.",
+    "conflict": "This was already done or changed by someone else. Refresh and try again.",
+    "too_large": "That file is too big. Try a smaller photo.",
+    "rate_limited": "Too many tries in a short time. Please wait a minute and try again.",
+    "invalid": "Some details are missing or not quite right. Please check and try again.",
+    "server": "Our server had a problem. Please try again in a moment."
   },
   "lang": {
     "choose": "Language",

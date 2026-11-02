@@ -62,7 +62,7 @@ export function PriorityChip({ priority, score, size = 'md', className }: Priori
         aria-hidden
       />
       {t(`priority.${priority}`)}
-      {score != null && <span className="tabular font-mono opacity-80">{score}</span>}
+      {score != null && <span className="tabular font-mono">{score}</span>}
     </span>
   );
 }
@@ -138,6 +138,7 @@ export function DepartmentBadge({ department, size = 'md', iconOnly, className }
       )}
       style={{ borderColor: `color-mix(in oklab, ${color} 55%, transparent)` }}
       title={iconOnly ? name : undefined}
+      role={iconOnly ? 'img' : undefined}
       aria-label={iconOnly ? name : undefined}
       data-department={department}
     >

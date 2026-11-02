@@ -8,7 +8,8 @@ import { HYDERABAD, type MapViewProps } from './MapView';
 // CARTO basemaps now require an API key (tiles come back watermarked), so the default is keyless
 // OpenStreetMap tiles; the Ink theme darkens them with a CSS filter (see `.jv-tiles-dark` below).
 // Set VITE_TILE_URL (+ VITE_TILE_ATTRIBUTION) to use another provider, e.g. a keyed CARTO URL.
-const TILE_URL = (import.meta.env.VITE_TILE_URL as string | undefined) || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const TILE_URL =
+  (import.meta.env.VITE_TILE_URL as string | undefined) || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION =
   (import.meta.env.VITE_TILE_ATTRIBUTION as string | undefined) ||
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
@@ -35,6 +36,8 @@ export default function MapViewImpl({
       aria-label={ariaLabel ?? t('map.label')}
     >
       {dark && <style>{`.jv-tiles-dark .leaflet-tile-pane{filter:${DARK_FILTER}}`}</style>}
+      {/* 44px zoom buttons (touch targets, Spec §11 accessibility). */}
+      <style>{`.leaflet-bar a,.leaflet-touch .leaflet-bar a{width:44px;height:44px;line-height:44px;font-size:22px}`}</style>
       <MapContainer
         center={[center.lat, center.lng]}
         zoom={zoom}

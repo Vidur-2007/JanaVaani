@@ -22,8 +22,9 @@ function Header() {
   return (
     <header className="glass sticky top-0 z-40 border-x-0 border-t-0">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4">
-        <Link to="/" aria-label={t('nav.home')}>
+        <Link to="/">
           <Logo />
+          <span className="sr-only">{t('nav.home')}</span>
         </Link>
         <nav className="flex items-center gap-1" aria-label={t('nav.main_menu')}>
           <Button asChild variant="ghost" size="sm" className="touch-target hidden md:inline-flex">

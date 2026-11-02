@@ -170,7 +170,7 @@ function Receipt({ g, pin, full }: { g: GrievanceDetail; pin?: string; full: boo
               <span className="text-neutral-500">{fmt.dateTime(e.created_at)}</span>
               <span>
                 {tc(`timeline.types.${e.type}`, { defaultValue: e.message_en })}
-                {full && <span className="block font-mono text-[10px] text-neutral-400">#{e.hash.slice(0, 16)}</span>}
+                {full && <span className="block font-mono text-[10px] text-neutral-500">#{e.hash.slice(0, 16)}</span>}
               </span>
             </li>
           ))}

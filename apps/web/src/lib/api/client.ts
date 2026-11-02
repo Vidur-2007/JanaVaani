@@ -1,4 +1,5 @@
 // fetch wrapper: bearer token, ApiError normalization, and mock | hybrid | live modes (master §9).
+import i18n from 'i18next';
 import { create } from 'zustand';
 import type { ApiError } from '@contracts/types';
 import type { MockProfile } from '@mocks/index';
@@ -177,8 +178,32 @@ export const post = <T>(path: string, body?: unknown, query?: Query) =>
   request<T>('POST', path, { body: body ?? {}, query });
 
 /** Human-readable message for any thrown error. */
+/** HTTP status → friendly, translated message key (common:errors.*). P5: citizens never see raw server text. */
+function friendlyKey(e: unknown): string | null {
+  if (e instanceof ApiRequestError) {
+    const s = e.status;
+    if (s === 0 || e.code === 'network_error') return 'network';
+    if (s === 401) return 'unauthorized';
+    if (s === 403) return 'forbidden';
+    if (s === 404) return 'not_found';
+    if (s === 409) return 'conflict';
+    if (s === 413) return 'too_large';
+    if (s === 429) return 'rate_limited';
+    if (s === 400 || s === 422) return 'invalid';
+    if (s >= 500) return 'server';
+    return null;
+  }
+  if (e instanceof TypeError && /fetch|network|load failed/i.test(e.message)) return 'network';
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'network';
+  return null;
+}
+
 export function errorMessage(e: unknown): string {
-  if (e instanceof ApiRequestError) return e.message;
+  const key = friendlyKey(e);
+  if (key && i18n.isInitialized) {
+    const text = i18n.t(`errors.${key}`, { ns: 'common', defaultValue: '' });
+    if (text) return text;
+  }
   if (e instanceof Error) return e.message;
   return String(e);
 }
