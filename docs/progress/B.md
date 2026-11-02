@@ -57,8 +57,15 @@
 - **Not done (needs live keys):** prompt-quality pass on intake_turn/localize_reply with 20 real conversations; per-language accuracy improvement via LLM-generated Urdu/Tenglish data (Urdu remains weakest at 0.42 synthetic / 0.71 human). Note: `intake_turn` (LLM follow-up question generation) is not implemented — the chat asks the deterministic location question from `departments.json` and moves to confirm; field-by-field LLM questioning needs keys to build and test.
 - **P1–P6: 41 passed.**
 
+### P7 — Demo story, model notebook, docs
+- Story placement verified through the API endpoints by tests: Miyapur incident with 32 supporters and ≥3 languages (`/officer/incidents`), Charminar/Falaknuma water spike alert with ur/hi languages (`/admin/alerts`), suspicious streetlight closure and Malakpet repeated reopen alerts, live-wire emergency awaiting confirmation (`/officer/review-queue?kind=emergency`). Stories are placed relative to the virtual clock each time `seed_db.py` runs.
+- `ml/notebooks/model_report.ipynb` (executed) + `model_report.html`: dataset distribution, per-language accuracy (synthetic vs human), confusion matrix, sample predictions, human-test errors, history, limitations.
+- `docs/architecture.md`: mermaid system + per-complaint pipeline diagrams, gateway fallback table, free tiers, privacy measures, offline mode.
+- Stretch (Spec B §13): not started.
+- PR "Final: AI engine": blocked on push access (see blockers).
+
 ## In progress
-P7 — demo story verification, model notebook, architecture docs.
+P8 — runbook; final deploy/warm-up steps need keys + HF account.
 
 ## Next
 P3 tracking/notifications/officer core → P4 officer AI/verification/escalation/analytics → P5 hardening.
