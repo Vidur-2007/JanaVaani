@@ -105,7 +105,23 @@ async function viaLive<T>(
     headers['Content-Type'] = 'application/json';
     payload = JSON.stringify(body);
   }
-  const res = await fetch(`${API_BASE}${pathWithQuery}`, { method, headers, body: payload, signal });
+  // P6: never hang on a sleeping API (free HF Spaces cold-start in 30 s+). Our own timeout becomes a
+  // `timeout` ApiRequestError (hybrid falls back to mocks); the caller's abort still propagates as AbortError.
+  const ctrl = new AbortController();
+  const limit = timeoutFor(method, pathWithQuery);
+  const timer = setTimeout(() => ctrl.abort(), limit);
+  const onAbort = () => ctrl.abort();
+  signal?.addEventListener('abort', onAbort);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${pathWithQuery}`, { method, headers, body: payload, signal: ctrl.signal });
+  } catch (e) {
+    if (ctrl.signal.aborted && !signal?.aborted) throw new ApiRequestError(0, 'timeout', `Timed out after ${limit} ms`);
+    throw e;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', onAbort);
+  }
   if (!res.ok) {
     let err: ApiError | undefined;
     try {
@@ -125,8 +141,16 @@ async function viaLive<T>(
   return (await res.json()) as T;
 }
 
+/** Per-request time limits: uploads and speech carry audio/images; chat and analysis call LLMs. */
+function timeoutFor(method: string, path: string): number {
+  if (/^\/(uploads|speech\/transcribe)/.test(path)) return 45_000;
+  if (method === 'POST') return 25_000;
+  return 12_000;
+}
+
 const shouldFallback = (e: unknown, hadToken: boolean) =>
   e instanceof TypeError ||
+  (e instanceof ApiRequestError && e.code === 'timeout') ||
   (e instanceof ApiRequestError &&
     (e.status === 404 ||
       e.status === 501 ||
@@ -190,7 +214,7 @@ export const post = <T>(path: string, body?: unknown, query?: Query) =>
 function friendlyKey(e: unknown): string | null {
   if (e instanceof ApiRequestError) {
     const s = e.status;
-    if (s === 0 || e.code === 'network_error') return 'network';
+    if (s === 0 || e.code === 'network_error' || e.code === 'timeout') return 'network';
     if (s === 401) return 'unauthorized';
     if (s === 403) return 'forbidden';
     if (s === 404) return 'not_found';
