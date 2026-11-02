@@ -14,6 +14,7 @@ import { ConfirmationCard, type ConfirmOptions } from './ConfirmationCard';
 import { SplitDrafts } from './SplitDrafts';
 import { DuplicateSheet, SupportCelebration } from './DuplicateSheet';
 import { EmergencyTakeover } from './EmergencyTakeover';
+import { SubmittedScreen } from './SubmittedScreen';
 import { LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
 import { MessageList } from './MessageList';
 import { LocationButton, LocationSheet, locationLabel } from './LocationSheet';
@@ -55,7 +56,7 @@ export default function ReportPage() {
   };
 
   // Stages with their own UI replace the mock's action quick replies.
-  const richStage = stage === 'confirming' || stage === 'duplicate_check' || stage === 'emergency';
+  const richStage = stage !== 'collecting' && stage !== 'answered';
 
   // Duplicate check: the sheet opens for each new duplicate_check response; closing it leaves a reopen card.
   const [dupClosedFor, setDupClosedFor] = useState<unknown>(null);
@@ -77,7 +78,21 @@ export default function ReportPage() {
         </Button>
       </div>
     );
-  if (stage === 'submitted' && supported && !pending) footer = <SupportCelebration count={supported.count} />;
+  const reportAnother = () => {
+    setSupported(null);
+    chat.reset();
+  };
+  if (stage === 'submitted' && !pending)
+    footer = supported ? (
+      <div className="space-y-3">
+        <SupportCelebration count={supported.count} />
+        <Button variant="ghost" className="touch-target mx-auto flex" onClick={reportAnother}>
+          {t('submitted.another')}
+        </Button>
+      </div>
+    ) : res?.submitted?.length ? (
+      <SubmittedScreen items={res.submitted} onReportAnother={reportAnother} />
+    ) : null;
   if (stage === 'confirming' && res?.drafts && res.drafts.length > 1 && !pending)
     footer = (
       <SplitDrafts

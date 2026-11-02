@@ -19,8 +19,8 @@ const AssetEntry = lazy(() => import('./pages/AssetEntry'));
 const Report = lazy(() => import('./report/ReportPage'));
 const QuickReport = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.QuickReport })));
 const Guide = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.Guide })));
-const PrintReceipt = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.PrintReceipt })));
-const PrintReport = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.PrintReport })));
+const PrintReceipt = lazy(() => import('./pages/PrintReceipt'));
+const PrintReport = lazy(() => import('./pages/PrintReceipt').then((m) => ({ default: m.PrintReport })));
 
 export default function CitizenRoutes() {
   return (

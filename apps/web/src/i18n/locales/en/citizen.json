@@ -303,5 +303,33 @@
     "matched": "We noticed:",
     "critical_note": "Your complaint is marked critical and sent to the emergency review team.",
     "continue": "Continue registering"
+  },
+  "submitted": {
+    "title_one": "Complaint registered",
+    "title_other": "{{count}} complaints registered",
+    "subtitle": "The right office has it now. We will keep you updated.",
+    "ticket": "Ticket ID",
+    "pin": "Your PIN",
+    "copy": "Copy",
+    "copied": "Copied",
+    "save_pin": "Save this PIN. With the ticket ID it lets you track the complaint without an account.",
+    "due": "Should be resolved by {{date}}",
+    "receipt": "Download receipt",
+    "track": "Track now",
+    "another": "Report another problem"
+  },
+  "receipt": {
+    "title": "Complaint receipt",
+    "report_title": "Complaint report",
+    "qr_alt": "QR code to track this complaint",
+    "scan": "Scan to track this complaint",
+    "status": "Status",
+    "department": "Department",
+    "priority": "Priority",
+    "due": "Resolve by",
+    "location": "Location",
+    "officer": "Officer",
+    "download": "Download PDF",
+    "footer": "JanaVaani · Demo data only · This receipt is generated from the complaint record; the timeline is tamper-evident."
   }
 }
