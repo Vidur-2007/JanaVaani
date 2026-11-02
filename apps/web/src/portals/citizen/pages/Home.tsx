@@ -305,6 +305,39 @@ function NearbyTeaser() {
   );
 }
 
+/**
+ * P6 (CLS): the unread banner and the "Is it fixed?" callout appear only once their data arrives, and they sit
+ * above the active list. Show one placeholder until both queries settle, and nothing below it until then, so
+ * content is only ever inserted (never pushed down) — no layout shift on slow or hybrid networks.
+ */
+function BelowTiles({ simple }: { simple: boolean }) {
+  const open = useQuery({
+    queryKey: qk.grievances.mine({ status: [...OPEN] }),
+    queryFn: ({ signal }) => api.myGrievances({ status: [...OPEN] }, signal),
+  });
+  const notes = useQuery({
+    queryKey: qk.notifications.list(),
+    queryFn: ({ signal }) => api.notifications({}, signal),
+    enabled: !simple,
+  });
+  if (open.isPending || (!simple && notes.isPending)) {
+    return (
+      <div className="space-y-3" aria-busy="true">
+        <Skeleton className="h-6 w-40" />
+        <ListSkeleton rows={1} />
+      </div>
+    );
+  }
+  return (
+    <>
+      {!simple && <UnreadBanner />}
+      <ActiveComplaints />
+      {!simple && <NearbyTeaser />}
+      {!simple && <InstallCard />}
+    </>
+  );
+}
+
 export default function Home() {
   const { t } = useTranslation('citizen');
   const { profile } = useAuth();
@@ -319,10 +352,7 @@ export default function Home() {
         <p className="text-muted-foreground">{t('home.subtitle')}</p>
       </header>
       <Tiles />
-      {!simple && <UnreadBanner />}
-      <ActiveComplaints />
-      {!simple && <NearbyTeaser />}
-      {!simple && <InstallCard />}
+      <BelowTiles simple={simple} />
     </PageTransition>
   );
 }
