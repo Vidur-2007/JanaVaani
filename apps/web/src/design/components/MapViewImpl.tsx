@@ -5,8 +5,14 @@ import { useTheme } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
 import { HYDERABAD, type MapViewProps } from './MapView';
 
+// CARTO basemaps now require an API key (tiles come back watermarked), so the default is keyless
+// OpenStreetMap tiles; the Ink theme darkens them with a CSS filter (see `.jv-tiles-dark` below).
+// Set VITE_TILE_URL (+ VITE_TILE_ATTRIBUTION) to use another provider, e.g. a keyed CARTO URL.
+const TILE_URL = (import.meta.env.VITE_TILE_URL as string | undefined) || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+  (import.meta.env.VITE_TILE_ATTRIBUTION as string | undefined) ||
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+const DARK_FILTER = 'invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6)';
 
 export default function MapViewImpl({
   center = HYDERABAD,
@@ -20,7 +26,7 @@ export default function MapViewImpl({
 }: MapViewProps) {
   const theme = useTheme();
   const { t } = useTranslation('common');
-  const style = theme === 'ink' ? 'dark_all' : 'light_all';
+  const dark = theme === 'ink' && !import.meta.env.VITE_TILE_URL;
   return (
     <div
       className={cn('relative overflow-hidden rounded-[var(--radius-lg)] border', className)}
@@ -28,20 +34,15 @@ export default function MapViewImpl({
       role="region"
       aria-label={ariaLabel ?? t('map.label')}
     >
+      {dark && <style>{`.jv-tiles-dark .leaflet-tile-pane{filter:${DARK_FILTER}}`}</style>}
       <MapContainer
         center={[center.lat, center.lng]}
         zoom={zoom}
         scrollWheelZoom={scrollWheelZoom}
-        className="size-full"
+        className={cn('size-full', dark && 'jv-tiles-dark')}
         attributionControl
       >
-        <TileLayer
-          key={style}
-          url={`https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png`}
-          attribution={ATTRIBUTION}
-          subdomains="abcd"
-          maxZoom={19}
-        />
+        <TileLayer url={TILE_URL} attribution={ATTRIBUTION} maxZoom={19} />
         {children}
       </MapContainer>
       {showBoundaryNote && (
