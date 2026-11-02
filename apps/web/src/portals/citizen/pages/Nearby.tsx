@@ -1,4 +1,5 @@
 // P0 nearby: base map + list from /public/nearby (Spec A §5.14 — P5 completes it).
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -12,6 +13,7 @@ import {
 } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { pickLocalized } from '@/lib/localized';
+import { AffectedTooButton, type PublicSummary } from '../tracker/AffectedToo';
 
 export default function Nearby() {
   const { t, i18n } = useTranslation('citizen');
@@ -40,11 +42,18 @@ export default function Nearby() {
                 className="bg-surface flex flex-wrap items-center gap-2 rounded-[var(--radius-lg)] border p-3"
               >
                 <DepartmentBadge department={n.category} size="sm" iconOnly />
-                <span className="min-w-0 flex-1 truncate" lang={title.lang} dir={title.dir}>
+                <Link
+                  to={`/app/complaints/${n.grievance_id}`}
+                  state={{ summary: { title: n.title, category: n.category, status: n.status, support_count: n.support_count, distance_m: n.distance_m } satisfies PublicSummary }}
+                  className="min-w-0 flex-1 truncate hover:underline"
+                  lang={title.lang}
+                  dir={title.dir}
+                >
                   {title.text}
-                </span>
+                </Link>
                 <StatusChip status={n.status} size="sm" />
                 <span className="text-muted-foreground tabular font-mono text-xs">{n.distance_m} m</span>
+                <AffectedTooButton id={n.grievance_id} size="sm" />
               </li>
             );
           })}

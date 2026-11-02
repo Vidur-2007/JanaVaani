@@ -485,7 +485,11 @@
       "verified": "Closed — confirmed by you",
       "auto": "Closed — no response from citizen",
       "rejected": "Rejected"
-    }
+    },
+    "affected_too": "I'm affected too",
+    "not_yours": "This complaint was reported by someone else, so its details are private.",
+    "affected_hint": "Facing the same problem? Add your support — it raises the priority and you'll be told when it's fixed.",
+    "back_to_nearby": "Back to issues near you"
   },
   "fix": {
     "title": "Is it fixed?",
