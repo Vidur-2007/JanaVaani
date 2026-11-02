@@ -26,7 +26,7 @@ function Header() {
           <Logo />
         </Link>
         <nav className="flex items-center gap-1" aria-label={t('nav.main_menu')}>
-          <Button asChild variant="ghost" size="sm" className="touch-target hidden sm:inline-flex">
+          <Button asChild variant="ghost" size="sm" className="touch-target hidden md:inline-flex">
             <Link to="/public">{t('nav.public')}</Link>
           </Button>
           <LanguageSwitcher />
