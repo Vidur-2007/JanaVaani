@@ -95,6 +95,7 @@ const pulseIcon = () =>
   });
 
 function CriticalPulses({ points, onClick }: { points: MapPoint[]; onClick?: (p: MapPoint) => void }) {
+  const { t } = useTranslation('gov');
   const icon = useMemo(() => pulseIcon(), []);
   return (
     <>
@@ -103,6 +104,7 @@ function CriticalPulses({ points, onClick }: { points: MapPoint[]; onClick?: (p:
           key={p.id ?? i}
           position={[p.lat, p.lng]}
           icon={icon}
+          title={t('map.critical_case')}
           eventHandlers={onClick ? { click: () => onClick(p) } : undefined}
         />
       ))}

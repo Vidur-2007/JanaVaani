@@ -1,7 +1,7 @@
 // Departments (Spec C §6.3): leaderboard, per-department drawer, comparison charts.
 // No satisfaction histogram or sub-department endpoint exists (gap G5): charts show averages, and sub-departments
 // are counted from the department's open cases.
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -168,6 +168,7 @@ export default function Departments() {
   const { t: tc } = useTranslation('common');
   const days = useDays();
   const [open, setOpen] = useState<DepartmentId | null>(null);
+  const board = useRef<HTMLDivElement>(null);
   const q = useQuery({
     queryKey: qk.admin.performance(days),
     queryFn: ({ signal }) => api.departmentPerformance({ days }, signal),
@@ -200,10 +201,12 @@ export default function Departments() {
             sheets={sheets}
             filename={`departments-${days}d`}
             title={t('nav.departments')}
+            target={board}
             disabled={rows.length === 0}
           />
         </div>
       </header>
+      <div ref={board}>
       <Panel title={t('admin.leaderboard')} action={<ScoreFormula />}>
         {q.isPending ? (
           <ListSkeleton rows={3} />
@@ -213,6 +216,7 @@ export default function Departments() {
           <DeptLeaderboard rows={q.data} onSelect={setOpen} />
         )}
       </Panel>
+      </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard {...shared} title={t('departments.chart_sla')} unit="%" formula={t('departments.formula_sla')} table={table('sla_compliance_pct')}>
           <PerDeptBar rows={sorted('sla_compliance_pct')} dataKey="sla_compliance_pct" name={t('departments.sla')} />

@@ -76,7 +76,7 @@ export function ReplyComposer({ grievance: g }: { grievance: Grievance }) {
       <Button
         variant="outline"
         size="sm"
-        className="border-ai/40 text-ai min-h-11 w-full md:min-h-9"
+        className="border-ai/40 text-ai hc:text-text min-h-11 w-full md:min-h-9"
         disabled={generate.isPending}
         onClick={() => generate.mutate()}
         data-testid="draft-ai"

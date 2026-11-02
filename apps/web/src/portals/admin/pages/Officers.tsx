@@ -1,6 +1,6 @@
 // Officers (Spec C §6.4): workload table, load chart, overload highlight (≥ 1.5× department median).
 // OfficerWorkload has no open-by-priority split (gap G4), so bars stack critical against other open.
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -22,6 +22,7 @@ const rowId = (r: Row) => r.officer.id;
 export default function Officers() {
   const { t } = useTranslation('gov');
   const fmt = useLangFormat();
+  const tableArea = useRef<HTMLDivElement>(null);
   const q = useQuery({
     queryKey: qk.admin.workload(),
     queryFn: ({ signal }) => api.officerWorkload({}, signal),
@@ -91,7 +92,7 @@ export default function Officers() {
     <PageTransition className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.officers')}</h1>
-        <ExportMenu sheets={sheets} filename="officer-workload" title={t('nav.officers')} disabled={rows.length === 0} />
+        <ExportMenu sheets={sheets} filename="officer-workload" title={t('nav.officers')} target={tableArea} disabled={rows.length === 0} />
       </header>
       {q.isPending ? (
         <ListSkeleton rows={4} />
@@ -122,6 +123,7 @@ export default function Officers() {
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
+          <div ref={tableArea}>
           <DataTable
             data={rows}
             columns={columns}
@@ -142,6 +144,7 @@ export default function Officers() {
               </article>
             )}
           />
+          </div>
         </>
       )}
     </PageTransition>

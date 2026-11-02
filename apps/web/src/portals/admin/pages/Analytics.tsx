@@ -17,9 +17,15 @@ import {
   YAxis,
 } from 'recharts';
 import type { DepartmentId } from '@contracts/types';
-import { Tabs, TabsList, TabsTrigger } from '@/design/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/design/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/design/ui/toggle-group';
-import { DEPARTMENT_ICONS, ErrorState, PageTransition, PriorityChip, TextSkeleton } from '@/design/components';
+import {
+  DEPARTMENT_ICONS,
+  ErrorState,
+  PageTransition,
+  PriorityChip,
+  TextSkeleton,
+} from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { ChartCard } from '@/portals/gov-shared/components/ChartCard';
@@ -58,10 +64,7 @@ export default function Analytics() {
     queryFn: ({ signal }) => api.officerInbox(RISK_WINDOW, signal),
   });
   const series = useMemo(() => trends.data ?? [], [trends.data]);
-  const stacked = useMemo(
-    () => series.map((p) => ({ date: p.date, ...p.by_category })),
-    [series],
-  );
+  const stacked = useMemo(() => series.map((p) => ({ date: p.date, ...p.by_category })), [series]);
   const present = DEPARTMENTS.filter((d) => series.some((p) => p.by_category?.[d]));
   // A spike marks the nearest plotted bucket on or before it, which also covers the weekly view.
   const spikes = useMemo(() => {
@@ -84,7 +87,9 @@ export default function Analytics() {
   return (
     <PageTransition className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.analytics')}</h1>
+        <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">
+          {t('nav.analytics')}
+        </h1>
         <div className="flex items-center gap-2">
           <ToggleGroup
             type="single"
@@ -125,15 +130,34 @@ export default function Analytics() {
               <XAxis dataKey="date" tick={axisTick} tickLine={false} minTickGap={32} />
               <YAxis tick={axisTick} tickLine={false} axisLine={false} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Area dataKey="created" name={t('kpi.created')} stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.15} animationDuration={CHART_ANIMATION_MS} />
-              <Area dataKey="resolved" name={t('kpi.resolved')} stroke="var(--accent)" fill="var(--accent)" fillOpacity={0.15} animationDuration={CHART_ANIMATION_MS} />
+              <Area
+                dataKey="created"
+                name={t('kpi.created')}
+                stroke="var(--primary)"
+                fill="var(--primary)"
+                fillOpacity={0.15}
+                animationDuration={CHART_ANIMATION_MS}
+              />
+              <Area
+                dataKey="resolved"
+                name={t('kpi.resolved')}
+                stroke="var(--accent)"
+                fill="var(--accent)"
+                fillOpacity={0.15}
+                animationDuration={CHART_ANIMATION_MS}
+              />
               {spikes.map((d) => (
                 <ReferenceLine
                   key={d}
                   x={d}
                   stroke="var(--danger)"
                   strokeDasharray="4 4"
-                  label={{ value: t('analytics.spike'), fill: 'var(--danger)', fontSize: 11, position: 'insideTopRight' }}
+                  label={{
+                    value: t('analytics.spike'),
+                    fill: 'var(--danger)',
+                    fontSize: 11,
+                    position: 'insideTopRight',
+                  }}
                 />
               ))}
             </AreaChart>
@@ -156,7 +180,14 @@ export default function Analytics() {
               <YAxis tick={axisTick} tickLine={false} axisLine={false} />
               <Tooltip cursor={{ fill: 'var(--surface-2)' }} contentStyle={tooltipStyle} />
               {present.map((d) => (
-                <Bar key={d} dataKey={d} stackId="c" name={tc(`departments.${d}`)} fill={deptColor(d)} animationDuration={CHART_ANIMATION_MS} />
+                <Bar
+                  key={d}
+                  dataKey={d}
+                  stackId="c"
+                  name={tc(`departments.${d}`)}
+                  fill={deptColor(d)}
+                  animationDuration={CHART_ANIMATION_MS}
+                />
               ))}
             </BarChart>
           </ResponsiveContainer>
@@ -171,33 +202,55 @@ export default function Analytics() {
             </TabsTrigger>
           ))}
         </TabsList>
+        {BY.map((b) => (
+          <TabsContent key={b} value={b}>
+            {b === by && (
+              <ChartCard
+                title={t(`analytics.by.${by}`)}
+                unit={t('departments.cases')}
+                formula={t('analytics.breakdown_formula')}
+                isLoading={breakdown.isPending}
+                error={breakdown.error}
+                onRetry={() => breakdown.refetch()}
+                isEmpty={rows.length === 0}
+                height={300}
+                table={{
+                  columns: [
+                    t(`analytics.by.${by}`),
+                    t('kpi.total'),
+                    t('kpi.open'),
+                    t('kpi.overdue'),
+                    t('departments.avg_resolution'),
+                  ],
+                  rows: rows.map((r) => [r.label, r.total, r.open, r.overdue, r.avg_resolution_hours]),
+                }}
+              >
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={rows.slice(0, 15)} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                    <CartesianGrid stroke="var(--border)" vertical={false} />
+                    <XAxis dataKey="label" tick={axisTick} tickLine={false} minTickGap={8} />
+                    <YAxis tick={axisTick} tickLine={false} axisLine={false} />
+                    <Tooltip cursor={{ fill: 'var(--surface-2)' }} contentStyle={tooltipStyle} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar
+                      dataKey="open"
+                      name={t('kpi.open')}
+                      fill="var(--accent)"
+                      animationDuration={CHART_ANIMATION_MS}
+                    />
+                    <Bar
+                      dataKey="overdue"
+                      name={t('kpi.overdue')}
+                      fill="var(--danger)"
+                      animationDuration={CHART_ANIMATION_MS}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
-      <ChartCard
-        title={t(`analytics.by.${by}`)}
-        unit={t('departments.cases')}
-        formula={t('analytics.breakdown_formula')}
-        isLoading={breakdown.isPending}
-        error={breakdown.error}
-        onRetry={() => breakdown.refetch()}
-        isEmpty={rows.length === 0}
-        height={300}
-        table={{
-          columns: [t(`analytics.by.${by}`), t('kpi.total'), t('kpi.open'), t('kpi.overdue'), t('departments.avg_resolution')],
-          rows: rows.map((r) => [r.label, r.total, r.open, r.overdue, r.avg_resolution_hours]),
-        }}
-      >
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={rows.slice(0, 15)} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
-            <CartesianGrid stroke="var(--border)" vertical={false} />
-            <XAxis dataKey="label" tick={axisTick} tickLine={false} minTickGap={8} />
-            <YAxis tick={axisTick} tickLine={false} axisLine={false} />
-            <Tooltip cursor={{ fill: 'var(--surface-2)' }} contentStyle={tooltipStyle} />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="open" name={t('kpi.open')} fill="var(--accent)" animationDuration={CHART_ANIMATION_MS} />
-            <Bar dataKey="overdue" name={t('kpi.overdue')} fill="var(--danger)" animationDuration={CHART_ANIMATION_MS} />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartCard>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title={t('analytics.delay_risk')}>

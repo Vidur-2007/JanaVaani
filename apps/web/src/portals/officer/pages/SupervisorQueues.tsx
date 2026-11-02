@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import type { DepartmentId, Grievance } from '@contracts/types';
 import { Button } from '@/design/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/design/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/design/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/design/ui/tabs';
 import { Textarea } from '@/design/ui/textarea';
 import {
   BeforeAfterSlider,
@@ -48,7 +48,10 @@ function useQueueAction<V>(fn: (v: V) => Promise<unknown>, message: string) {
 function Card({ g, children }: { g: Grievance; children: React.ReactNode }) {
   const { t } = useTranslation('gov');
   return (
-    <article data-testid="queue-card" className="bg-surface space-y-3 rounded-[var(--radius-md)] border p-3 md:p-4">
+    <article
+      data-testid="queue-card"
+      className="bg-surface space-y-3 rounded-[var(--radius-md)] border p-3 md:p-4"
+    >
       <div className="flex items-start justify-between gap-2">
         <CaseHeader grievance={g} asHeading={false} />
         <Link
@@ -75,7 +78,11 @@ function RoutingItem({ g }: { g: Grievance }) {
   return (
     <Card g={g}>
       <div className="grid gap-4 md:grid-cols-2">
-        <TranslationSplit text={g.description} codeMixed={g.is_code_mixed} className="sm:grid-cols-1 2xl:grid-cols-1" />
+        <TranslationSplit
+          text={g.description}
+          codeMixed={g.is_code_mixed}
+          className="sm:grid-cols-1 2xl:grid-cols-1"
+        />
         <RoutingExplain routing={g.routing} />
       </div>
       <div className="flex flex-wrap gap-2">
@@ -274,20 +281,29 @@ export default function SupervisorQueues() {
             </TabsTrigger>
           ))}
         </TabsList>
+        {KINDS.map((k) => (
+          <TabsContent key={k} value={k}>
+            {k === kind &&
+              (q.isPending ? (
+                <ListSkeleton rows={3} />
+              ) : q.isError ? (
+                <ErrorState error={q.error} onRetry={() => q.refetch()} />
+              ) : q.data.items.length === 0 ? (
+                <EmptyState
+                  icon={PartyPopper}
+                  title={t('queues.clear')}
+                  description={t('queues.clear_hint')}
+                />
+              ) : (
+                <div className="space-y-3">
+                  {q.data.items.map((g) => (
+                    <Item key={g.id} g={g} />
+                  ))}
+                </div>
+              ))}
+          </TabsContent>
+        ))}
       </Tabs>
-      {q.isPending ? (
-        <ListSkeleton rows={3} />
-      ) : q.isError ? (
-        <ErrorState error={q.error} onRetry={() => q.refetch()} />
-      ) : q.data.items.length === 0 ? (
-        <EmptyState icon={PartyPopper} title={t('queues.clear')} description={t('queues.clear_hint')} />
-      ) : (
-        <div className="space-y-3">
-          {q.data.items.map((g) => (
-            <Item key={g.id} g={g} />
-          ))}
-        </div>
-      )}
     </PageTransition>
   );
 }
