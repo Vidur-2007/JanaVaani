@@ -27,7 +27,9 @@ export function pickVoice(voices: SpeechSynthesisVoice[], lang: Lang): SpeechSyn
   const score = (v: SpeechSynthesisVoice) =>
     (v.lang.replace('_', '-') === code ? 4 : v.lang.startsWith(base) ? 2 : 0) +
     (v.localService ? 0.5 : 0) +
-    (/google|microsoft/i.test(v.name) ? 0.25 : 0);
+    (/google|microsoft/i.test(v.name) ? 0.25 : 0) +
+    // P6: Edge's "Online (Natural)" voices (te-IN, hi-IN, ur-IN…) are far clearer than legacy local ones.
+    (/natural/i.test(v.name) ? 1 : 0);
   const ranked = voices.filter((v) => v.lang.startsWith(base)).sort((a, b) => score(b) - score(a));
   return ranked[0] ?? null;
 }
@@ -41,8 +43,49 @@ export type SpeakResult = 'done' | 'unavailable' | 'cancelled';
 
 let currentAudio: HTMLAudioElement | null = null;
 
+let speakSeq = 0;
+
+/**
+ * P6: Chrome stops Google network voices ~15 s into one utterance, so long replies are spoken sentence by
+ * sentence (Latin . ? ! plus Devanagari । and Urdu ۔ full stops).
+ */
+function sentences(text: string): string[] {
+  const parts = text.match(/[^.!?।۔\n]+[.!?।۔]*\s*/g)?.map((p) => p.trim()).filter(Boolean) ?? [text];
+  const out: string[] = [];
+  for (const p of parts) {
+    const last = out[out.length - 1];
+    if (last && last.length + p.length < 160) out[out.length - 1] = `${last} ${p}`;
+    else out.push(p);
+  }
+  return out.length ? out : [text];
+}
+
+/** One utterance, with a watchdog: Android Chrome sometimes never fires `end`, which would stall voice mode. */
+function speakOne(s: SpeechSynthesis, voice: SpeechSynthesisVoice, text: string, rate: number): Promise<SpeakResult> {
+  return new Promise<SpeakResult>((resolve) => {
+    let settled = false;
+    const finish = (r: SpeakResult) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(watchdog);
+      resolve(r);
+    };
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = voice;
+    u.lang = voice.lang;
+    u.rate = rate;
+    u.onend = () => finish('done');
+    u.onerror = (e) => finish(e.error === 'interrupted' || e.error === 'canceled' ? 'cancelled' : 'unavailable');
+    // Generous estimate: ~8 characters per second at rate 1, plus start-up time for network voices.
+    const watchdog = window.setTimeout(() => finish('done'), 4000 + (text.length / 8 / Math.max(rate, 0.5)) * 1000);
+    if (s.paused) s.resume(); // Android can leave the queue paused after a backgrounded tab
+    s.speak(u);
+  });
+}
+
 /** Stop anything `speakText` is playing. */
 export function cancelSpeech() {
+  speakSeq++;
   synth?.cancel();
   currentAudio?.pause();
   currentAudio = null;
@@ -57,15 +100,13 @@ export async function speakText(text: string, lang: Lang, rate = usePrefs.getSta
   if (!text.trim()) return 'done';
   const voice = pickVoice(await loadVoices(), lang);
   if (synth && voice) {
-    return new Promise<SpeakResult>((resolve) => {
-      const u = new SpeechSynthesisUtterance(text);
-      u.voice = voice;
-      u.lang = voice.lang;
-      u.rate = rate;
-      u.onend = () => resolve('done');
-      u.onerror = (e) => resolve(e.error === 'interrupted' || e.error === 'canceled' ? 'cancelled' : 'unavailable');
-      synth.speak(u);
-    });
+    const token = ++speakSeq;
+    for (const part of sentences(text)) {
+      if (token !== speakSeq) return 'cancelled';
+      const r = await speakOne(synth, voice, part, rate);
+      if (r !== 'done') return r;
+    }
+    return 'done';
   }
   try {
     const blob = await api.tts({ text, lang });
@@ -95,6 +136,7 @@ export function useSpeak() {
   const urlRef = useRef<string | null>(null);
 
   const stop = useCallback(() => {
+    speakSeq++;
     synth?.cancel();
     audioRef.current?.pause();
     audioRef.current = null;
@@ -111,14 +153,16 @@ export function useSpeak() {
       if (!text.trim()) return;
       const voice = pickVoice(await loadVoices(), lang);
       if (synth && voice) {
-        const u = new SpeechSynthesisUtterance(text);
-        u.voice = voice;
-        u.lang = voice.lang;
-        u.rate = rate;
-        u.onstart = () => setStatus('speaking');
-        u.onend = () => setStatus('idle');
-        u.onerror = () => setStatus('error');
-        synth.speak(u);
+        // Sentence by sentence with a watchdog (see speakOne) — long status summaries hit Chrome's cut-off.
+        const token = ++speakSeq;
+        setStatus('speaking');
+        for (const part of sentences(text)) {
+          if (token !== speakSeq) return;
+          const r = await speakOne(synth, voice, part, rate);
+          if (r === 'cancelled') return;
+          if (r === 'unavailable') return setStatus('error');
+        }
+        if (token === speakSeq) setStatus('idle');
         return;
       }
       // No browser voice → server TTS (501 when not configured).
