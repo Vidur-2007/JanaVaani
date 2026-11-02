@@ -108,3 +108,18 @@ test('easy mode: category tiles → one question at a time → big ✓ → ticke
   await page.getByTestId('confirm-submit').click();
   await expect(page.getByTestId('submitted-screen')).toBeVisible();
 });
+
+test('Android back closes voice mode and keeps the report page', async ({ page, context }) => {
+  await context.grantPermissions(['microphone']);
+  await setup(page, { consent_microphone: true });
+  await page.goto('/app');
+  await page.goto('/app/report?mode=voice');
+  await expect(page.getByTestId('voice-status')).toBeVisible();
+  await page.goBack();
+  await expect(page.getByTestId('voice-status')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/app\/report/);
+  await expect(page.getByTestId('composer-input')).toBeVisible();
+  // A second back leaves the page as usual.
+  await page.goBack();
+  await expect(page).toHaveURL(/\/app$/);
+});

@@ -16,6 +16,7 @@ import { Orb, type OrbState } from './Orb';
 import { useVoiceInput, type VoiceLang } from './useVoiceInput';
 import { VoiceLangChip } from './VoiceLangChip';
 import { matchConfirmWord } from './voiceWords';
+import { useBackToClose } from '../../components/useBackToClose';
 
 type Phase = 'consent' | 'ready' | 'listening' | 'thinking' | 'speaking' | 'denied' | 'unsupported';
 
@@ -62,6 +63,7 @@ export function VoiceMode({ chat, uiLang, onClose, onEdit }: { chat: ChatSession
   );
 
   const input = useVoiceInput({ lang: vlang, onFinal });
+  useBackToClose('voice', onClose);
   // Stable callbacks (the hook returns a new object every render).
   const { start: startInput, stop: stopInput, cancel: cancelInput } = input;
 
