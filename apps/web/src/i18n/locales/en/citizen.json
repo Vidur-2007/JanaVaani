@@ -426,5 +426,65 @@
       "education": "School problem",
       "town_planning": "Illegal construction"
     }
+  },
+  "tracker": {
+    "progress_label": "Progress: {{done}} of {{total}} steps done",
+    "step_done": "done",
+    "step_current": "current step",
+    "step_todo": "not yet",
+    "steps": {
+      "registered": "Registered",
+      "classified": "Classified",
+      "assigned": "Assigned",
+      "in_progress": "In progress",
+      "resolution": "Resolution submitted",
+      "verification": "Your check",
+      "closed": "Closed"
+    },
+    "summary": "Complaint {{id}}. Status: {{status}}. Department: {{dept}}. Current step: {{step}}. Due by {{due}}.",
+    "why_priority": "Why this priority",
+    "affected_one": "{{count}} person affected",
+    "affected_other": "{{count}} people affected",
+    "history": "All activity",
+    "downloads": "Downloads",
+    "full_report": "Full status report",
+    "sla_title": "Deadline",
+    "due": "Due",
+    "time_left": "Time left",
+    "eta": "Expected",
+    "eta_value_one": "about {{count}} day",
+    "eta_value_other": "about {{count}} days",
+    "eta_note": "Usually resolved in about this time in your area (past complaints).",
+    "delay": "Reason for delay",
+    "escalation": "Escalation",
+    "escalation_level": {
+      "0": "Not escalated",
+      "1": "Sent to supervisor",
+      "2": "Sent to senior officials"
+    },
+    "office_title": "Handling office",
+    "office_review": "A supervisor is choosing the right department.",
+    "office_pending": "An officer will be assigned soon.",
+    "verdict": {
+      "verified": "AI check: the fix looks genuine",
+      "suspicious": "AI check: this proof looks suspicious",
+      "unclear": "AI check: not sure from the photo"
+    },
+    "messages": "Messages",
+    "no_messages": "No messages yet.",
+    "reply": "Send reply",
+    "reply_placeholder": "Write to the office…",
+    "see_english": "See English",
+    "sender": {
+      "officer": "Officer",
+      "bot": "JanaVaani",
+      "citizen": "You",
+      "system": "System"
+    },
+    "closure": {
+      "verified": "Closed — confirmed by you",
+      "auto": "Closed — no response from citizen",
+      "rejected": "Rejected"
+    }
   }
 }
