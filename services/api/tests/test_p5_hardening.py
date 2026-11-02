@@ -68,3 +68,22 @@ def test_rate_limit_returns_friendly_429(client):
     assert 429 in codes
     r = client.post("/api/v1/grievances/analyze", json={"text": "streetlight not working", "ui_lang": "en"})
     assert r.status_code == 429 and r.json()["error"]["code"] == "rate_limited"
+
+
+def test_me_endpoint(client, seeded):
+    me = client.get("/api/v1/me", headers=token(client, "farhan.water@janavaani.test")).json()
+    assert set(me) == {"id", "role", "name", "email", "preferred_language", "department_id"}
+    assert me["role"] == "officer" and me["department_id"] == "water" and me["email"] == "farhan.water@janavaani.test"
+    assert client.get("/api/v1/me").status_code == 401
+
+
+def test_ward_and_asset_id_scheme(client, seeded):
+    ids = {w["name"]: w["id"] for w in client.get("/api/v1/meta/wards").json()}
+    assert ids["Kukatpally"] == "W-KKP-01" and ids["Miyapur"] == "W-SLP-04" and ids["Charminar"] == "W-CHR-01"
+    import re
+    from app.core.db import session_scope
+    from app.models import Asset
+    from sqlalchemy import select
+    with session_scope() as db:
+        aids = db.execute(select(Asset.id)).scalars().all()
+    assert aids and all(re.fullmatch(r"(SL|DR|WP|BN|RD|TS)-(SLP|KKP|KHB|SEC|CHR|LBN)-\d{4}", a) for a in aids)

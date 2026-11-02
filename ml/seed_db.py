@@ -35,7 +35,7 @@ from app.refdata import departments, wards  # noqa: E402
 
 PASSWORD = "Demo@2026"
 DEPTS = [d["id"] for d in departments() if d["id"] != "other"]
-ZONE_CODE = {"Serilingampally": "SLP", "Kukatpally": "KKP", "Khairatabad": "KHB", "Secunderabad": "SEC", "Charminar": "CHM", "LB Nagar": "LBN"}
+ZONE_CODE = {"Serilingampally": "SLP", "Kukatpally": "KKP", "Khairatabad": "KHB", "Secunderabad": "SEC", "Charminar": "CHR", "LB Nagar": "LBN"}
 DEMO = [
     ("citizen", "lakshmi@janavaani.test", "Lakshmi Devi", "te", None, [], "Kukatpally", None),
     ("citizen", "imran@janavaani.test", "Imran Khan", "ur", None, [], "Charminar", None),
@@ -64,20 +64,24 @@ def jitter(rng, w, m=700):
     return w["lat"] + r * math.cos(a) / 111000, w["lng"] + r * math.sin(a) / (111000 * math.cos(math.radians(w["lat"])))
 
 
-def supabase_user(email, role):
-    """Create the auth user via the Supabase admin API when configured; else a local uuid."""
+def supabase_user(email, role, name=None):
+    """Create (or update) the auth user via the Supabase admin API when configured; else a deterministic local uuid.
+    Sets app_metadata.role (server-controlled, read by the frontend before /me) and user_metadata.name/role."""
     s = get_settings()
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
     if not (s.supabase_url and key):
         return str(uuid.uuid5(uuid.NAMESPACE_DNS, email))
     import httpx
     h = {"apikey": key, "Authorization": f"Bearer {key}"}
+    meta = {"app_metadata": {"role": role}, "user_metadata": {"name": name or email.split("@")[0], "role": role}}
     r = httpx.post(f"{s.supabase_url}/auth/v1/admin/users", headers=h, timeout=20,
-                   json={"email": email, "password": PASSWORD, "email_confirm": True, "user_metadata": {"role": role}})
+                   json={"email": email, "password": PASSWORD, "email_confirm": True, **meta})
     if r.status_code in (200, 201):
         return r.json()["id"]
     lst = httpx.get(f"{s.supabase_url}/auth/v1/admin/users", headers=h, params={"per_page": 1000}, timeout=20).json()
-    return next(u["id"] for u in lst.get("users", []) if u.get("email") == email)
+    uid = next(u["id"] for u in lst.get("users", []) if u.get("email") == email)
+    httpx.put(f"{s.supabase_url}/auth/v1/admin/users/{uid}", headers=h, timeout=20, json=meta)   # re-seed keeps metadata current
+    return uid
 
 
 def wipe(db):
@@ -106,7 +110,7 @@ def seed_people(db, rng):
     people = {}
     for role, email, name, lang, dep, zones, home, desig in DEMO:
         wids = [w["id"] for w in wards() if w["zone"] in zones]
-        p = Profile(id=supabase_user(email, role), role=role, name=name, email=email, preferred_language=lang,
+        p = Profile(id=supabase_user(email, role, name), role=role, name=name, email=email, preferred_language=lang,
                     department_id=dep, ward_ids=wids, zone=zones[0] if zones else None, designation=desig,
                     office_name=f"GHMC {home} Circle Office" if home else "GHMC Head Office", office_phone=None)
         db.add(p)
@@ -118,7 +122,7 @@ def seed_people(db, rng):
                 continue
             nm = f"{rng.choice(FIRST)} {rng.choice(LAST)}"
             email = f"{dep}.{code.lower()}@janavaani.test"
-            db.add(Profile(id=supabase_user(email, "officer"), role="officer", name=nm, email=email, department_id=dep,
+            db.add(Profile(id=supabase_user(email, "officer", nm), role="officer", name=nm, email=email, department_id=dep,
                            ward_ids=[w["id"] for w in wards() if w["zone"] == zone], zone=zone,
                            designation=f"AE {dep.replace('_', ' ').title()}", office_name=f"{zone} Zonal Office"))
     db.flush()

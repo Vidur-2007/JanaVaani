@@ -54,7 +54,7 @@ def duplicate_threshold():
     from app.models import Grievance
     from app.pipeline import duplicates
     with session_scope() as db:
-        gs = db.execute(select(Grievance).where(Grievance.ward_id.in_(["W-SLP-04", "W-CHM-01", "W-CHM-02"]))).scalars().all()
+        gs = db.execute(select(Grievance).where(Grievance.ward_id.in_(["W-SLP-04", "W-CHR-01", "W-CHR-02"]))).scalars().all()
         pairs = []
         for g in gs:
             if g.lat is None:
