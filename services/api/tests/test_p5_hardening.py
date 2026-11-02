@@ -41,7 +41,7 @@ def test_retrain_hot_swaps_and_adds_version(client, seeded, tmp_path, monkeypatc
     before = client.get("/api/v1/admin/ai/metrics", headers=h).json()
     after = client.post("/api/v1/admin/ai/retrain", headers=h).json()
     assert after["model_version"] != before["model_version"] and len(after["history"]) == len(before["history"]) + 1
-    assert (tmp_path / "classifier.joblib").exists()
+    assert (tmp_path / "classifier_tfidf.joblib").exists()     # offline test mode retrains the TF-IDF fallback
     from app.ml import classifier
     assert classifier.predict("neellu raavadam ledu")["department"] == "water"
 

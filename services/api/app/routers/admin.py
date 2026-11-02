@@ -177,7 +177,7 @@ def retrain(db: Session = Depends(get_db), user: User = Depends(require("admin")
         result = {}
 
         def work():   # worker thread so the event loop/threadpool is not starved; join with a timeout
-            result["model"], result["metrics"] = tc.train("tfidf", corr)
+            result["model"], result["metrics"] = tc.train(classifier.active_features(), corr)
         t = threading.Thread(target=work)
         t.start()
         t.join(timeout=300)

@@ -1,98 +1,99 @@
 {
-  "model_version": "v20261102-065449",
-  "trained_at": "2026-11-02T06:54:49Z",
-  "embedding_model": "tfidf-char2-5+word1-2",
+  "model_version": "v20261102-160627",
+  "trained_at": "2026-11-02T16:06:27Z",
+  "embedding_model": "intfloat/multilingual-e5-small",
+  "features": "e5",
   "algorithm": "LogisticRegression(class_weight=balanced) + CalibratedClassifierCV(cv=3)",
   "split": "group split by phrase_id (no phrase shared between train and test)",
   "dataset": "synthetic template dataset (ml/generate_dataset.py); see limitations",
-  "n_train": 2052,
+  "n_train": 2116,
   "n_test": 392,
   "corrections_used": 0,
-  "lexicon_terms_used": 166,
+  "lexicon_terms_used": 230,
   "lexicon_terms_dropped_overlap_with_human_test": 58,
-  "accuracy": 0.7781,
-  "macro_f1": 0.7818,
+  "accuracy": 0.8673,
+  "macro_f1": 0.8779,
   "per_language": {
     "code_mixed": {
-      "accuracy": 0.9216,
+      "accuracy": 0.8922,
       "n": 102
     },
     "en": {
-      "accuracy": 0.9412,
+      "accuracy": 0.9314,
       "n": 102
     },
     "hi": {
-      "accuracy": 0.6875,
+      "accuracy": 0.8281,
       "n": 64
     },
     "te": {
-      "accuracy": 0.7077,
+      "accuracy": 0.6462,
       "n": 65
     },
     "ur": {
-      "accuracy": 0.4237,
+      "accuracy": 1.0,
       "n": 59
     }
   },
   "per_class": {
     "roads": {
-      "precision": 0.625,
-      "recall": 0.7317,
-      "f1-score": 0.6742,
+      "precision": 0.9,
+      "recall": 0.878,
+      "f1-score": 0.8889,
       "support": 41.0
     },
     "sanitation": {
-      "precision": 0.58,
-      "recall": 0.6905,
-      "f1-score": 0.6304,
+      "precision": 0.75,
+      "recall": 0.7143,
+      "f1-score": 0.7317,
       "support": 42.0
     },
     "water": {
-      "precision": 0.7576,
-      "recall": 0.5952,
-      "f1-score": 0.6667,
+      "precision": 0.9714,
+      "recall": 0.8095,
+      "f1-score": 0.8831,
       "support": 42.0
     },
     "streetlights": {
-      "precision": 0.82,
-      "recall": 1.0,
-      "f1-score": 0.9011,
+      "precision": 0.7222,
+      "recall": 0.9512,
+      "f1-score": 0.8211,
       "support": 41.0
     },
     "power": {
-      "precision": 0.8611,
-      "recall": 0.7381,
-      "f1-score": 0.7949,
+      "precision": 0.9722,
+      "recall": 0.8333,
+      "f1-score": 0.8974,
       "support": 42.0
     },
     "drainage": {
-      "precision": 0.8723,
-      "recall": 1.0,
-      "f1-score": 0.9318,
+      "precision": 0.7632,
+      "recall": 0.7073,
+      "f1-score": 0.7342,
       "support": 41.0
     },
     "traffic": {
-      "precision": 0.6857,
+      "precision": 0.8571,
       "recall": 0.8,
-      "f1-score": 0.7385,
+      "f1-score": 0.8276,
       "support": 30.0
     },
     "health": {
-      "precision": 0.9375,
-      "recall": 0.5,
-      "f1-score": 0.6522,
+      "precision": 0.9677,
+      "recall": 1.0,
+      "f1-score": 0.9836,
       "support": 30.0
     },
     "education": {
-      "precision": 0.9565,
-      "recall": 0.7333,
-      "f1-score": 0.8302,
+      "precision": 0.8571,
+      "recall": 1.0,
+      "f1-score": 0.9231,
       "support": 30.0
     },
     "town_planning": {
-      "precision": 0.7667,
-      "recall": 0.7931,
-      "f1-score": 0.7797,
+      "precision": 0.9355,
+      "recall": 1.0,
+      "f1-score": 0.9667,
       "support": 29.0
     },
     "other": {
@@ -103,8 +104,8 @@
     }
   },
   "human_test": {
-    "accuracy": 0.75,
-    "macro_f1": 0.7755,
+    "accuracy": 0.8958,
+    "macro_f1": 0.8996,
     "n": 48,
     "per_language": {
       "code_mixed": {
@@ -112,62 +113,32 @@
         "n": 10
       },
       "en": {
-        "accuracy": 0.7143,
+        "accuracy": 1.0,
         "n": 14
       },
       "hi": {
-        "accuracy": 0.625,
+        "accuracy": 0.75,
         "n": 8
       },
       "te": {
-        "accuracy": 0.7778,
+        "accuracy": 0.8889,
         "n": 9
       },
       "ur": {
-        "accuracy": 0.7143,
+        "accuracy": 0.8571,
         "n": 7
       }
     },
     "errors": [
-      {
-        "text": "Sir the road near Kukatpally Y junction has become like a pond, two wheelers are falling every day",
-        "true": "roads",
-        "pred": "traffic"
-      },
-      {
-        "text": "Lamp post number 42 on 3rd cross Madhapur dead for 10 days, very dark",
-        "true": "streetlights",
-        "pred": "sanitation"
-      },
-      {
-        "text": "TGSPDCL cut our supply at 9am and still not restored, fridge food spoiled",
-        "true": "power",
-        "pred": "health"
-      },
-      {
-        "text": "Classroom ceiling plaster fell in ZPHS Alwal, luckily no child was hurt",
-        "true": "education",
-        "pred": "health"
-      },
       {
         "text": "Mehdipatnam mein machhar ka aatank hai, har ghar mein bukhar",
         "true": "health",
         "pred": "drainage"
       },
       {
-        "text": "మల్కాజ్‌గిరిలో తాగునీరు రంగు మారి వస్తోంది",
-        "true": "water",
-        "pred": "drainage"
-      },
-      {
-        "text": "అక్రమంగా ప్రభుత్వ స్థలంలో షెడ్డు వేశారు",
-        "true": "town_planning",
-        "pred": "health"
-      },
-      {
-        "text": "हमारे मोहल्ले में नल से बिल्कुल पानी नहीं आ रहा",
-        "true": "water",
-        "pred": "drainage"
+        "text": "స్తంభం మీద లైటు వెలగక పదిహేను రోజులైంది",
+        "true": "streetlights",
+        "pred": "power"
       },
       {
         "text": "गटर का ढक्कन टूटा है, कोई भी गिर सकता है",
@@ -175,19 +146,14 @@
         "pred": "roads"
       },
       {
-        "text": "फलकनुमा में सड़क पर कचरे का ढेर लगा है",
-        "true": "sanitation",
-        "pred": "roads"
-      },
-      {
-        "text": "نلوں میں گدلا پانی آ رہا ہے، بچے بیمار ہو گئے",
-        "true": "water",
+        "text": "पड़ोसी ने सरकारी गली पर दीवार खड़ी कर दी है",
+        "true": "town_planning",
         "pred": "drainage"
       },
       {
-        "text": "اسپتال میں صفائی نہیں ہے اور مریض پریشان ہیں",
-        "true": "health",
-        "pred": "sanitation"
+        "text": "ہمارے محلے میں ایک ہفتے سے کچرا نہیں اٹھایا گیا",
+        "true": "sanitation",
+        "pred": "town_planning"
       }
     ]
   },
@@ -207,124 +173,110 @@
     ],
     "matrix": [
       [
+        36,
+        0,
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        1,
         30,
+        1,
+        9,
         0,
-        2,
-        0,
-        0,
-        4,
-        5,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        6,
-        29,
-        0,
-        7,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        0,
-        12,
-        25,
-        0,
-        2,
-        2,
         0,
         0,
         1,
         0,
-        0
-      ],
-      [
-        0,
-        0,
-        0,
-        41,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        4,
-        5,
-        0,
-        2,
-        31,
-        0,
-        0,
-        0,
-        0,
         0,
         0
       ],
       [
         0,
-        0,
-        0,
-        0,
-        0,
-        41,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        2,
-        1,
+        3,
+        34,
         0,
         0,
         3,
         0,
+        0,
+        1,
+        1,
+        0
+      ],
+      [
+        2,
+        0,
+        0,
+        39,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        6,
+        35,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        6,
+        0,
+        0,
+        0,
+        29,
+        4,
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        1,
+        2,
         24,
         0,
-        0,
-        0,
-        0
-      ],
-      [
-        0,
-        3,
-        0,
-        0,
-        0,
-        0,
-        6,
-        15,
-        0,
-        6,
-        0
-      ],
-      [
-        0,
-        0,
-        6,
-        0,
-        0,
-        0,
-        0,
         1,
-        22,
         1,
         0
       ],
       [
-        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        30,
+        0,
+        0,
+        0
+      ],
+      [
         0,
         0,
         0,
@@ -333,7 +285,21 @@
         0,
         0,
         0,
-        23,
+        30,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        29,
         0
       ],
       [
@@ -369,6 +335,13 @@
       "accuracy": 0.7781,
       "macro_f1": 0.7818,
       "trained_at": "2026-11-02T06:37:38Z",
+      "corrections_used": 0
+    },
+    {
+      "model_version": "v20261102-065449",
+      "accuracy": 0.7781,
+      "macro_f1": 0.7818,
+      "trained_at": "2026-11-02T06:54:49Z",
       "corrections_used": 0
     }
   ]
