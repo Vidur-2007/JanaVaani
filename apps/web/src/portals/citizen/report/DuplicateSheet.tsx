@@ -6,7 +6,7 @@ import { BellRing, HandHeart, Loader2, MapPin, Users } from 'lucide-react';
 import type { DuplicateMatch } from '@contracts/types';
 import { Button } from '@/design/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/design/ui/sheet';
-import { LangBadge, StatusChip } from '@/design/components';
+import { LangBadge, StatusChip, useCountUp } from '@/design/components';
 import { pickLocalized } from '@/lib/localized';
 import { usePrefs, useReducedMotion } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
@@ -78,6 +78,19 @@ export function DuplicateSheet({
 }
 
 /** Celebration after adding support to an existing report. */
+/** "N people affected", counting up from the old total to include the citizen who just added support. */
+function AffectedCount({ count }: { count: number }) {
+  const { t } = useTranslation('citizen');
+  const shown = useCountUp(count, Math.max(0, count - 1));
+  return (
+    <p className="text-muted-foreground tabular text-sm">
+      {/* Screen readers get the final number once; the animated one is visual only. */}
+      <span className="sr-only">{t('dup.now_affected', { count })}</span>
+      <span aria-hidden>{t('dup.now_affected', { count: shown })}</span>
+    </p>
+  );
+}
+
 export function SupportCelebration({ count }: { count?: number }) {
   const { t } = useTranslation('citizen');
   const reduced = useReducedMotion();
@@ -108,7 +121,7 @@ export function SupportCelebration({ count }: { count?: number }) {
         <HandHeart className="size-8" aria-hidden />
       </motion.div>
       <p className="font-display mt-4 text-xl font-semibold">{t('dup.thanks')}</p>
-      {count != null && <p className="text-muted-foreground text-sm">{t('dup.now_affected', { count })}</p>}
+      {count != null && <AffectedCount count={count} />}
       <p className="mt-3 inline-flex items-center gap-2 text-sm">
         <BellRing className="text-primary size-4" aria-hidden />
         {t('dup.notified')}

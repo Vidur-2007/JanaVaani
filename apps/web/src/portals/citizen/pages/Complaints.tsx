@@ -101,7 +101,7 @@ export default function Complaints() {
             role="tab"
             aria-selected={filter === f}
             onClick={() => setFilter(f)}
-            className={cn('touch-target shrink-0 rounded-full border px-4 text-sm font-medium transition-colors', filter === f ? 'border-primary bg-primary text-primary-foreground' : 'bg-surface hover:bg-surface-2')}
+            className={cn('jv-press touch-target shrink-0 rounded-full border px-4 text-sm font-medium transition-colors', filter === f ? 'border-primary bg-primary text-primary-foreground' : 'bg-surface hover:bg-surface-2')}
             data-testid={`filter-${f}`}
           >
             {t(`complaints.filter.${f}`)}

@@ -283,6 +283,62 @@ html[data-font='large'] {
   }
 }
 
+/* ---------------------------------------------------------------- P7 micro-interactions */
+/* Skeleton shimmer: a soft highlight sweeps across (direction-aware). Reduced motion → static block. */
+.jv-shimmer {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.jv-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--surface) 55%, transparent), transparent);
+  animation: jv-shimmer 1.6s var(--ease-out-expo) infinite;
+}
+[dir='rtl'] .jv-shimmer::after {
+  animation-direction: reverse;
+}
+@keyframes jv-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jv-shimmer::after {
+    display: none;
+  }
+}
+[data-motion='reduced'] .jv-shimmer::after,
+[data-contrast='high'] .jv-shimmer::after {
+  display: none;
+}
+
+/* Chip / toggle press: quick squash, springy release. */
+.jv-press {
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.15s,
+    background-color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    opacity 0.15s;
+}
+.jv-press:active {
+  transform: scale(0.94);
+  transition-duration: 0.075s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .jv-press:active {
+    transform: none;
+  }
+}
+[data-motion='reduced'] .jv-press:active {
+  transform: none;
+}
+
 /* ---------------------------------------------------------------- reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,

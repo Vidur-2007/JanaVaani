@@ -44,6 +44,24 @@ export interface KPIStatProps {
   className?: string;
 }
 
+/**
+ * P7: animate a number from `from` to `value` over 900 ms (expo-out) — for counts that just changed, e.g.
+ * "33 people affected" right after the citizen adds support. Instant under reduced motion.
+ */
+export function useCountUp(value: number, from = 0): number {
+  const reduced = useReducedMotion();
+  const [shown, setShown] = useState(reduced ? value : from);
+  useEffect(() => {
+    if (reduced) {
+      setShown(value);
+      return;
+    }
+    const controls = animate(from, value, { duration: countUpMs / 1000, ease: easeOutExpo, onUpdate: (v) => setShown(Math.round(v)) });
+    return () => controls.stop();
+  }, [value, from, reduced]);
+  return shown;
+}
+
 export function KPIStat({
   label,
   value,

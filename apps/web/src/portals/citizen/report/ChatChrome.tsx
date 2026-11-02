@@ -120,7 +120,7 @@ export function QuickReplies({
             onClick={() => onPick(q)}
             disabled={disabled}
             className={cn(
-              'bg-surface hover:border-primary/50 inline-flex shrink-0 items-center gap-1.5 rounded-full border font-medium transition-colors disabled:opacity-50',
+              'jv-press bg-surface hover:border-primary/50 inline-flex shrink-0 items-center gap-1.5 rounded-full border font-medium transition-colors disabled:opacity-50',
               easy ? 'min-h-14 px-5 text-base' : 'min-h-11 px-4 text-sm',
               easy && YES.has(q.value) && 'bg-success/15 border-success/40 text-success',
               easy && NO.has(q.value) && 'bg-danger/10 border-danger/30 text-danger',
@@ -175,7 +175,7 @@ export function CategoryTiles({
               type="button"
               disabled={disabled}
               onClick={() => onPick(t(`ll.tiles.${d}`), label)}
-              className="bg-surface hover:border-primary/50 flex min-h-28 flex-col items-center justify-center gap-2 rounded-[var(--radius-xl)] border-2 p-3 text-center transition-colors"
+              className="jv-press bg-surface hover:border-primary/50 flex min-h-28 flex-col items-center justify-center gap-2 rounded-[var(--radius-xl)] border-2 p-3 text-center transition-colors"
               data-testid={`tile-${d}`}
             >
               <span

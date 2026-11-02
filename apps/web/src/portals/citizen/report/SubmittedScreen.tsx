@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { CalendarClock, Check, CheckCircle2, Copy, Download, Plus, Search, TriangleAlert } from 'lucide-react';
 import { Button } from '@/design/ui/button';
-import { DepartmentBadge, ErrorState, PriorityChip, Skeleton } from '@/design/components';
+import { Confetti, DepartmentBadge, ErrorState, PriorityChip, Skeleton } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { pickLocalized } from '@/lib/localized';
@@ -134,6 +134,7 @@ export function SubmittedScreen({ items, onReportAnother }: { items: SubmittedIt
   const reduced = useReducedMotion();
   return (
     <section className="bg-surface mx-auto w-full max-w-xl space-y-6 rounded-[var(--radius-xl)] border p-6" aria-labelledby="submitted-title" data-testid="submitted-screen">
+      <Confetti />
       <header className="flex items-center gap-3">
         <motion.span
           className="bg-success/15 text-success grid size-12 place-items-center rounded-full"

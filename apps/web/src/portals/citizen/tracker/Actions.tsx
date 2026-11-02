@@ -74,7 +74,7 @@ function Stars({ value, onChange }: { value: number; onChange: (n: number) => vo
           aria-checked={value === n}
           aria-label={t('fix.stars', { count: n })}
           onClick={() => onChange(n)}
-          className="touch-target grid place-items-center"
+          className="jv-press touch-target grid place-items-center"
           data-testid={`star-${n}`}
         >
           <motion.span whileTap={{ scale: 0.8 }} animate={{ scale: n <= value ? 1.1 : 1 }}>
@@ -167,7 +167,7 @@ function IsItFixed({ g, pin }: { g: GrievanceDetail; pin?: string }) {
                   type="button"
                   aria-pressed={on}
                   onClick={() => setReasons((cur) => (on ? cur.filter((x) => x !== r) : [...cur, r]))}
-                  className={cn('touch-target rounded-full border px-4 text-sm font-medium', on ? 'border-danger bg-danger/10 text-danger' : 'bg-surface')}
+                  className={cn('jv-press touch-target rounded-full border px-4 text-sm font-medium', on ? 'border-danger bg-danger/10 text-danger' : 'bg-surface')}
                   data-testid={`reason-${r}`}
                 >
                   {t(`fix.reasons.${r}`)}

@@ -67,7 +67,7 @@ function LanguageStep() {
             aria-checked={current === l}
             onClick={() => setLanguage(l)}
             className={cn(
-              'relative flex min-h-28 flex-col items-start justify-between rounded-[var(--radius-xl)] border-2 p-4 text-start transition-colors',
+              'jv-press relative flex min-h-28 flex-col items-start justify-between rounded-[var(--radius-xl)] border-2 p-4 text-start transition-colors',
               current === l
                 ? 'border-primary bg-primary/8'
                 : 'bg-surface hover:border-primary/40 border-transparent',
@@ -196,7 +196,7 @@ function AccessibilityStep() {
             aria-pressed={on}
             onClick={toggle}
             className={cn(
-              'flex min-h-28 flex-col items-start justify-between rounded-[var(--radius-xl)] border-2 p-4 text-start transition-colors',
+              'jv-press flex min-h-28 flex-col items-start justify-between rounded-[var(--radius-xl)] border-2 p-4 text-start transition-colors',
               on ? 'border-primary bg-primary/8' : 'bg-surface hover:border-primary/40 border-transparent',
             )}
             data-testid={`onb-a11y-${key}`}

@@ -191,7 +191,7 @@ export function ConfirmationCard({
                 key={v}
                 size="sm"
                 variant={view === v ? 'secondary' : 'ghost'}
-                className="h-9"
+                className="jv-press h-9"
                 aria-pressed={view === v}
                 onClick={() => setView(v)}
                 data-testid={`view-${v}`}

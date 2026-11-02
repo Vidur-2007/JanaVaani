@@ -76,7 +76,7 @@ function Tiles() {
           <Link
             to={to}
             className={cn(
-              'flex min-h-32 flex-col justify-between rounded-[var(--radius-xl)] p-4 transition-shadow',
+              'jv-press flex min-h-32 flex-col justify-between rounded-[var(--radius-xl)] p-4 transition-shadow',
               primary
                 ? 'bg-primary text-primary-foreground shadow-glow-primary'
                 : 'bg-surface hover:border-primary/40 border',
