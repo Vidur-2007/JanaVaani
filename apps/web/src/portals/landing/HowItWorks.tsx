@@ -101,12 +101,14 @@ function Vignette({ step }: { step: number }) {
       return (
         <div className={cn(card, 'space-y-3')}>
           <div className="flex items-center justify-between gap-2">
+            {/* i18n-ignore: sample ticket in the demo vignette */}
             <span className="font-mono text-xs">GRV-2026-000101</span>
             <StatusChip status="in_progress" />
           </div>
           <div className="bg-surface-2 rounded-xl p-3">
             <p className="text-muted-foreground text-xs">{t('how.v.officer')}</p>
             <p className="mt-1" lang="te">
+              {/* i18n-ignore: sample Telugu officer reply (the vignette shows a reply in the citizen's language) */}
               మా బృందం స్థలాన్ని పరిశీలించింది, పని ప్రారంభమైంది.
             </p>
           </div>

@@ -16,7 +16,8 @@
     "format": "prettier --write \"apps/web/src/**/*.{ts,tsx,css,json}\" \"packages/contracts/**/*.ts\" \"e2e/**/*.ts\"",
     "test:e2e": "playwright test",
     "test:mocks": "npm run test:mocks -w apps/web",
-    "test:voice": "npm run test:voice -w apps/web"
+    "test:voice": "npm run test:voice -w apps/web",
+    "test:i18n": "npm run test:i18n -w apps/web"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",

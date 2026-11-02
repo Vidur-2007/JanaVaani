@@ -81,6 +81,7 @@ export default function Login() {
             <p className="font-display text-3xl leading-tight font-semibold">{tc('brand.tagline')}</p>
             <p className="text-sm text-white/70">{t('login.brand_body')}</p>
           </div>
+          {/* i18n-ignore: each language's own name, shown in every UI language */}
           <p className="text-xs text-white/60">తెలుగు · हिन्दी · اردو · English</p>
         </div>
 

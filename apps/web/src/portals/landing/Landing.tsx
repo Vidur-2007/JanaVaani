@@ -15,7 +15,18 @@ import { LanguagesShowcase } from './LanguagesShowcase';
 import { Trust } from './Trust';
 import { Portals } from './Portals';
 
-const STACK = ['React', 'Vite', 'Tailwind', 'three.js', 'FastAPI', 'Supabase', 'Gemini', 'Groq', 'sentence-transformers', 'OpenStreetMap'];
+const STACK = [
+  'React',
+  'Vite',
+  'Tailwind',
+  'three.js',
+  'FastAPI',
+  'Supabase',
+  'Gemini',
+  'Groq',
+  'sentence-transformers',
+  'OpenStreetMap',
+];
 
 function Header() {
   const { t } = useTranslation('common');
@@ -26,13 +37,13 @@ function Header() {
           <Logo />
           <span className="sr-only">{t('nav.home')}</span>
         </Link>
-        <nav className="flex items-center gap-1" aria-label={t('nav.main_menu')}>
+        <nav className="flex items-center gap-0 sm:gap-1" aria-label={t('nav.main_menu')}>
           <Button asChild variant="ghost" size="sm" className="touch-target hidden md:inline-flex">
             <Link to="/public">{t('nav.public')}</Link>
           </Button>
           <LanguageSwitcher />
           <ThemeToggle />
-          <Button asChild variant="outline" size="sm" className="touch-target">
+          <Button asChild variant="outline" size="sm" className="touch-target max-sm:px-2">
             <Link to="/login">{t('nav.login')}</Link>
           </Button>
         </nav>
@@ -61,7 +72,9 @@ function Footer() {
           </ul>
         </div>
         <p className="text-muted-foreground text-sm">{t('footer.disclaimer')}</p>
-        <p className="text-muted-foreground text-xs">{t('footer.event')} · © OpenStreetMap contributors © CARTO</p>
+        <p className="text-muted-foreground text-xs">
+          {t('footer.event')} · {/* i18n-ignore: map data credit (proper noun) */}© OpenStreetMap contributors
+        </p>
       </div>
     </footer>
   );

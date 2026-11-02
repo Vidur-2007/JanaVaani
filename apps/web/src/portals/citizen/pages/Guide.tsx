@@ -156,7 +156,7 @@ export default function Guide() {
               key={k}
               variant="outline"
               size="sm"
-              className="touch-target h-auto rounded-full py-2 text-start whitespace-normal"
+              className="touch-target h-auto max-w-full rounded-full py-2 text-start whitespace-normal"
               onClick={() => send(t(`guide.suggest.${k}`))}
               disabled={ask.isPending}
               data-testid={`guide-suggest-${k}`}
@@ -175,7 +175,7 @@ export default function Guide() {
                   key={l}
                   variant="ghost"
                   size="sm"
-                  className="touch-target bg-surface-2 h-auto rounded-full py-1.5 whitespace-normal"
+                  className="touch-target bg-surface-2 h-auto max-w-full rounded-full py-1.5 whitespace-normal"
                   onClick={() => send(q)}
                   disabled={ask.isPending}
                   lang={l}

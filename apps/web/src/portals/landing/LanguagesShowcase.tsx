@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import type { Lang } from '@contracts/types';
 import { AIBadge, DepartmentBadge, LangBadge, PriorityChip } from '@/design/components';
 import { easeOutExpo } from '@/design/motion';
+import { useReducedMotion } from '@/lib/prefs/store';
 
 // Synthetic sample content: one pothole complaint (master §15 story 2), as citizens might type it.
 const VERSIONS: { lang: Lang; mixed?: boolean; text: string; dir?: 'rtl' }[] = [
@@ -16,7 +17,10 @@ const VERSIONS: { lang: Lang; mixed?: boolean; text: string; dir?: 'rtl' }[] = [
 ];
 
 export function LanguagesShowcase() {
-  const { t } = useTranslation('landing');
+  const { t, i18n } = useTranslation('landing');
+  const reduced = useReducedMotion();
+  // Slide in from the reading-start side (an offset past the left edge would scroll in RTL).
+  const fromStart = i18n.dir() === 'rtl' ? 24 : -24;
   return (
     <section className="mx-auto max-w-6xl overflow-x-clip px-4 py-20" aria-labelledby="langs-title">
       <header className="mb-10 max-w-2xl">
@@ -31,7 +35,7 @@ export function LanguagesShowcase() {
             <motion.li
               key={i}
               className="bg-surface flex items-center gap-3 rounded-2xl border px-4 py-3"
-              initial={{ opacity: 0, x: -24 }}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, x: fromStart }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.6 }}
               transition={{ duration: 0.5, delay: i * 0.08, ease: easeOutExpo }}
@@ -80,6 +84,7 @@ export function LanguagesShowcase() {
             </div>
             <div>
               <dt className="text-muted-foreground text-xs">{t('languages.ward')}</dt>
+              {/* i18n-ignore: place names */}
               <dd className="mt-1 font-medium">Miyapur · Serilingampally</dd>
             </div>
             <div>

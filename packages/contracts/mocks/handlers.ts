@@ -1694,7 +1694,8 @@ function guideAsk(question: string, ui: DeepLang) {
   const topic = GUIDE_TOPICS.find((x) => x.words.test(question));
   const dept = classify(question).dept;
   const source = (anchor: string) => GUIDE.find((g) => g.anchor === anchor);
-  if (topic && dept === 'other') {
+  // Safety first: an emergency question gets the call-112 advice even if it also names a department ("live wire").
+  if (topic && (dept === 'other' || topic.anchor === 'emergencies')) {
     const src = source(topic.anchor);
     return {
       answer: L(topic.answer[ui], ui, topic.answer.en),

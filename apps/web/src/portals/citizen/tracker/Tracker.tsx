@@ -108,7 +108,10 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
         <div className="flex flex-wrap items-center gap-2">
           <StatusChip status={g.status} />
           <Popover>
-            <PopoverTrigger className="touch-target inline-flex items-center rounded-full" data-testid="priority-popover">
+            <PopoverTrigger
+              className="touch-target inline-flex items-center rounded-full"
+              data-testid="priority-popover"
+            >
               <PriorityChip priority={g.priority} score={g.priority_score} />
               <span className="sr-only">{t('tracker.why_priority')}</span>
             </PopoverTrigger>
@@ -152,12 +155,12 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
       </motion.div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <motion.section
             variants={fadeUp}
             className="bg-surface space-y-2 rounded-[var(--radius-lg)] border p-4"
           >
-            <p className="leading-relaxed" lang={desc.lang} dir={desc.dir}>
+            <p className="leading-relaxed break-words" lang={desc.lang} dir={desc.dir}>
               {desc.text}
             </p>
             {g.support_count > 0 && (
@@ -182,7 +185,7 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
             </Panel>
           </motion.div>
         </div>
-        <aside className="space-y-5">
+        <aside className="min-w-0 space-y-5">
           <motion.div variants={fadeUp}>
             <SlaPanel g={g} />
           </motion.div>

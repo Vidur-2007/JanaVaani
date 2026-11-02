@@ -116,7 +116,10 @@ export function LanguageSwitcher({
           aria-label={`${t('lang.choose')}: ${LANGUAGE_NAMES[current].native}`}
         >
           <Languages className="size-4" aria-hidden />
-          <span lang={current}>{LANGUAGE_NAMES[current].native}</span>
+          {/* Icon-only below 390px so the header fits large text; the name stays in the accessible label. */}
+          <span lang={current} className="max-sm:hidden">
+            {LANGUAGE_NAMES[current].native}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

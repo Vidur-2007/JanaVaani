@@ -3,7 +3,20 @@ import { useState, type ComponentType, type SVGProps } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, ArrowRight, Check, Contrast, Languages, MapPin, Mic, ShieldCheck, Sparkles, Type, Volume2, Wand2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Contrast,
+  Languages,
+  MapPin,
+  Mic,
+  ShieldCheck,
+  Sparkles,
+  Type,
+  Volume2,
+  Wand2,
+} from 'lucide-react';
 import type { DeepLang } from '@contracts/types';
 import { Button } from '@/design/ui/button';
 import { Switch } from '@/design/ui/switch';
@@ -18,9 +31,19 @@ const MORE: (keyof typeof LANGUAGE_NAMES)[] = ['ta', 'kn', 'ml', 'mr', 'bn', 'gu
 function Steps({ step }: { step: number }) {
   const { t } = useTranslation('citizen');
   return (
-    <ol className="flex items-center gap-2" aria-label={t('onboarding.progress', { step: step + 1, total: 3 })}>
+    <ol
+      className="flex items-center gap-2"
+      aria-label={t('onboarding.progress', { step: step + 1, total: 3 })}
+    >
       {[0, 1, 2].map((i) => (
-        <li key={i} className={cn('h-1.5 flex-1 rounded-full transition-colors', i <= step ? 'bg-primary' : 'bg-surface-2')} aria-current={i === step ? 'step' : undefined} />
+        <li
+          key={i}
+          className={cn(
+            'h-1.5 flex-1 rounded-full transition-colors',
+            i <= step ? 'bg-primary' : 'bg-surface-2',
+          )}
+          aria-current={i === step ? 'step' : undefined}
+        />
       ))}
     </ol>
   );
@@ -45,7 +68,9 @@ function LanguageStep() {
             onClick={() => setLanguage(l)}
             className={cn(
               'relative flex min-h-28 flex-col items-start justify-between rounded-[var(--radius-xl)] border-2 p-4 text-start transition-colors',
-              current === l ? 'border-primary bg-primary/8' : 'bg-surface hover:border-primary/40 border-transparent',
+              current === l
+                ? 'border-primary bg-primary/8'
+                : 'bg-surface hover:border-primary/40 border-transparent',
             )}
             data-testid={`onb-lang-${l}`}
           >
@@ -93,7 +118,10 @@ function ConsentStep() {
       <ul className="space-y-3">
         {points.map(({ icon: Icon, key }) => (
           <li key={key} className="bg-surface flex gap-3 rounded-[var(--radius-lg)] border p-4">
-            <Icon className={cn('mt-0.5 size-5 shrink-0', key === 'ai' ? 'text-ai' : 'text-signal')} aria-hidden />
+            <Icon
+              className={cn('mt-0.5 size-5 shrink-0', key === 'ai' ? 'text-ai' : 'text-signal')}
+              aria-hidden
+            />
             <p className="text-sm leading-relaxed">{t(`onboarding.consent.${key}`)}</p>
           </li>
         ))}
@@ -123,10 +151,30 @@ function ConsentStep() {
 function AccessibilityStep() {
   const { t } = useTranslation('citizen');
   const p = usePrefs();
-  const options: { key: string; icon: ComponentType<SVGProps<SVGSVGElement>>; on: boolean; toggle: () => void }[] = [
-    { key: 'large_text', icon: Type, on: p.font === 'large', toggle: () => p.set({ font: p.font === 'large' ? 'normal' : 'large' }) },
-    { key: 'high_contrast', icon: Contrast, on: p.contrast === 'high', toggle: () => p.set({ contrast: p.contrast === 'high' ? 'normal' : 'high' }) },
-    { key: 'simple_mode', icon: Wand2, on: p.simple_mode, toggle: () => p.set({ simple_mode: !p.simple_mode }) },
+  const options: {
+    key: string;
+    icon: ComponentType<SVGProps<SVGSVGElement>>;
+    on: boolean;
+    toggle: () => void;
+  }[] = [
+    {
+      key: 'large_text',
+      icon: Type,
+      on: p.font === 'large',
+      toggle: () => p.set({ font: p.font === 'large' ? 'normal' : 'large' }),
+    },
+    {
+      key: 'high_contrast',
+      icon: Contrast,
+      on: p.contrast === 'high',
+      toggle: () => p.set({ contrast: p.contrast === 'high' ? 'normal' : 'high' }),
+    },
+    {
+      key: 'simple_mode',
+      icon: Wand2,
+      on: p.simple_mode,
+      toggle: () => p.set({ simple_mode: !p.simple_mode }),
+    },
     {
       key: 'voice_first',
       icon: Volume2,
@@ -164,10 +212,11 @@ function AccessibilityStep() {
 }
 
 export default function Onboarding() {
-  const { t } = useTranslation('citizen');
+  const { t, i18n } = useTranslation('citizen');
   const { t: tc } = useTranslation('common');
   const set = usePrefs((s) => s.set);
   const reduced = useReducedMotion();
+  const dx = i18n.dir() === 'rtl' ? -24 : 24; // next step enters from the reading-end side
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [step, setStep] = useState(0);
@@ -192,9 +241,9 @@ export default function Onboarding() {
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={step}
-          initial={reduced ? { opacity: 0 } : { opacity: 0, x: 24 }}
+          initial={reduced ? { opacity: 0 } : { opacity: 0, x: dx }}
           animate={{ opacity: 1, x: 0 }}
-          exit={reduced ? { opacity: 0 } : { opacity: 0, x: -24 }}
+          exit={reduced ? { opacity: 0 } : { opacity: 0, x: -dx }}
           transition={{ duration: 0.3, ease: easeOutExpo }}
           aria-live="polite"
         >

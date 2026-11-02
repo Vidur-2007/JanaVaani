@@ -43,7 +43,7 @@ export default function Track() {
           <Input
             id="ticket"
             required
-            placeholder="GRV-2026-000123"
+            placeholder="GRV-2026-000123" // i18n-ignore: ticket format example
             value={ticket}
             onChange={(e) => setTicket(e.target.value)}
             className="h-11 font-mono"
