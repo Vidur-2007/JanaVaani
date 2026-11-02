@@ -1,17 +1,36 @@
 # Progress — Laptop A (foundation, landing, citizen portal)
 
 ## Current phase
-**P6 — integration QA, tests, performance: DONE (on `feat/citizen`). Next: P7 polish; final merge at H42.**
+**P7 — wow polish: items 1–3 DONE; item 4 (human review of the top 40 te/hi/ur strings) WAITING on the human; item 5 (stretch) not started (only after 1–4). Final PR `feat/citizen` → `main` ("Final: citizen portal") at H42.**
 
-### Heads-up: the H30 integration merge has not happened yet
-- As of this session, `origin/main` is still at `v0-scaffold`. PRs Vidur-2007/JanaVaani#1 (AI engine) and Vidur-2007/JanaVaani#2 (citizen) are open and unmerged, and C has no PR.
-- So `git merge origin/main` was a no-op ("Already up to date"). When the team does the H30 merge (B → A → C), run it once on `feat/citizen` as planned.
-- B's API is still not deployed. P6 ran the demo path against **B's API run locally from `origin/feat/ai-engine`**: a read-only worktree, offline mode (SQLite, no LLM keys), `ml/seed_db.py`, and `uvicorn` on :8000. Our app ran in a `VITE_API_MODE=hybrid` build pointed at it.
+### P7 item 4: waiting on the human
+- `docs/progress/A-i18n-review.md` lists the 40 most visible strings in en/te/hi/ur. Reply with `NN te: <new text>`; Claude applies them to the locale files.
 
-### Re-run P6 against the deployed API (once B posts the URL)
-1. `apps/web/.env.local`: `VITE_API_MODE=hybrid`, `VITE_API_BASE_URL=<url>/api/v1`; `npm run build && npm run preview -w apps/web`.
-2. Follow master §16 steps 1–3 and 5 as Lakshmi (demo button). Watch the HYBRID badge's fallback count; it should stay at 0 for the citizen path.
-3. `E2E_HYBRID=1 E2E_BASE_URL=http://localhost:4173 npx playwright test e2e/citizen/hybrid.spec.ts` (needs a hybrid build).
+## Done (P7)
+- **Micro-interactions:**
+  - Every `Button` has a springy press: quick squash, overshoot release.
+  - Chips, tiles, stars, filter and reason chips, and onboarding tiles use `.jv-press`.
+  - Skeletons shimmer instead of pulsing (direction-aware; static under reduced motion or high contrast).
+  - A canvas confetti burst on the submitted screen (`Confetti`, new export; brand colours, 1.8 s, off under reduced motion or high contrast).
+  - "N people affected" counts up after support (`useCountUp`, new export; screen readers get the final number once).
+  - The timeline check-draw, KPI count-ups and route transitions were already in place.
+  - A global `MotionConfig` turns the OS setting or in-app reduced-motion toggle into "no transforms" for every motion component.
+- **Landing final pass:**
+  - Hero greetings use each script's display face (Anek Telugu, Anek Devanagari, Noto Nastaliq Urdu). The faces are warmed 3 s after load, off the critical path; data-saver/2G users keep Noto.
+  - The headline box is fixed at 3em (mobile) / 1.6em (md+), so no jumps between scripts at 360/412/768/1280 (measured). Mobile keeps 36 px until `md`; the project's `sm` is 390 px, so a 412 px phone used to get 60 px and overflow.
+  - Scroll story: 300vh (was 400vh) with a scroll-linked progress rail. Mobile steps reveal on scroll.
+  - **Fix:** the boot shell flashed light→dark on the landing because the prefs store started at `surface_theme: 'paper'`. It now follows the URL.
+  - Lighthouse mobile on `/` is 85–86 after these changes.
+- **Demo kit** (`portals/citizen/demo/demoKit.tsx`, only with `VITE_DEMO_MODE=true`):
+  - Chat chips pre-fill the exact §16 phrases (Telugu live wire, Tenglish pothole, Urdu water) plus their place. Nothing auto-sends.
+  - Voice mode has a "Say the demo phrase" stage fallback (the room mic can fail): it sends the Telugu live-wire phrase as the voice turn → emergency → continue → confirmation, with no location question.
+  - Quick report has "Use demo photo": a generated synthetic pothole photo (`public/demo/pothole-miyapur.jpg`) + Miyapur X Roads + the Tenglish line → duplicate sheet.
+  - The demo Miyapur point sits within ~70 m of the seeded incident in both mocks and B's seed. **Against B's API it now returns `INC-2026-MYP001` (32 supporters)**, so the P6 "duplicate miss" was our test location.
+  - The streetlight trust step needs no helper: Home's "Is it fixed?" callout links to Lakshmi's suspicious-closure case.
+  - Rehearsed end to end against B's API (hybrid build): login → voice demo phrase → takeover → confirm → ticket + confetti; demo photo → confirm → duplicates.
+- **Robustness fixes found along the way:**
+  - Going offline before the Leaflet chunk had loaded crashed the confirm screen into the error boundary (this broke the offline-outbox flow). `MapView` and the new `MapChunkBoundary` now show a "Map not available right now" placeholder and retry when back online.
+  - The toaster and demo switcher load via `IdleImport` (renders nothing on failure, retries on `online`).
 
 ## Done (P6)
 - **Demo path vs B's API** (master §16 steps 1–3 and 5, citizen side). Bugs found and fixed:
