@@ -46,6 +46,7 @@ TASKS = {
     "verify_resolution": [("gemini", "main")],
     "insights_summary": [("groq", "main"), ("gemini", "lite")],
     "guide_answer": [("gemini", "lite"), ("groq", "main")],
+    "spam_check": [("gemini", "lite"), ("groq", "small")],
 }
 CACHE_ALWAYS = {"translate", "guide_answer", "officer_brief", "localize_reply"}
 

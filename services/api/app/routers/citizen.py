@@ -195,8 +195,22 @@ def chat_turn(request: Request, body: ChatTurnRequest, db: Session = Depends(get
     text = (body.text or "").strip()
     if not text:
         return reply("collecting", "smalltalk", "Please tell me about the problem you are facing.")
-    db.add(Message(session_id=s.id, sender="citizen", text={"original": text, "en": "", "lang": lang}))
+    db.add(Message(session_id=s.id, sender="citizen", text={"original": safety.mask_pii(text), "en": "", "lang": lang}))
     em = safety.detect_emergency(text)
+    spam, why = safety.spam_score(text)
+    if not em["is_emergency"] and 0.5 <= spam < 0.8:     # borderline -> LLM spam_check (Spec B §6 step 2)
+        from pydantic import BaseModel as BM
+
+        from ..ai import gateway
+
+        class Sp(BM):
+            spam_likelihood: float
+            reason: str = ""
+        sc, _ = gateway.run("spam_check", 'Is this a genuine civic complaint or spam? Respond with JSON only: '
+                            '{"spam_likelihood": 0.0, "reason": "..."} Text: <<<' + safety.mask_pii(text) + ">>>", Sp)
+        spam = sc["spam_likelihood"] if sc else spam
+    if not em["is_emergency"] and spam >= 0.8:
+        return reply("collecting", "smalltalk", "Please tell me about the problem you are facing.")
     if em["is_emergency"] and act != "continue_after_emergency" and not st.get("emergency_ack"):
         st.update(emergency=True, emergency_ack=True, texts=st.get("texts", []) + [text])
         lid = safety.identify_language(text)

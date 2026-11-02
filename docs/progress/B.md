@@ -39,8 +39,17 @@
 - Fix found by tests: escalation notifications now reach city-wide supervisors.
 - Tests `tests/test_p4_admin.py` (7): brief/draft/message, own-photo → suspicious, far-away → suspicious, new photo without vision → needs_human_review, appeal + bulk merge, clock +48 h → escalations, Charminar water spike detected (ur/hi), analytics. **P1–P4: 33 passed.**
 
+### P5 — Insights, AI metrics/retrain, public, guide, hardening
+- #50 insights: LLM bullets accepted only if every number appears in the stats (regex numbers guard), one retry, then template sentences; `numbers_verified` reported. #51 audit list (paged, filters), #52 audit verify; `scripts/tamper_demo.py` (edits one event, shows the break, restores; bypasses the Postgres append-only trigger only inside its own transaction).
+- #53 AI metrics (metrics.json + live ops from `ai_calls` and routed grievances + version history), #54 retrain (worker thread, routing_corrections weighted ×3, same frozen test sets, hot-swap, new `model_versions` row).
+- Public #25 stats (private excluded; recent_resolved only 4–5★ closed cases and proof photos only), #26 map (≈75 m jitter, no ids/text), #27 nearby (public-safe fields); cached 60 s. #17 guide/ask grounded on `service_guide.md` with section citations.
+- Rate limits (slowapi): chat 30/min, POST /grievances 10/h, uploads 30/h, speech 30/h, public 120/min, default 120/min; friendly 429 in the ApiError envelope. Spam: heuristics + borderline `spam_check` task; spam is never registered.
+- `scripts/record_demo.py` warms the AI cache with the master §16 inputs (run after keys are set). Startup warm-up loads classifier + embeddings in a background thread.
+- Tests `tests/test_p5_hardening.py` (8). **P1–P5: 41 passed.**
+- Not done: PR "Integration: AI engine" — pushing from the build session is blocked (Claude GitHub App not installed on the repo); push the branch from Cursor, then open the PR.
+
 ## In progress
-P5 — insights, AI metrics/retrain, public, guide, hardening.
+P6 — evaluation hardening, emergency keyword precision, failure drills.
 
 ## Next
 P3 tracking/notifications/officer core → P4 officer AI/verification/escalation/analytics → P5 hardening.
@@ -55,6 +64,7 @@ P3 tracking/notifications/officer core → P4 officer AI/verification/escalation
 
 ## API URL / live endpoints
 - URL: _not deployed yet_ (local: `http://localhost:8000/api/v1`).
+- Live after P5: all 57 endpoints (#1–#57).
 - Live after P4: #35–#40, #43–#49, #55, #56.
 - Live after P3: #7–#11, #14–#19, #28–#34, #41, #42.
 - Live after P2: #1–#6, #12, #13 (+ demo helper `POST /auth/demo-login` in DEMO_MODE).
