@@ -39,6 +39,7 @@ export function DeptLeaderboard({
   onSelect?: (id: DepartmentId) => void;
 }) {
   const { t } = useTranslation('gov');
+  const { t: tc } = useTranslation('common');
   const fmt = useLangFormat();
   const list = [...rows].sort((a, b) => a.rank - b.rank).slice(0, limit);
   return (
@@ -90,7 +91,7 @@ export function DeptLeaderboard({
                     type="button"
                     className="min-h-11 md:min-h-7"
                     onClick={() => onSelect(d.department_id)}
-                    aria-label={t('departments.open', { name: d.department_id })}
+                    aria-label={t('departments.open', { name: tc(`departments.${d.department_id}`) })}
                   >
                     <DepartmentBadge department={d.department_id} size="sm" />
                   </button>
