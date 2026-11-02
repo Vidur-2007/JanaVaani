@@ -18,7 +18,7 @@ const Nearby = lazy(() => import('./pages/Nearby'));
 const AssetEntry = lazy(() => import('./pages/AssetEntry'));
 const Report = lazy(() => import('./report/ReportPage'));
 const QuickReport = lazy(() => import('./report/QuickReport'));
-const Guide = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.Guide })));
+const Guide = lazy(() => import('./pages/Guide'));
 const PrintReceipt = lazy(() => import('./pages/PrintReceipt'));
 const PrintReport = lazy(() => import('./pages/PrintReceipt').then((m) => ({ default: m.PrintReport })));
 

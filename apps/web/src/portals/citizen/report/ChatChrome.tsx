@@ -12,9 +12,18 @@ import { cn } from '@/lib/utils';
 export function LanguageChip({ lang, mixed }: { lang: Lang; mixed: boolean }) {
   const { t } = useTranslation('citizen');
   const name = LANGUAGE_NAMES[lang] ?? LANGUAGE_NAMES.other;
-  const label = mixed && lang === 'te' ? 'Tenglish' : mixed && lang === 'hi' ? 'Hinglish' : t('report.detected', { lang: name.native });
+  const label =
+    mixed && lang === 'te'
+      ? 'Tenglish'
+      : mixed && lang === 'hi'
+        ? 'Hinglish'
+        : t('report.detected', { lang: name.native });
   return (
-    <span className="bg-signal/12 text-signal border-signal/30 inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium" data-testid="lang-chip" aria-live="polite">
+    <span
+      className="bg-signal/12 text-signal border-signal/30 inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium"
+      data-testid="lang-chip"
+      aria-live="polite"
+    >
       <span className="bg-signal size-1.5 rounded-full" aria-hidden />
       {label}
     </span>
@@ -27,9 +36,19 @@ export function ProgressDots({ total, remaining }: { total: number; remaining: n
   if (total <= 0) return null;
   const done = Math.max(0, total - remaining);
   return (
-    <span className="inline-flex items-center gap-1" role="img" aria-label={t('report.progress', { done, total })}>
+    <span
+      className="inline-flex items-center gap-1"
+      role="img"
+      aria-label={t('report.progress', { done, total })}
+    >
       {Array.from({ length: total }, (_, i) => (
-        <span key={i} className={cn('size-2 rounded-full transition-colors', i < done ? 'bg-primary' : 'bg-surface-2 border')} />
+        <span
+          key={i}
+          className={cn(
+            'size-2 rounded-full transition-colors',
+            i < done ? 'bg-primary' : 'bg-surface-2 border',
+          )}
+        />
       ))}
     </span>
   );
@@ -54,7 +73,17 @@ const SIZE_DOT: Record<string, string> = { small: 'size-2.5', large: 'size-4', '
 const NO = new Set(['no', 'cancel']);
 
 /** Quick replies. In easy (low-literacy) mode they become big icon-first buttons. */
-export function QuickReplies({ items, onPick, onLocation, disabled }: { items: QuickReply[]; onPick: (q: QuickReply) => void; onLocation?: () => void; disabled?: boolean }) {
+export function QuickReplies({
+  items,
+  onPick,
+  onLocation,
+  disabled,
+}: {
+  items: QuickReply[];
+  onPick: (q: QuickReply) => void;
+  onLocation?: () => void;
+  disabled?: boolean;
+}) {
   const { t } = useTranslation('citizen');
   const easy = usePrefs((s) => s.low_literacy);
   if (!items.length && !onLocation) return null;
@@ -108,10 +137,27 @@ export function QuickReplies({ items, onPick, onLocation, disabled }: { items: Q
   );
 }
 
-const TILE_DEPTS: DepartmentId[] = ['roads', 'sanitation', 'water', 'streetlights', 'power', 'drainage', 'traffic', 'health', 'education', 'town_planning'];
+export const TILE_DEPTS: DepartmentId[] = [
+  'roads',
+  'sanitation',
+  'water',
+  'streetlights',
+  'power',
+  'drainage',
+  'traffic',
+  'health',
+  'education',
+  'town_planning',
+];
 
 /** Easy mode: icon-first category tiles before the first message. A tap sends a short phrase in the citizen's language. */
-export function CategoryTiles({ onPick, disabled }: { onPick: (text: string, label: string) => void; disabled?: boolean }) {
+export function CategoryTiles({
+  onPick,
+  disabled,
+}: {
+  onPick: (text: string, label: string) => void;
+  disabled?: boolean;
+}) {
   const { t } = useTranslation('citizen');
   const { t: tc } = useTranslation('common');
   return (
@@ -132,7 +178,10 @@ export function CategoryTiles({ onPick, disabled }: { onPick: (text: string, lab
               className="bg-surface hover:border-primary/50 flex min-h-28 flex-col items-center justify-center gap-2 rounded-[var(--radius-xl)] border-2 p-3 text-center transition-colors"
               data-testid={`tile-${d}`}
             >
-              <span className="grid size-14 place-items-center rounded-2xl" style={{ background: `color-mix(in oklab, var(--dept-${d}) 22%, transparent)` }}>
+              <span
+                className="grid size-14 place-items-center rounded-2xl"
+                style={{ background: `color-mix(in oklab, var(--dept-${d}) 22%, transparent)` }}
+              >
                 <Icon className="size-8" style={{ color: `var(--dept-${d})` }} aria-hidden />
               </span>
               <span className="text-base font-semibold">{label}</span>

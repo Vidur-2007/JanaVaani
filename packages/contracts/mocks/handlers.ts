@@ -232,7 +232,9 @@ const CROSS_ROADS = /x[\s-]?roads?|cross[\s-]?roads?|క్రాస్ రో�
 /** Mock "AI location extraction": a ward named in the text becomes a suggested location (source 'text'). */
 export function extractLocation(text: string): Location | undefined {
   const lower = text.toLowerCase();
-  const ward = WARDS.find((w) => lower.includes(w.name.toLowerCase()) || (WARD_ALIASES[w.name] ?? []).some((a) => text.includes(a)));
+  const ward = WARDS.find(
+    (w) => lower.includes(w.name.toLowerCase()) || (WARD_ALIASES[w.name] ?? []).some((a) => text.includes(a)),
+  );
   if (!ward) return undefined;
   const cross = CROSS_ROADS.test(text);
   return {
@@ -300,7 +302,8 @@ export function analyze(
       : 'medium';
   const en = englishFor(text, dept, det.lang);
   const fields = { ...(opts.fields ?? {}) };
-  const location = opts.location ?? (asset ? { ...asset.location, source: 'qr' as const } : extractLocation(text));
+  const location =
+    opts.location ?? (asset ? { ...asset.location, source: 'qr' as const } : extractLocation(text));
   if (location && !location.ward_id) {
     const w = nearestWard(location.lat, location.lng);
     Object.assign(location, { ward_id: w.id, ward_name: w.name, zone: w.zone });
@@ -596,7 +599,8 @@ const BOT = {
 } satisfies Record<string, Record<DeepLang, string>>;
 
 /** Status questions in any script ("what happened", "status", "ఏమైంది", "क्या हुआ", "کیا ہوا"). */
-const TRACK_WORDS = /what happened|status of|any update|where is my|ఏమైంది|ఏమయింది|స్థితి|क्या हुआ|स्थिति|कहाँ तक|کیا ہوا|کیا بنا|kya hua|emaindi/i;
+const TRACK_WORDS =
+  /what happened|status of|any update|where is my|ఏమైంది|ఏమయింది|స్థితి|क्या हुआ|स्थिति|कहाँ तक|کیا ہوا|کیا بنا|kya hua|emaindi/i;
 
 const BOT_SPLIT: Record<DeepLang, string> = {
   en: 'I found {n} separate problems in your message. Choose which ones to register.',
@@ -615,34 +619,56 @@ const FIELD_OPTIONS: Record<string, { value: string; label: Record<DeepLang, str
   duration: [
     { value: 'today', label: { en: 'Since today', te: 'ఈ రోజు నుంచి', hi: 'आज से', ur: 'آج سے' } },
     { value: 'a few days', label: { en: 'A few days', te: 'కొన్ని రోజులు', hi: 'कुछ दिन', ur: 'کچھ دن' } },
-    { value: 'more than a week', label: { en: 'Over a week', te: 'వారం పైగా', hi: 'एक हफ़्ते से ज़्यादा', ur: 'ایک ہفتے سے زیادہ' } },
+    {
+      value: 'more than a week',
+      label: { en: 'Over a week', te: 'వారం పైగా', hi: 'एक हफ़्ते से ज़्यादा', ur: 'ایک ہفتے سے زیادہ' },
+    },
   ],
   scope: [
-    { value: 'my house', label: { en: 'Only my house', te: 'మా ఇల్లు మాత్రమే', hi: 'सिर्फ़ मेरा घर', ur: 'صرف میرا گھر' } },
+    {
+      value: 'my house',
+      label: { en: 'Only my house', te: 'మా ఇల్లు మాత్రమే', hi: 'सिर्फ़ मेरा घर', ur: 'صرف میرا گھر' },
+    },
     { value: 'the street', label: { en: 'The street', te: 'వీధి మొత్తం', hi: 'पूरी गली', ur: 'پوری گلی' } },
-    { value: 'whole area', label: { en: 'Whole area', te: 'మొత్తం ప్రాంతం', hi: 'पूरा इलाका', ur: 'پورا علاقہ' } },
+    {
+      value: 'whole area',
+      label: { en: 'Whole area', te: 'మొత్తం ప్రాంతం', hi: 'पूरा इलाका', ur: 'پورا علاقہ' },
+    },
   ],
   households_affected: [
     { value: '1-5', label: { en: '1–5 homes', te: '1–5 ఇళ్లు', hi: '1–5 घर', ur: '1–5 گھر' } },
     { value: '5-20', label: { en: '5–20 homes', te: '5–20 ఇళ్లు', hi: '5–20 घर', ur: '5–20 گھر' } },
-    { value: 'more than 20', label: { en: 'More than 20', te: '20 కంటే ఎక్కువ', hi: '20 से ज़्यादा', ur: '20 سے زیادہ' } },
+    {
+      value: 'more than 20',
+      label: { en: 'More than 20', te: '20 కంటే ఎక్కువ', hi: '20 से ज़्यादा', ur: '20 سے زیادہ' },
+    },
   ],
   lights_count: [
     { value: '1', label: { en: 'One', te: 'ఒకటి', hi: 'एक', ur: 'ایک' } },
     { value: '2-5', label: { en: '2 to 5', te: '2 నుంచి 5', hi: '2 से 5', ur: '2 سے 5' } },
-    { value: 'more than 5', label: { en: 'More than 5', te: '5 కంటే ఎక్కువ', hi: '5 से ज़्यादा', ur: '5 سے زیادہ' } },
+    {
+      value: 'more than 5',
+      label: { en: 'More than 5', te: '5 కంటే ఎక్కువ', hi: '5 से ज़्यादा', ur: '5 سے زیادہ' },
+    },
   ],
 };
 const YES_NO = [
   { value: 'yes', label: { en: 'Yes', te: 'అవును', hi: 'हाँ', ur: 'ہاں' } },
   { value: 'no', label: { en: 'No', te: 'కాదు', hi: 'नहीं', ur: 'نہیں' } },
 ];
-for (const k of ['blocking_traffic', 'entering_homes', 'sparking_or_danger', 'bin_overflow']) FIELD_OPTIONS[k] = YES_NO;
+for (const k of ['blocking_traffic', 'entering_homes', 'sparking_or_danger', 'bin_overflow'])
+  FIELD_OPTIONS[k] = YES_NO;
 FIELD_OPTIONS.issue_type_water = [
-  { value: 'no supply', label: { en: 'No water', te: 'నీళ్లు రావడం లేదు', hi: 'पानी नहीं', ur: 'پانی نہیں' } },
+  {
+    value: 'no supply',
+    label: { en: 'No water', te: 'నీళ్లు రావడం లేదు', hi: 'पानी नहीं', ur: 'پانی نہیں' },
+  },
   { value: 'leak', label: { en: 'Leak', te: 'లీకేజీ', hi: 'लीकेज', ur: 'رساؤ' } },
   { value: 'dirty water', label: { en: 'Dirty water', te: 'మురికి నీరు', hi: 'गंदा पानी', ur: 'گندا پانی' } },
-  { value: 'low pressure', label: { en: 'Low pressure', te: 'తక్కువ ప్రెషర్', hi: 'कम प्रेशर', ur: 'کم دباؤ' } },
+  {
+    value: 'low pressure',
+    label: { en: 'Low pressure', te: 'తక్కువ ప్రెషర్', hi: 'कम प्रेशर', ur: 'کم دباؤ' },
+  },
 ];
 
 function fieldQuickReplies(dept: DepartmentId, key: string, ui: DeepLang) {
@@ -846,12 +872,18 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
   if (!s.draft && TRACK_WORDS.test(text) && ctx.user) {
     const mine = db.grievances.filter((g) => db.owners[g.id] === ctx.user!.id);
     const dept = classify(text).dept;
-    const pick = (dept !== 'other' ? mine.filter((g) => g.category === dept) : mine.filter((g) => isOpen(g.status))).slice(0, 3);
+    const pick = (
+      dept !== 'other' ? mine.filter((g) => g.category === dept) : mine.filter((g) => isOpen(g.status))
+    ).slice(0, 3);
     s.stage = 'answered';
     return base({
       intent: 'track_status',
       stage: 'answered',
-      reply: L(pick.length ? BOT.track[ui] : BOT.track_none[ui], ui, pick.length ? BOT.track.en : BOT.track_none.en),
+      reply: L(
+        pick.length ? BOT.track[ui] : BOT.track_none[ui],
+        ui,
+        pick.length ? BOT.track.en : BOT.track_none.en,
+      ),
       tracked: pick.map((g) => strip(refresh(g))),
     });
   }
@@ -1602,6 +1634,92 @@ const GUIDE = [
   },
 ];
 
+/** Topic questions (not a department) in te/hi/ur/en/romanized, with localized answers. */
+const GUIDE_TOPICS: { anchor: string; words: RegExp; answer: Record<DeepLang, string> }[] = [
+  {
+    anchor: 'emergencies',
+    words: /emergenc|fire|gas leak|live wire|112|అత్యవసర|అగ్ని|आपात|आग|ہنگامی|آگ/i,
+    answer: {
+      en: 'For fire, live wires, gas leaks or a collapse, call 112 first. JanaVaani shows the right numbers instantly and you can still register a complaint after.',
+      te: 'అగ్ని ప్రమాదం, తెగిన కరెంటు తీగ, గ్యాస్ లీక్ లేదా కూలిపోవడం వంటివి జరిగితే ముందుగా 112కు కాల్ చేయండి. జనవాణి సరైన నంబర్లను వెంటనే చూపిస్తుంది, తర్వాత ఫిర్యాదు కూడా నమోదు చేయవచ్చు.',
+      hi: 'आग, टूटे बिजली के तार, गैस रिसाव या ढहने जैसी स्थिति में पहले 112 पर कॉल करें। जनवाणी तुरंत सही नंबर दिखाता है और आप बाद में शिकायत भी दर्ज कर सकते हैं।',
+      ur: 'آگ، ٹوٹے بجلی کے تار، گیس لیک یا گرنے جیسی صورت میں پہلے 112 پر کال کریں۔ جن وانی فوراً صحیح نمبر دکھاتا ہے اور آپ بعد میں شکایت بھی درج کر سکتے ہیں۔',
+    },
+  },
+  {
+    anchor: 'appeals',
+    words: /appeal|not satisfied|unfair|అప్పీల్|సంతృప్తి లేదు|अपील|संतुष्ट नहीं|اپیل|مطمئن نہیں/i,
+    answer: {
+      en: 'If a complaint was closed but the problem is not solved, open it, tap "No, not fixed" to reopen it, or file an appeal. A supervisor reviews every appeal and you see the decision on the tracker.',
+      te: 'ఫిర్యాదు ముగించినా సమస్య తీరకపోతే, దాన్ని తెరిచి "లేదు, కాలేదు" నొక్కి మళ్లీ తెరవండి లేదా అప్పీల్ చేయండి. ప్రతి అప్పీల్‌ను ఒక సూపర్‌వైజర్ పరిశీలిస్తారు, నిర్ణయం ట్రాకర్‌లో కనిపిస్తుంది.',
+      hi: 'अगर शिकायत बंद हो गई पर समस्या हल नहीं हुई, तो उसे खोलकर "नहीं, ठीक नहीं हुआ" दबाएँ या अपील करें। हर अपील की समीक्षा एक सुपरवाइज़र करते हैं और फ़ैसला ट्रैकर पर दिखता है।',
+      ur: 'اگر شکایت بند ہو گئی مگر مسئلہ حل نہیں ہوا، تو اسے کھول کر "نہیں، ٹھیک نہیں ہوا" دبائیں یا اپیل کریں۔ ہر اپیل کا جائزہ ایک سپروائزر لیتے ہیں اور فیصلہ ٹریکر پر نظر آتا ہے۔',
+    },
+  },
+  {
+    anchor: 'privacy',
+    words:
+      /privacy|private|anonymous|my name|గోప్య|పేరు లేకుండా|अनाम|गोपनीय|नाम के बिना|گمنام|رازداری|نام کے بغیر/i,
+    answer: {
+      en: 'You can report anonymously or privately. Public maps never show your name, your words or your exact location, only the area and the type of problem.',
+      te: 'మీరు పేరు లేకుండా లేదా గోప్యంగా ఫిర్యాదు చేయవచ్చు. పబ్లిక్ మ్యాప్‌లలో మీ పేరు, మీ మాటలు లేదా ఖచ్చితమైన చోటు ఎప్పుడూ కనిపించవు, ప్రాంతం మరియు సమస్య రకం మాత్రమే.',
+      hi: 'आप बिना नाम के या निजी रूप से शिकायत कर सकते हैं। सार्वजनिक नक्शों पर आपका नाम, आपके शब्द या सटीक जगह कभी नहीं दिखती, सिर्फ़ इलाका और समस्या का प्रकार।',
+      ur: 'آپ بغیر نام کے یا نجی طور پر شکایت کر سکتے ہیں۔ عوامی نقشوں پر آپ کا نام، آپ کے الفاظ یا درست جگہ کبھی نظر نہیں آتی، صرف علاقہ اور مسئلے کی قسم۔',
+    },
+  },
+  {
+    anchor: 'verification',
+    words: /verif|fixed|proof|closed|ధృవీకర|పరిష్కార|सत्यापन|ठीक हुआ|تصدیق|ٹھیک ہوا/i,
+    answer: {
+      en: 'When an officer marks a complaint resolved, AI checks the proof photo and you are asked "Is it fixed?". Only your answer closes it; if you do not reply, it closes automatically after a few days and is labelled that way.',
+      te: 'అధికారి ఫిర్యాదు పరిష్కరించామని చెప్పినప్పుడు, AI రుజువు ఫోటోను తనిఖీ చేస్తుంది, మిమ్మల్ని "సమస్య పరిష్కారమైందా?" అని అడుగుతాం. మీ జవాబుతోనే ముగుస్తుంది; మీరు స్పందించకపోతే కొన్ని రోజుల తర్వాత అదే విధంగా గుర్తించి ముగుస్తుంది.',
+      hi: 'जब अधिकारी शिकायत को हल बताते हैं, तो AI सबूत की फ़ोटो जाँचता है और आपसे पूछा जाता है "क्या यह ठीक हो गया?"। आपके जवाब से ही शिकायत बंद होती है; जवाब न देने पर कुछ दिनों बाद अपने आप बंद होती है और ऐसा ही लिखा जाता है।',
+      ur: 'جب افسر شکایت کو حل شدہ بتاتے ہیں تو AI ثبوت کی تصویر جانچتا ہے اور آپ سے پوچھا جاتا ہے "کیا یہ ٹھیک ہو گیا؟"۔ آپ کے جواب سے ہی شکایت بند ہوتی ہے؛ جواب نہ دینے پر چند دنوں بعد خود بند ہوتی ہے اور ایسا ہی لکھا جاتا ہے۔',
+    },
+  },
+];
+
+const GUIDE_DEPT: Record<DeepLang, (name: string, agency: string) => string> = {
+  en: (n, a) =>
+    `This is handled by ${n} (${a}). Report it here with a photo and a landmark: it goes straight to the right officer, and you get a ticket and a deadline.`,
+  te: (n, a) =>
+    `దీన్ని ${n} (${a}) చూసుకుంటుంది. ఫోటో మరియు గుర్తుతో ఇక్కడ నివేదించండి: ఇది నేరుగా సరైన అధికారికి వెళ్తుంది, మీకు టికెట్ మరియు గడువు లభిస్తాయి.`,
+  hi: (n, a) =>
+    `इसे ${n} (${a}) देखता है। फ़ोटो और पहचान की जगह के साथ यहाँ शिकायत करें: यह सीधे सही अधिकारी तक जाती है, और आपको टिकट और समय-सीमा मिलती है।`,
+  ur: (n, a) =>
+    `اسے ${n} (${a}) دیکھتا ہے۔ تصویر اور نشانی کے ساتھ یہاں شکایت کریں: یہ سیدھی صحیح افسر تک جاتی ہے، اور آپ کو ٹکٹ اور مدت ملتی ہے۔`,
+};
+
+function guideAsk(question: string, ui: DeepLang) {
+  const topic = GUIDE_TOPICS.find((x) => x.words.test(question));
+  const dept = classify(question).dept;
+  const source = (anchor: string) => GUIDE.find((g) => g.anchor === anchor);
+  if (topic && dept === 'other') {
+    const src = source(topic.anchor);
+    return {
+      answer: L(topic.answer[ui], ui, topic.answer.en),
+      sources: src ? [{ title: src.title, anchor: src.anchor }] : [],
+    };
+  }
+  if (dept !== 'other') {
+    const d = deptById(dept);
+    const en = GUIDE_DEPT.en(d.name.en, d.agency_en);
+    const src = source(dept);
+    return {
+      answer: L(GUIDE_DEPT[ui](d.name[ui], d.agency_en), ui, src ? `${en} ${src.snippet}` : en),
+      sources: [
+        ...(src ? [{ title: src.title, anchor: src.anchor }] : []),
+        { title: `${d.name.en} — ${d.agency_en}`, anchor: `dept-${dept}` },
+      ],
+      department_id: dept,
+    };
+  }
+  return {
+    answer: L(BOT.info[ui], ui, BOT.info.en),
+    sources: [{ title: 'How JanaVaani works', anchor: 'how-it-works' }],
+  };
+}
+
 // ---------------------------------------------------------------- the table (#1–#57)
 
 export const handlers: MockHandler[] = [
@@ -1724,7 +1842,13 @@ export const handlers: MockHandler[] = [
       else pool = pool.filter((g) => !g.is_private);
       // Cross-language: a query also matches complaints of the department it describes (any script).
       const qDept = q ? classify(q).dept : 'other';
-      const hits = q ? pool.filter((g) => filterList([g], new URLSearchParams({ q })).length > 0 || (qDept !== 'other' && g.category === qDept)) : [];
+      const hits = q
+        ? pool.filter(
+            (g) =>
+              filterList([g], new URLSearchParams({ q })).length > 0 ||
+              (qDept !== 'other' && g.category === qDept),
+          )
+        : [];
       const grievances = hits.slice(0, 20).map((g) => strip(refresh(g)));
       const guide = q ? GUIDE.filter((s) => (s.title + s.snippet).toLowerCase().includes(q)) : [];
       return { grievances, guide };
@@ -1733,22 +1857,7 @@ export const handlers: MockHandler[] = [
   /* 17 */ {
     method: 'POST',
     pattern: '/guide/ask',
-    fn: (ctx) => {
-      const b = B(ctx);
-      const question = String(b.question ?? '').toLowerCase();
-      const ui = (b.ui_lang ?? 'en') as DeepLang;
-      const hit =
-        GUIDE.find(
-          (s) =>
-            question.includes(s.anchor.replace('_', ' ')) ||
-            question.includes(s.title.split(' ')[0].toLowerCase()),
-        ) ?? GUIDE[0];
-      return {
-        answer: L(ui === 'en' ? hit.snippet : `${BOT.info[ui]}`, ui, hit.snippet),
-        sources: [{ title: hit.title, anchor: hit.anchor }],
-        department_id: DEPARTMENTS.some((d) => d.id === hit.anchor) ? hit.anchor : undefined,
-      };
-    },
+    fn: (ctx) => guideAsk(String(B(ctx).question ?? ''), (B(ctx).ui_lang ?? 'en') as DeepLang),
   },
   /* 18 */ {
     method: 'GET',

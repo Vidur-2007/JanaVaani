@@ -585,5 +585,27 @@
   },
   "report_pdf": {
     "closure": "Closure"
+  },
+  "guide": {
+    "title": "Public-service guide",
+    "subtitle": "Ask which office handles a problem, how long it takes, or how JanaVaani works. Ask in any language.",
+    "try": "Try asking",
+    "any_language": "Or in another language:",
+    "conversation": "Questions and answers",
+    "you_asked": "You asked:",
+    "thinking": "Looking it up…",
+    "empty": "Your answers appear here, with where the information comes from.",
+    "placeholder": "Ask a question…",
+    "ask": "Ask",
+    "sources": "Sources",
+    "report_this": "Report this issue",
+    "suggest": {
+      "mosquito": "Which department handles mosquito problems?",
+      "water": "Who fixes dirty drinking water?",
+      "garbage": "Garbage was not picked up. Who do I tell?",
+      "appeal": "How do I appeal if my complaint is closed unfairly?",
+      "privacy": "Can I report without my name?",
+      "emergency": "What do I do in an emergency like a live wire?"
+    }
   }
 }

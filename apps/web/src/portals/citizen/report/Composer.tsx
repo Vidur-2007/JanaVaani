@@ -13,13 +13,19 @@ type Recognition = {
   continuous: boolean;
   start: () => void;
   stop: () => void;
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+  onresult:
+    ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
   onend: (() => void) | null;
   onerror: (() => void) | null;
 };
 const RecognitionCtor: (new () => Recognition) | undefined =
   typeof window !== 'undefined'
-    ? ((window as unknown as { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition }).SpeechRecognition ??
+    ? ((
+        window as unknown as {
+          SpeechRecognition?: new () => Recognition;
+          webkitSpeechRecognition?: new () => Recognition;
+        }
+      ).SpeechRecognition ??
       (window as unknown as { webkitSpeechRecognition?: new () => Recognition }).webkitSpeechRecognition)
     : undefined;
 
@@ -35,7 +41,10 @@ function useDictation(lang: string, onText: (text: string, final: boolean) => vo
     r.continuous = false;
     r.onresult = (e) => {
       const res = Array.from(e.results);
-      onText(res.map((x) => x[0].transcript).join(' '), res.every((x) => x.isFinal));
+      onText(
+        res.map((x) => x[0].transcript).join(' '),
+        res.every((x) => x.isFinal),
+      );
     };
     r.onend = () => setListening(false);
     r.onerror = () => setListening(false);
@@ -60,11 +69,23 @@ export interface ComposerProps {
   hasAttachments?: boolean;
   /** When set, the mic opens full voice mode instead of simple dictation. */
   onVoice?: () => void;
+  /** Text to start with (e.g. a department phrase from the guide's "Report this issue"). */
+  initialText?: string;
 }
 
-export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder, hasAttachments, onVoice }: ComposerProps) {
+export function Composer({
+  onSend,
+  disabled,
+  lang,
+  tools,
+  autoFocus,
+  placeholder,
+  hasAttachments,
+  onVoice,
+  initialText,
+}: ComposerProps) {
   const { t } = useTranslation('citizen');
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialText ?? '');
   const [viaVoice, setViaVoice] = useState(false);
   const ta = useRef<HTMLTextAreaElement>(null);
   const dictation = useDictation(lang, (s) => {
@@ -120,23 +141,44 @@ export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder
         data-testid="composer-input"
       />
       {onVoice ? (
-        <Button type="button" variant="ghost" size="icon" className="touch-target shrink-0 rounded-full" onClick={onVoice} aria-label={t('voice.open')} data-testid="voice-open">
-          <Mic className="size-5" aria-hidden />
-        </Button>
-      ) : dictation.supported && (
         <Button
           type="button"
-          variant={dictation.listening ? 'destructive' : 'ghost'}
+          variant="ghost"
           size="icon"
-          className={cn('touch-target shrink-0 rounded-full', dictation.listening && 'animate-pulse')}
-          onClick={() => (dictation.listening ? dictation.stop() : dictation.start())}
-          aria-label={dictation.listening ? t('report.mic_stop') : t('report.mic_start')}
-          aria-pressed={dictation.listening}
+          className="touch-target shrink-0 rounded-full"
+          onClick={onVoice}
+          aria-label={t('voice.open')}
+          data-testid="voice-open"
         >
-          {dictation.listening ? <MicOff className="size-5" aria-hidden /> : <Mic className="size-5" aria-hidden />}
+          <Mic className="size-5" aria-hidden />
         </Button>
+      ) : (
+        dictation.supported && (
+          <Button
+            type="button"
+            variant={dictation.listening ? 'destructive' : 'ghost'}
+            size="icon"
+            className={cn('touch-target shrink-0 rounded-full', dictation.listening && 'animate-pulse')}
+            onClick={() => (dictation.listening ? dictation.stop() : dictation.start())}
+            aria-label={dictation.listening ? t('report.mic_stop') : t('report.mic_start')}
+            aria-pressed={dictation.listening}
+          >
+            {dictation.listening ? (
+              <MicOff className="size-5" aria-hidden />
+            ) : (
+              <Mic className="size-5" aria-hidden />
+            )}
+          </Button>
+        )
       )}
-      <Button type="submit" size="icon" className="touch-target shrink-0 rounded-full" disabled={disabled || (!text.trim() && !hasAttachments)} aria-label={t('report.send')} data-testid="composer-send">
+      <Button
+        type="submit"
+        size="icon"
+        className="touch-target shrink-0 rounded-full"
+        disabled={disabled || (!text.trim() && !hasAttachments)}
+        aria-label={t('report.send')}
+        data-testid="composer-send"
+      >
         <SendHorizontal className="rtl-flip size-5" aria-hidden />
       </Button>
     </form>

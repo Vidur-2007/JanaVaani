@@ -15,7 +15,14 @@ import { SplitDrafts } from './SplitDrafts';
 import { DuplicateSheet, SupportCelebration } from './DuplicateSheet';
 import { EmergencyTakeover } from './EmergencyTakeover';
 import { SubmittedScreen } from './SubmittedScreen';
-import { CategoryTiles, LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
+import {
+  CategoryTiles,
+  LanguageChip,
+  ProgressDots,
+  QuickReplies,
+  TILE_DEPTS,
+  type QuickReply,
+} from './ChatChrome';
 import { MessageList } from './MessageList';
 import { LocationButton, LocationSheet, locationLabel } from './LocationSheet';
 import { PhotoButton, PhotoTray, usePhotoUpload } from './PhotoAttach';
@@ -31,6 +38,8 @@ export default function ReportPage() {
   const prefs = usePrefs();
   const uiLang = replyLang(prefs) as DeepLang;
   const assetId = params.get('asset') ?? undefined;
+  // From the guide's "Report this issue": the department's phrase starts in the composer (editable).
+  const deptHint = TILE_DEPTS.find((d) => d === params.get('dept'));
   const chat = useChatSession({ uiLang, greeting: t('report.greet') });
   const { response: res, stage, pending, send } = chat;
 
@@ -364,6 +373,7 @@ export default function ReportPage() {
             onSend={(text, mode) => send({ text: text || undefined, input_mode: mode })}
             autoFocus={!voiceOpen}
             onVoice={() => setVoiceOpen(true)}
+            initialText={deptHint && !hasUserTurn ? t(`ll.tiles.${deptHint}`) : undefined}
             tools={
               <>
                 <PhotoButton onClick={photo.open} busy={photo.busy} />
