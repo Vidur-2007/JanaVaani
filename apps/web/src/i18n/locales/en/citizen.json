@@ -28,7 +28,25 @@
     "track": "Track"
   },
   "complaints": {
-    "title": "My complaints"
+    "title": "My complaints",
+    "new": "New",
+    "search": "Search my complaints",
+    "search_placeholder": "Search in any language…",
+    "clear_search": "Clear search",
+    "filters": "Filter complaints",
+    "filter": {
+      "all": "All",
+      "open": "Open",
+      "action": "Needs my action",
+      "closed": "Closed"
+    },
+    "results_one": "{{count}} result for “{{q}}”",
+    "results_other": "{{count}} results for “{{q}}”",
+    "no_results": "Nothing found for “{{q}}”",
+    "no_results_hint": "Try other words or another language — search understands all of them.",
+    "empty_filter": "Nothing here right now.",
+    "translate": "Translate",
+    "show_original": "Show original"
   },
   "track": {
     "title": "Track a complaint",
