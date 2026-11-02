@@ -3,6 +3,11 @@ import { defineConfig, devices } from '@playwright/test';
 // E2E runs against a production build served by `vite preview` (fast, no dev-server dep re-optimization).
 const PORT = Number(process.env.E2E_PORT ?? 4173);
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
+// Optional: point the Chromium projects at a preinstalled browser whose build differs from this Playwright's
+// (e.g. CI images or cloud sandboxes). The msedge project always uses the installed Edge channel.
+const chromiumPath = process.env.PW_CHROMIUM_PATH;
+const fakeMedia = ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'];
+const chromiumLaunch = chromiumPath ? { launchOptions: { executablePath: chromiumPath, args: fakeMedia } } : {};
 
 export default defineConfig({
   testDir: './e2e',
@@ -21,12 +26,12 @@ export default defineConfig({
     // Keep smoke runs independent of service-worker caching; PWA behaviour gets its own test in P5.
     serviceWorkers: 'block',
     // Voice mode: a fake microphone (a continuous tone) and no permission prompt. All projects are Chromium-based.
-    launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] },
+    launchOptions: { args: fakeMedia },
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'], ...chromiumLaunch } },
     { name: 'msedge', use: { ...devices['Desktop Edge'], channel: 'msedge' } },
-    { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
+    { name: 'mobile-chrome', use: { ...devices['Pixel 7'], ...chromiumLaunch } },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined
