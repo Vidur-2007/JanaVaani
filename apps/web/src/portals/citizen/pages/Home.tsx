@@ -5,7 +5,17 @@ import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'motion/react';
-import { Bell, Camera, ChevronRight, HandHeart, Keyboard, MapPinned, Mic, Search, ShieldQuestion } from 'lucide-react';
+import {
+  Bell,
+  Camera,
+  ChevronRight,
+  HandHeart,
+  Keyboard,
+  MapPinned,
+  Mic,
+  Search,
+  ShieldQuestion,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import type { Grievance, GeoPoint } from '@contracts/types';
 import { Button } from '@/design/ui/button';
@@ -27,8 +37,16 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { pickLocalized } from '@/lib/localized';
 import { usePrefs } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
+import { InstallCard } from '../components/InstallApp';
 
-const OPEN = ['registered', 'needs_review', 'assigned', 'in_progress', 'reopened', 'resolved_pending_verification'] as const;
+const OPEN = [
+  'registered',
+  'needs_review',
+  'assigned',
+  'in_progress',
+  'reopened',
+  'resolved_pending_verification',
+] as const;
 const STOPPED = ['resolved_pending_verification'];
 
 function Tiles() {
@@ -41,14 +59,27 @@ function Tiles() {
     { key: 'track', to: '/app/complaints', icon: Search },
   ];
   return (
-    <motion.div variants={stagger()} initial="initial" animate="animate" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <motion.div
+      variants={stagger()}
+      initial="initial"
+      animate="animate"
+      className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+    >
       {tiles.map(({ key, to, icon: Icon, primary }, i) => (
-        <motion.div key={key} custom={i} variants={listItem} {...pressable} className={cn(primary && voiceFirst && 'col-span-2 lg:col-span-1')}>
+        <motion.div
+          key={key}
+          custom={i}
+          variants={listItem}
+          {...pressable}
+          className={cn(primary && voiceFirst && 'col-span-2 lg:col-span-1')}
+        >
           <Link
             to={to}
             className={cn(
               'flex min-h-32 flex-col justify-between rounded-[var(--radius-xl)] p-4 transition-shadow',
-              primary ? 'bg-primary text-primary-foreground shadow-glow-primary' : 'bg-surface hover:border-primary/40 border',
+              primary
+                ? 'bg-primary text-primary-foreground shadow-glow-primary'
+                : 'bg-surface hover:border-primary/40 border',
             )}
             data-testid={`tile-${key}`}
           >
@@ -115,7 +146,10 @@ function ActiveComplaints() {
             {t('home.active')}
           </h2>
           {q.data && q.data.items.length > 0 && (
-            <Link to="/app/complaints" className="text-primary touch-target inline-flex items-center text-sm font-medium">
+            <Link
+              to="/app/complaints"
+              className="text-primary touch-target inline-flex items-center text-sm font-medium"
+            >
               {t('home.see_all')}
             </Link>
           )}
@@ -127,7 +161,10 @@ function ActiveComplaints() {
         ) : q.data.items.length === 0 ? (
           <EmptyState title={t('home.empty_title')} description={t('home.empty_body')} />
         ) : (
-          <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0" aria-label={t('home.active')}>
+          <ul
+            className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0"
+            aria-label={t('home.active')}
+          >
             {q.data.items.map((g) => (
               <li key={g.id} className="flex">
                 <ActiveCard g={g} />
@@ -142,14 +179,24 @@ function ActiveComplaints() {
 
 function UnreadBanner() {
   const { t } = useTranslation('citizen');
-  const q = useQuery({ queryKey: qk.notifications.list(), queryFn: ({ signal }) => api.notifications({}, signal) });
+  const q = useQuery({
+    queryKey: qk.notifications.list(),
+    queryFn: ({ signal }) => api.notifications({}, signal),
+  });
   const unread = q.data?.items.filter((n) => !n.read).length ?? 0;
   if (!unread) return null;
   return (
-    <Link to="/app/notifications" className="bg-surface flex items-center gap-3 rounded-[var(--radius-lg)] border p-3" data-testid="unread-banner">
+    <Link
+      to="/app/notifications"
+      className="bg-surface flex items-center gap-3 rounded-[var(--radius-lg)] border p-3"
+      data-testid="unread-banner"
+    >
       <span className="bg-primary/15 text-primary relative grid size-10 place-items-center rounded-full">
         <Bell className="size-5" aria-hidden />
-        <span className="bg-primary absolute -end-0.5 -top-0.5 size-3 rounded-full ring-2 ring-[var(--surface)]" aria-hidden />
+        <span
+          className="bg-primary absolute -end-0.5 -top-0.5 size-3 rounded-full ring-2 ring-[var(--surface)]"
+          aria-hidden
+        />
       </span>
       <span className="flex-1 font-medium">{t('home.unread', { count: unread })}</span>
       <ChevronRight className="rtl-flip text-muted-foreground size-5" aria-hidden />
@@ -177,7 +224,10 @@ function NearbyTeaser() {
   const qc = useQueryClient();
   const here = useHere();
   const params = { lat: here.lat, lng: here.lng, radius_m: 5000 };
-  const q = useQuery({ queryKey: qk.public.nearby(params), queryFn: ({ signal }) => api.publicNearby(params, signal) });
+  const q = useQuery({
+    queryKey: qk.public.nearby(params),
+    queryFn: ({ signal }) => api.publicNearby(params, signal),
+  });
   const [supported, setSupported] = useState<Record<string, boolean>>({});
   const support = useMutation({
     mutationFn: (id: string) => api.supportGrievance(id),
@@ -194,7 +244,10 @@ function NearbyTeaser() {
         <h2 id="nearby-title" className="font-display text-lg font-semibold">
           {t('nearby.title')}
         </h2>
-        <Link to="/app/nearby" className="text-primary touch-target inline-flex items-center gap-1 text-sm font-medium">
+        <Link
+          to="/app/nearby"
+          className="text-primary touch-target inline-flex items-center gap-1 text-sm font-medium"
+        >
           <MapPinned className="size-4" aria-hidden />
           {t('home.open_map')}
         </Link>
@@ -215,15 +268,21 @@ function NearbyTeaser() {
             const title = pickLocalized(n.title, i18n.language);
             const done = supported[n.grievance_id];
             return (
-              <li key={n.grievance_id} className="bg-surface flex items-center gap-3 rounded-[var(--radius-lg)] border p-3">
+              <li
+                key={n.grievance_id}
+                className="bg-surface flex items-center gap-3 rounded-[var(--radius-lg)] border p-3"
+              >
                 <DepartmentBadge department={n.category} size="sm" iconOnly />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium" lang={title.lang} dir={title.dir}>
                     {title.text}
                   </p>
                   <p className="text-muted-foreground text-xs">
-                    {t('home.distance', { distance: n.distance_m < 1000 ? `${n.distance_m} m` : `${(n.distance_m / 1000).toFixed(1)} km` })} ·{' '}
-                    {t('home.reports', { count: n.support_count + 1 + (done ? 1 : 0) })}
+                    {t('home.distance', {
+                      distance:
+                        n.distance_m < 1000 ? `${n.distance_m} m` : `${(n.distance_m / 1000).toFixed(1)} km`,
+                    })}{' '}
+                    · {t('home.reports', { count: n.support_count + 1 + (done ? 1 : 0) })}
                   </p>
                 </div>
                 <Button
@@ -254,13 +313,16 @@ export default function Home() {
   return (
     <PageTransition className="space-y-8">
       <header>
-        <h1 className="font-display text-2xl font-semibold md:text-3xl">{name ? t('home.greeting', { name }) : t('home.greeting_guest')}</h1>
+        <h1 className="font-display text-2xl font-semibold md:text-3xl">
+          {name ? t('home.greeting', { name }) : t('home.greeting_guest')}
+        </h1>
         <p className="text-muted-foreground">{t('home.subtitle')}</p>
       </header>
       <Tiles />
       {!simple && <UnreadBanner />}
       <ActiveComplaints />
       {!simple && <NearbyTeaser />}
+      {!simple && <InstallCard />}
     </PageTransition>
   );
 }

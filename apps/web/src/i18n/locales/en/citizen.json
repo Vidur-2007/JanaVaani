@@ -607,5 +607,16 @@
       "privacy": "Can I report without my name?",
       "emergency": "What do I do in an emergency like a live wire?"
     }
+  },
+  "install": {
+    "section": "App",
+    "title": "Install JanaVaani",
+    "body": "Add it to your home screen: it opens like an app and the basics work offline.",
+    "button": "Install",
+    "done": "Installed. Open JanaVaani from your home screen.",
+    "installed": "Installed on this device.",
+    "ios": "On iPhone: tap Share, then “Add to Home Screen”.",
+    "unavailable": "Your browser does not offer installing. Try Chrome or Edge, or use it here in the browser.",
+    "dismiss": "Hide this"
   }
 }

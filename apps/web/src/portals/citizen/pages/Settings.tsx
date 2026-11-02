@@ -15,6 +15,7 @@ import {
   MonitorSmartphone,
   RotateCcw,
   ShieldCheck,
+  Smartphone,
   Sparkles,
   Type,
   UserCheck,
@@ -32,6 +33,7 @@ import { DEEP_LANGS, LANGUAGE_NAMES, setLanguage } from '@/lib/i18n';
 import { usePrefs, type MotionPref, type ThemePref } from '@/lib/prefs/store';
 import { hasBrowserVoice } from '@/lib/tts/useSpeak';
 import { cn } from '@/lib/utils';
+import { InstallRow } from '../components/InstallApp';
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -367,6 +369,11 @@ export default function Settings() {
             aria-label={t('onboarding.consent_microphone')}
           />
         </Row>
+      </Section>
+
+      {/* ---- App (PWA install) */}
+      <Section id="app" icon={Smartphone} title={t('install.section')}>
+        <InstallRow />
       </Section>
 
       {/* ---- AI transparency */}
