@@ -13,6 +13,7 @@ import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { AlertCard, alertTarget } from '@/portals/gov-shared/components/AlertCard';
 import { useAcknowledged } from '@/portals/gov-shared/hooks/useAcknowledged';
+import { useFreshIds } from '@/portals/gov-shared/hooks/useFreshIds';
 import { axisTick, CHART_ANIMATION_MS, tooltipStyle } from '@/portals/gov-shared/lib/chart';
 
 const SEVERITIES = ['all', 'critical', 'warning', 'info'] as const;
@@ -90,6 +91,7 @@ export default function Alerts() {
     () => (q.data ?? []).filter((a) => severity === 'all' || a.severity === severity),
     [q.data, severity],
   );
+  const fresh = useFreshIds((q.data ?? []).map((a) => a.id), 'alerts', !q.isPending);
   const count = (s: Severity) => (q.data ?? []).filter((a) => s === 'all' || a.severity === s).length;
   return (
     <PageTransition className="space-y-3">
@@ -126,6 +128,7 @@ export default function Alerts() {
             <div key={a.id}>
               <AlertCard
                 alert={a}
+                fresh={fresh.has(a.id)}
                 acknowledged={acknowledged.includes(a.id)}
                 onAcknowledge={() => acknowledge(a.id)}
               />

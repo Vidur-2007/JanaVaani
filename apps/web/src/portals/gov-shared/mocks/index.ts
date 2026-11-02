@@ -149,4 +149,10 @@ async function register() {
   });
 }
 
-if (API_MODE !== 'live') void register();
+if (API_MODE !== 'live') {
+  void register();
+  // Lets e2e tests stage a live event; `live` builds never reach this.
+  void import('@mocks/index').then(({ getDb }) => {
+    (window as unknown as { __jvMockDb?: typeof getDb }).__jvMockDb = getDb;
+  });
+}

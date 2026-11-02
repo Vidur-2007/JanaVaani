@@ -12,6 +12,7 @@ import { ErrorState, MapView, PageSkeleton, PageTransition, Timeline } from '@/d
 import { api, qk } from '@/lib/api/endpoints';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
+import { useLiveEvent } from '@/lib/live/useLiveEvents';
 import { AuditChain, type AuditChainHandle } from '@/portals/gov-shared/components/AuditChain';
 import { CaseHeader } from '@/portals/gov-shared/components/CaseHeader';
 import { EmergencyDecision } from '@/portals/gov-shared/components/EmergencyDecision';
@@ -51,6 +52,14 @@ export default function CaseDetail() {
   const { profile } = useAuth();
   const chain = useRef<AuditChainHandle>(null);
   const [formal, setFormal] = useState(false);
+  const [updated, setUpdated] = useState(false);
+  const updatedTimer = useRef(0);
+  useLiveEvent((e) => {
+    if (e.grievance_id !== id) return;
+    setUpdated(true);
+    window.clearTimeout(updatedTimer.current);
+    updatedTimer.current = window.setTimeout(() => setUpdated(false), 4000);
+  });
   const q = useQuery({
     queryKey: qk.grievances.detail(id),
     queryFn: ({ signal }) => api.getGrievance(id, {}, signal),
@@ -86,7 +95,21 @@ export default function CaseDetail() {
 
   return (
     <PageTransition className="space-y-3">
-      <CaseHeader grievance={g} flags={<CaseFlags g={g} />} />
+      <CaseHeader
+        grievance={g}
+        flags={
+          <>
+            <CaseFlags g={g} />
+            <span aria-live="polite" data-testid="case-updated">
+              {updated && (
+                <span className="bg-signal/12 text-signal inline-flex h-5 items-center rounded-full px-2 text-[11px] font-medium">
+                  {t('case.updated')}
+                </span>
+              )}
+            </span>
+          </>
+        }
+      />
       <div
         className="grid items-start gap-3 lg:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,22rem)]"
         data-testid="case-cockpit"

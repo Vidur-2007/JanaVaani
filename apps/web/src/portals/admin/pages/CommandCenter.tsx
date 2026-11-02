@@ -21,6 +21,7 @@ import { DaysSelector, useDays } from '@/portals/gov-shared/components/DaysSelec
 import { DeptLeaderboard, ScoreFormula } from '@/portals/gov-shared/components/DeptLeaderboard';
 import { GovMap } from '@/portals/gov-shared/components/GovMap';
 import { KPIStatGov } from '@/portals/gov-shared/components/KPIStatGov';
+import { useFreshIds } from '@/portals/gov-shared/hooks/useFreshIds';
 import { Panel } from '@/portals/gov-shared/components/Panel';
 
 // Outside qk.admin so live events never re-run the LLM; only Regenerate does.
@@ -110,6 +111,7 @@ export default function CommandCenter() {
     queryFn: ({ signal }) => api.departmentPerformance({ days }, signal),
   });
 
+  const fresh = useFreshIds((alerts.data ?? []).map((a) => a.id), 'alerts', !alerts.isPending);
   const created = trends.data?.map((p) => p.created);
   const resolved = trends.data?.map((p) => p.resolved);
   const wardValues = useMemo(
@@ -165,7 +167,7 @@ export default function CommandCenter() {
           ) : alerts.data.length === 0 ? (
             <p className="text-muted-foreground p-4 text-center text-sm">{t('admin.no_alerts')}</p>
           ) : (
-            alerts.data.map((a) => <AlertCard key={a.id} alert={a} />)
+            alerts.data.map((a) => <AlertCard key={a.id} alert={a} fresh={fresh.has(a.id)} />)
           )}
         </section>
       </div>

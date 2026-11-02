@@ -1,5 +1,5 @@
 // Officer inbox (Spec C §5.1): summary strip, priority-ordered queue, search, bulk actions, realtime arrivals.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Inbox as InboxIcon, Users } from 'lucide-react';
@@ -22,6 +22,7 @@ import { DataTable, type DataColumn } from '@/portals/gov-shared/components/Data
 import { FilterBar } from '@/portals/gov-shared/components/FilterBar';
 import { GovStatusChip } from '@/portals/gov-shared/components/GovStatusChip';
 import { SLACountdownGov } from '@/portals/gov-shared/components/SLACountdownGov';
+import { useFreshIds } from '@/portals/gov-shared/hooks/useFreshIds';
 import { FILTER_KEYS, useUrlFilters } from '@/portals/gov-shared/hooks/useUrlFilters';
 import { BulkBar } from '../components/BulkBar';
 import { CaseCard, CaseTitle, EscalationDots } from '../components/InboxRow';
@@ -29,28 +30,7 @@ import { InboxTabs } from '../components/InboxTabs';
 import { SummaryStrip } from '../components/SummaryStrip';
 import { PAGE_SIZE, useInboxData, type InboxSort } from '../hooks/useInboxData';
 
-const FRESH_MS = 4000;
 const getRowId = (g: Grievance) => g.id;
-
-/** Ids that appeared since the last refetch of the same view, held briefly so they can glow. */
-function useFreshIds(items: Grievance[], viewKey: string, settled: boolean) {
-  const seen = useRef<{ key: string; ids: Set<string> } | null>(null);
-  const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
-  useEffect(() => {
-    // Skip loading and placeholder frames: only two real results of one view can reveal an arrival.
-    if (!settled) return;
-    const ids = new Set(items.map((g) => g.id));
-    const prev = seen.current;
-    seen.current = { key: viewKey, ids };
-    if (!prev || prev.key !== viewKey) return;
-    const arrived = [...ids].filter((id) => !prev.ids.has(id));
-    if (arrived.length === 0) return;
-    setFresh(new Set(arrived));
-    const timer = window.setTimeout(() => setFresh(new Set()), FRESH_MS);
-    return () => window.clearTimeout(timer);
-  }, [items, viewKey, settled]);
-  return fresh;
-}
 
 export default function Inbox() {
   const { t } = useTranslation('gov');
@@ -63,7 +43,7 @@ export default function Inbox() {
   const [selection, setSelection] = useState<RowSelectionState>({});
 
   const data = useInboxData(filters, sort, page);
-  const fresh = useFreshIds(data.items, JSON.stringify(data.query), data.settled);
+  const fresh = useFreshIds(data.items.map(getRowId), JSON.stringify(data.query), data.settled);
 
   useLiveEvent((e) => {
     if (e.kind === 'grievance_created') toast(t('inbox.new_case'));

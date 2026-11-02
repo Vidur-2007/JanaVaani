@@ -55,10 +55,12 @@ export function AlertCard({
   alert,
   acknowledged,
   onAcknowledge,
+  fresh,
   className,
 }: {
   alert: Alert;
   acknowledged?: boolean;
+  fresh?: boolean;
   onAcknowledge?: () => void;
   className?: string;
 }) {
@@ -73,10 +75,12 @@ export function AlertCard({
       animate="animate"
       data-testid="alert-card"
       data-severity={alert.severity}
+      data-fresh={fresh || undefined}
       className={cn(
         'bg-surface rounded-[var(--radius-md)] border border-s-[3px] p-3',
         SEVERITY[alert.severity],
         acknowledged && 'opacity-60',
+        fresh && 'ring-signal/60 ring-2',
         className,
       )}
     >
