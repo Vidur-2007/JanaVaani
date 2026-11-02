@@ -7,7 +7,7 @@ from datetime import timedelta
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from ..core import clock
+from ..core import clock, storage
 from ..core.config import get_settings
 from ..core.errors import err
 from ..models import (AlertRow, Grievance, Incident, LiveEvent, Media, Notification, Profile, Supporter)
@@ -258,11 +258,14 @@ def resolve(db: Session, g: Grievance, actor, media_ids: list[str], note: str, l
     return v
 
 
-def _phash(path: str):
+def _phash(m: Media):
+    """Hash saved at upload; only photos without one are fetched."""
     try:
         import imagehash
         from PIL import Image
-        with Image.open(path) as im:
+        if m.phash:
+            return imagehash.hex_to_hash(m.phash)
+        with Image.open(io.BytesIO(storage.read(m.storage_path))) as im:
             return imagehash.phash(im)
     except Exception:
         return None
@@ -276,9 +279,9 @@ def verify_resolution(g: Grievance, proofs: list[Media], citizen_photos: list[Me
     plat, plng = (lat, lng) if lat is not None else (p_geo.get("lat"), p_geo.get("lng"))
     if plat is not None and g.lat is not None:
         dist = round(haversine_m(plat, plng, g.lat, g.lng))
-    ph_c = [h for h in (_phash(c.storage_path) for c in citizen_photos) if h is not None]
+    ph_c = [h for h in (_phash(c) for c in citizen_photos) if h is not None]
     for p in proofs:
-        hp = _phash(p.storage_path)
+        hp = _phash(p)
         if hp is not None and any(hp - hc < 8 for hc in ph_c):
             dup = True
     if dup:
@@ -290,10 +293,9 @@ def verify_resolution(g: Grievance, proofs: list[Media], citizen_photos: list[Me
         from ..ai import gateway, prompts
         imgs = []
         for m in citizen_photos[:2] + proofs[:1]:
-            try:
-                imgs.append((open(m.storage_path, "rb").read(), "image/webp"))
-            except OSError:
-                pass
+            data = storage.read(m.storage_path)
+            if data:
+                imgs.append((data, "image/webp"))
         if len(imgs) >= 2:
             vision, _ = gateway.run("verify_resolution", prompts.VERIFY.format(summary=g.summary_en), images=imgs, cache=True)
     if dup or (dist is not None and dist > 500):

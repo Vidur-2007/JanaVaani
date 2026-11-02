@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     supabase_jwt_secret: str = ""          # legacy HS256 Supabase projects
     app_jwt_secret: str = ""               # empty/placeholder = random per process (security.py)
     allow_demo_login: bool = False         # /auth/demo-login while Supabase is configured (outage fallback)
+    auto_seed: bool = False                # seed the demo city at startup when an empty SQLite database is in use
+    public_api_url: str = ""               # base of Media.url; defaults to SPACE_HOST on Hugging Face, else the request host
     gemini_api_key: str = ""
     gemini_model_main: str = "gemini-flash-latest"
     gemini_model_lite: str = "gemini-flash-lite-latest"

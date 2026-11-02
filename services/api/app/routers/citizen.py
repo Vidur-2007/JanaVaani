@@ -5,12 +5,12 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
-from ..core import clock
+from ..core import clock, storage
 from ..core.config import get_settings
 from ..core.db import get_db
 from ..core.errors import err
@@ -96,10 +96,9 @@ def _imgs(db, media_ids):
     for mid in media_ids or []:
         m = db.get(Media, mid)
         if m:
-            try:
-                out.append((Path(m.storage_path).read_bytes(), "image/webp"))
-            except OSError:
-                pass
+            data = storage.read(m.storage_path)
+            if data:
+                out.append((data, "image/webp"))
     return out or None
 
 
@@ -467,15 +466,17 @@ async def upload(request: Request, file: UploadFile = File(...), purpose: str = 
     lap = ImageStat.Stat(gray.filter(ImageFilter.FIND_EDGES)).var[0]
     issue = "too_small" if min(im.size) < 200 else "dark" if bright < 40 else "blurry" if lap < 30 else "none"
     now = clock.now()
-    folder = Path(get_settings().upload_dir) / f"{now:%Y}" / f"{now:%m}"
-    folder.mkdir(parents=True, exist_ok=True)
     mid = str(uuid.uuid4())
-    path = folder / f"{mid}.webp"
-    im.save(path, "WEBP", quality=82)
+    webp = io.BytesIO()
+    im.save(webp, "WEBP", quality=82)
     geo = {"lat": lat, "lng": lng} if lat is not None and lng is not None else exif_geo
     if grievance_id and not db.get(Grievance, grievance_id):
         raise err(404, "not_found", "grievance_id not found.")
-    m = Media(id=mid, grievance_id=grievance_id, storage_path=str(path), uploaded_by_role=user.role, uploaded_by=user.id,
+    try:
+        stored = storage.save(storage.object_name(mid, now), webp.getvalue())
+    except OSError:
+        raise err(503, "upload_unavailable", "Could not store the photo. Please try again.")
+    m = Media(id=mid, grievance_id=grievance_id, storage_path=stored, uploaded_by_role=user.role, uploaded_by=user.id,
               purpose=purpose, quality={"ok": issue == "none", "issue": issue}, geo=geo)
     try:
         import imagehash
@@ -504,12 +505,23 @@ def _exif_gps(im):
 
 
 @router.get("/uploads/{mid}")
-def get_upload(mid: str, db: Session = Depends(get_db)):
-    """Media URLs (Media.url). Supabase signed URLs replace this in a Supabase Storage deployment."""
+def get_upload(mid: str, exp: int = 0, sig: str = "", db: Session = Depends(get_db)):
+    """Target of Media.url: a link that expires (Spec B §4). Redirects to a Supabase signed URL, or serves the local file."""
+    problem = storage.check_signature(mid, exp, sig)
+    if problem:
+        raise err(403, f"link_{problem}", "This photo link has expired. Please reload the page." if problem == "expired" else "Invalid photo link.")
     m = db.get(Media, mid)
-    if not m or not Path(m.storage_path).exists():
+    if not m:
         raise err(404, "not_found", "Media not found.")
-    return FileResponse(m.storage_path, media_type="image/webp")
+    cache = {"Cache-Control": "private, max-age=3600"}
+    if m.storage_path.startswith(storage.SUPABASE_PREFIX):
+        url = storage.signed_url(m.storage_path)
+        if not url:
+            raise err(503, "storage_unavailable", "The photo is temporarily unavailable.")
+        return RedirectResponse(url, headers=cache)
+    if not Path(m.storage_path).exists():
+        raise err(404, "not_found", "Media not found.")
+    return FileResponse(m.storage_path, media_type="image/webp", headers=cache)
 
 
 # ---------------- #13–#17 speech, translate, search, guide ----------------

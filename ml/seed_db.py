@@ -9,6 +9,7 @@
 Usage: python ml/seed_db.py [--n 600]
 """
 import argparse
+import io
 import json
 import math
 import random
@@ -22,7 +23,7 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from sqlalchemy import delete, text  # noqa: E402
 
-from app.core import clock  # noqa: E402
+from app.core import clock, storage  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
 from app.core.db import create_all, engine, session_scope  # noqa: E402
 from app.ml import classifier, embeddings  # noqa: E402
@@ -237,7 +238,8 @@ class Ids:
         return f"GRV-{clock.now().year}-{self.n:06d}"
 
 
-def _img(path, seed, color):
+def _img(name, seed, color):
+    """Stores a generated WebP; returns (storage_path, phash)."""
     from PIL import Image, ImageDraw
     r = random.Random(seed)
     im = Image.new("RGB", (640, 480), color)
@@ -245,10 +247,10 @@ def _img(path, seed, color):
     for _ in range(40):
         x, y = r.randint(0, 600), r.randint(0, 440)
         d.rectangle([x, y, x + r.randint(10, 80), y + r.randint(10, 60)], fill=(r.randint(0, 255), r.randint(0, 255), r.randint(0, 255)))
-    path.parent.mkdir(parents=True, exist_ok=True)
-    im.save(path, "WEBP")
+    buf = io.BytesIO()
+    im.save(buf, "WEBP")
     import imagehash
-    return str(imagehash.phash(im))
+    return storage.save(name, buf.getvalue()), str(imagehash.phash(im))
 
 
 def seed_stories(db, rng, rows, people, nid):
@@ -308,12 +310,11 @@ def seed_stories(db, rng, rows, people, nid):
     am = ward_by_name("Ameerpet")
     sl = next(r for r in by("streetlights", "en"))
     g4 = make_grievance(db, nid(), {**sl, "ward_id": am["id"]}, now - timedelta(days=4), "in_progress", rng, citizen=lak, w=am)
-    up = Path(get_settings().upload_dir) / "seed"
-    ph = _img(up / "streetlight_citizen.webp", 4, (20, 20, 40))
-    db.add(Media(id=str(uuid.uuid4()), grievance_id=g4.id, storage_path=str(up / "streetlight_citizen.webp"), uploaded_by_role="citizen",
+    photo, ph = _img("seed/streetlight_citizen.webp", 4, (20, 20, 40))
+    db.add(Media(id=str(uuid.uuid4()), grievance_id=g4.id, storage_path=photo, uploaded_by_role="citizen",
                  purpose="evidence", quality={"ok": True, "issue": "none"}, phash=ph, geo={"lat": g4.lat, "lng": g4.lng},
                  created_at=g4.created_at))
-    db.add(Media(id=str(uuid.uuid4()), grievance_id=g4.id, storage_path=str(up / "streetlight_citizen.webp"), uploaded_by_role="officer",
+    db.add(Media(id=str(uuid.uuid4()), grievance_id=g4.id, storage_path=photo, uploaded_by_role="officer",
                  purpose="resolution_proof", quality={"ok": True, "issue": "none"}, phash=ph, created_at=now - timedelta(hours=5)))
     g4.status, g4.resolved_at = "resolved_pending_verification", now - timedelta(hours=5)
     g4.ai_verification = {"verdict": "suspicious", "confidence": 0.9, "assessment": "rejected_evidence",
