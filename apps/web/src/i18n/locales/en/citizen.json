@@ -486,5 +486,53 @@
       "auto": "Closed — no response from citizen",
       "rejected": "Rejected"
     }
+  },
+  "fix": {
+    "title": "Is it fixed?",
+    "subtitle": "The office says the work is done. Please check and tell us honestly.",
+    "ai_warning": "Our AI check found the proof photo suspicious. Please look carefully.",
+    "yes": "Yes, it's fixed",
+    "no": "No, not fixed",
+    "rating": "How was the service?",
+    "stars_one": "{{count}} star",
+    "stars_other": "{{count}} stars",
+    "comment": "Anything to add? (optional)",
+    "comment_placeholder": "Your words help the office improve",
+    "what_wrong": "What is wrong?",
+    "reasons": {
+      "not_fixed": "Not fixed at all",
+      "partly": "Only partly fixed",
+      "wrong_place": "Fixed the wrong place",
+      "came_back": "Problem came back",
+      "poor_quality": "Poor quality work"
+    },
+    "reason_placeholder": "Tell us more (type or speak)",
+    "speak_reason": "Speak your reason",
+    "add_photo": "Add a photo of the problem now",
+    "submit_yes": "Confirm it's fixed",
+    "submit_no": "Reopen the complaint",
+    "thanks_yes": "Thank you! The complaint is closed.",
+    "thanks_no": "Reopened. The office will look at it again.",
+    "came_back": "Problem came back?",
+    "reopen_reason": "What happened?",
+    "reopen": "Reopen",
+    "reopened": "Reopened. The office will look at it again."
+  },
+  "appeal": {
+    "title": "Your appeal",
+    "file": "File an appeal",
+    "reason": "Why are you appealing?",
+    "reason_placeholder": "Explain why the closure was not right",
+    "hint": "A supervisor reviews every appeal. You will see the decision here.",
+    "submit": "Submit appeal",
+    "filed_toast": "Appeal filed. A supervisor will review it.",
+    "filed_on": "Filed {{date}}",
+    "decided_on": "decided {{date}}",
+    "status": {
+      "filed": "Filed",
+      "under_review": "Under review",
+      "upheld": "Upheld — reopened",
+      "dismissed": "Dismissed"
+    }
   }
 }

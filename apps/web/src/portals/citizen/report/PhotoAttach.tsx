@@ -20,7 +20,7 @@ export async function compressImage(file: File): Promise<File> {
 }
 
 /** Hook: pick → compress → upload. `pickRef` opens the hidden file input (camera on mobile). */
-export function usePhotoUpload(onUploaded: (m: Media) => void, where?: GeoPoint) {
+export function usePhotoUpload(onUploaded: (m: Media) => void, where?: GeoPoint, purpose: Media['purpose'] = 'evidence') {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const handle = async (file: File | undefined) => {
@@ -29,7 +29,7 @@ export function usePhotoUpload(onUploaded: (m: Media) => void, where?: GeoPoint)
     setBusy(true);
     try {
       const small = await compressImage(file);
-      const media = await api.upload({ file: small, purpose: 'evidence', lat: where?.lat, lng: where?.lng });
+      const media = await api.upload({ file: small, purpose, lat: where?.lat, lng: where?.lng });
       onUploaded(media);
     } catch (e) {
       toast.error(errorMessage(e));
