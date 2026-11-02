@@ -14,8 +14,17 @@
 - Meta endpoints #20–#24 and #57 live.
 - Tests: `tests/test_p1_foundation.py` — PII masking, emergency true/false positives, language ID, gateway fallback (FORCE_FAIL_GEMINI, Gemini→Groq, malformed JSON → repair → fallback), meta + health. **8 passed** (SQLite offline mode).
 
+### P2 — Model + core pipeline + chat/grievance endpoints
+- Department classifier (`ml/train_classifier.py`, `ml/evaluate.py`): TF-IDF char 2–5 + word 1–2 → LogisticRegression(balanced) + CalibratedClassifierCV(cv=3); text_en augmentation; **group split by phrase_id** (no phrase in both train and test); domain glossary augmentation with automatic removal of any term found in the human test set. `--features e5|labse|benchmark` runs the Spec B §7.3 embedding benchmark when sentence-transformers + model download are available (not available in the build sandbox).
+- **Measured:** synthetic held-out (unseen phrasings, n=392) accuracy 0.778, macro-F1 0.782; human-written set (n=48) accuracy 0.750, macro-F1 0.776. Per-language (synthetic): en 0.94, code_mixed 0.92, te 0.71, hi 0.69, ur 0.42 (weakest). Models in `ml/models/`.
+- `ml/seed_db.py`: 7 demo accounts + one officer per department per zone, 200 assets, 600 history grievances (monsoon bump, status mix, log-normal resolution, ratings 3–5, real hash chains, embeddings), stories: live wire (Kukatpally), Miyapur pothole incident (32 supporters), Charminar/Falaknuma contaminated-water spike (35 in 48 h → spike alerts), suspicious streetlight closure (same photo), Malakpet drainage reopened 3×; model_versions v1. Supabase auth users via admin API when configured.
+- Pipeline: safety (PII, emergency, spam, language/script ID incl. Tenglish/Hinglish), analyze (Gemini→Groq→deterministic rules; rules can only add hazards/emergency), classifier + Groq second opinion, routing vote (§6 formula + thresholds + explanation), priority (master §7), SLA/ETA/delay risk, least-loaded assignment with zone fallback, duplicates (score formula, 500 m, 30 days, related categories, explainable signals), hash-chained audit, notifications + live_events, multi-label linked grievances.
+- Endpoints live: #1 chat/turn (emergency, track_status, duplicate_check, support_existing, file_new_anyway, edit, cancel, split), #2 analyze, #3 create, #4 check-duplicates, #5 support (incident at ≥3, priority recompute), #6 get (pin + internal filtering), #12 uploads (type/size validation, EXIF GPS read then stripped, WebP ≤1600 px, blur/brightness quality), #13 transcribe (Groq Whisper; 501 without key).
+- Tests `tests/test_p2_pipeline.py`: routing vote, priority formula + floor, hash chain tamper detection, classifier load/predict, chat → confirm → grievance with both providers down, emergency → continue → guest PIN, duplicates + support, analyze/create, upload EXIF strip. **P1+P2: 17 passed.**
+- `scripts/latency.py`: 10 submissions, offline mode p50 29 ms / p95 34 ms (no LLM calls; with Gemini/Groq keys expect provider latency on top).
+
 ## In progress
-P2 — model + core pipeline + chat/grievance endpoints.
+P3 — tracking, notifications, search, officer core.
 
 ## Next
 P3 tracking/notifications/officer core → P4 officer AI/verification/escalation/analytics → P5 hardening.
@@ -25,10 +34,12 @@ P3 tracking/notifications/officer core → P4 officer AI/verification/escalation
 - DB access uses SQLAlchemy 2 with the psycopg v3 driver (sync engine in FastAPI's threadpool) instead of a raw async psycopg pool, so the same code runs on Supabase Postgres and the offline SQLite mode. Column types map to Postgres-native `uuid`, `text[]`, `jsonb`, `vector(384)`.
 - Gemini/Groq are called over their REST APIs with `httpx` (same endpoints the `google-genai` / `groq` SDKs wrap).
 - Dataset: generated offline from hand-written multilingual phrase banks (no Gemini key). `generate_dataset.py` records `phrase_id` so evaluation uses a leakage-free group split. LLM generation (`generate_seed`) not run.
+- Nominatim geocoding not implemented: text locations resolve by ward/locality name match; GPS/pin by nearest ward centroid (= Voronoi cell). PostGIS `ST_Contains` path is in the schema but untested here (no PostGIS in the build sandbox).
 - Hugging Face Space not deployed (needs the team's HF account) — no public API URL yet.
 
 ## API URL / live endpoints
 - URL: _not deployed yet_ (local: `http://localhost:8000/api/v1`).
+- Live after P2: #1–#6, #12, #13 (+ demo helper `POST /auth/demo-login` in DEMO_MODE).
 - Live after P1: #20 `/meta/departments`, #21 `/meta/wards`, #22 `/meta/wards.geojson`, #23 `/meta/emergency-contacts`, #24 `/meta/assets/{id}`, #57 `/health`.
 
 ## Contract notes

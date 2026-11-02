@@ -51,9 +51,9 @@ async def _rl(_: Request, e: RateLimitExceeded):
 app.add_middleware(CORSMiddleware, allow_origins=get_settings().origins, allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
 
-from .routers import meta  # noqa: E402
+from .routers import auth, citizen, meta  # noqa: E402
 
-for r in (meta.router,):
+for r in (meta.router, auth.router, citizen.router):
     app.include_router(r, prefix="/api/v1")
 
 
