@@ -205,7 +205,27 @@
       "none": "Check"
     },
     "photo_retake_hint": "This photo may be hard for the officer to see. Want to take a clearer one?",
-    "photo_retake": "Retake"
+    "photo_retake": "Retake",
+    "fields": {
+      "location_detail": "Exact spot",
+      "size": "Size",
+      "duration": "How long",
+      "blocking_traffic": "Blocking traffic",
+      "waste_type": "Type of waste",
+      "bin_overflow": "Bin overflowing",
+      "issue_type": "Problem",
+      "households_affected": "Homes affected",
+      "pole_number": "Pole number",
+      "lights_count": "Lights out",
+      "scope": "Affected area",
+      "sparking_or_danger": "Sparking or danger",
+      "entering_homes": "Entering homes",
+      "junction": "Junction",
+      "time_of_day": "Time of day",
+      "facility_or_area": "Facility or area",
+      "school_name": "School",
+      "address": "Address"
+    }
   },
   "location": {
     "title": "Where is the problem?",
@@ -227,5 +247,31 @@
     "confirm": "Use this location",
     "did_you_mean": "Did you mean: {{place}}?",
     "use_this": "Use"
+  },
+  "confirm": {
+    "title": "Please check your complaint",
+    "edit_label": "Change your complaint",
+    "text_views": "How to show the complaint",
+    "view_formal": "Formal complaint",
+    "view_english": "Show in English",
+    "view_original": "Show my original words",
+    "routing": "Who will handle it",
+    "will_go_to": "Will go to: {{dept}}{{zone}} · {{officer}}",
+    "zone": " · {{zone}} zone",
+    "officer_tbd": "an officer will be assigned",
+    "confidence": "AI confidence",
+    "needs_review": "The AI is not sure about the department. A supervisor will check it before it is assigned.",
+    "priority": "Priority",
+    "sla": "Should be resolved within {{hours}} hours",
+    "critical_note": "Critical complaints are confirmed by a person before the 4-hour emergency deadline applies.",
+    "where": "Where and what",
+    "no_location": "No location yet. Adding one helps the team find it.",
+    "privacy": "Privacy",
+    "anonymous": "Report anonymously",
+    "anonymous_hint": "Officers will not see your name. You can still track the complaint.",
+    "private": "Keep it private",
+    "private_hint": "Your complaint will not appear on public maps or nearby lists.",
+    "voice_hint": "Say “avunu”, “haan” or “yes” to confirm",
+    "submit": "Confirm & submit"
   }
 }

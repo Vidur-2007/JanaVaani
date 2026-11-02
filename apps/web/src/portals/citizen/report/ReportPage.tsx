@@ -1,5 +1,5 @@
 // Report assistant (Spec A §5.4) — the hero feature. Driven entirely by POST /chat/turn; the UI follows response.stage.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { PageTransition } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { replyLang, usePrefs } from '@/lib/prefs/store';
 import { Composer } from './Composer';
+import { ConfirmationCard, type ConfirmOptions } from './ConfirmationCard';
 import { LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
 import { MessageList } from './MessageList';
 import { LocationButton, LocationSheet, locationLabel } from './LocationSheet';
@@ -17,6 +18,7 @@ import { isActionValue, useChatSession } from './useChatSession';
 
 export default function ReportPage() {
   const { t } = useTranslation('citizen');
+  const { t: tc } = useTranslation('common');
   const [params] = useSearchParams();
   const prefs = usePrefs();
   const uiLang = replyLang(prefs) as DeepLang;
@@ -48,7 +50,29 @@ export default function ReportPage() {
     else chat.setLocation(l);
   };
 
-  const quickReplies = useMemo(() => res?.quick_replies ?? [], [res]);
+  // Stages with their own UI replace the mock's action quick replies.
+  const richStage = stage === 'confirming';
+  const quickReplies = useMemo(() => (richStage ? [] : (res?.quick_replies ?? [])), [res, richStage]);
+  const allMedia = useMemo(() => chat.snap.messages.flatMap((m) => m.media ?? []), [chat.snap.messages]);
+
+  const confirm = (o: ConfirmOptions) => send({ action: 'confirm', submit_options: o, display: t('confirm.submit') });
+
+  let footer: ReactNode = null;
+  if (stage === 'confirming' && res?.draft && !pending)
+    footer = (
+      <ConfirmationCard
+        key={res.draft.draft_id + res.session_id + chat.snap.messages.length}
+        draft={res.draft}
+        location={chat.snap.location}
+        media={allMedia}
+        uiLang={uiLang}
+        busy={pending}
+        onConfirm={confirm}
+        onEdit={(text) => send({ action: 'edit', action_payload: { text }, display: text })}
+        onCancel={() => send({ action: 'cancel', display: tc('actions.cancel') })}
+        onAddLocation={() => setLocOpen(true)}
+      />
+    );
   const lang = (res?.detected_language ?? uiLang) as Lang;
 
   return (
@@ -83,7 +107,7 @@ export default function ReportPage() {
       <LocationSheet open={locOpen} onOpenChange={setLocOpen} onSelect={onLocation} suggestion={suggestion} current={chat.snap.location} />
 
       <div className="flex-1 py-2">
-        <MessageList messages={chat.snap.messages} pending={pending} onSettled={chat.settle} onRetry={chat.retry} />
+        <MessageList messages={chat.snap.messages} pending={pending} onSettled={chat.settle} onRetry={chat.retry} footer={footer} />
       </div>
 
       <div className="bg-bg/95 sticky bottom-16 z-10 -mx-4 space-y-2 px-4 pt-2 pb-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">
