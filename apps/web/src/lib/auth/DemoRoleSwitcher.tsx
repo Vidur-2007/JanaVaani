@@ -41,14 +41,15 @@ export function DemoRoleSwitcher({ className }: { className?: string }) {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'glass fixed bottom-20 start-3 z-50 flex h-11 items-center gap-2 rounded-full px-3 text-xs font-medium shadow-lg md:bottom-4',
+          // Icon-only on small screens so it never covers page content.
+          'glass fixed bottom-20 start-3 z-50 flex size-11 items-center justify-center gap-2 rounded-full text-xs font-medium opacity-80 shadow-lg hover:opacity-100 md:bottom-4 md:w-auto md:px-3 md:opacity-100',
           className,
         )}
         aria-label={t('demo.switch_role')}
         disabled={busy}
       >
         <UserRoundCog className="size-4" aria-hidden />
-        <span className="max-w-28 truncate">
+        <span className="hidden max-w-28 truncate md:inline">
           {profile ? t(`roles.${profile.role}`) : t('demo.signed_out')}
         </span>
       </DropdownMenuTrigger>

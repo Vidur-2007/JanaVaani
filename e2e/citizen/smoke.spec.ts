@@ -41,8 +41,10 @@ async function signInAs(page: Page, who: keyof typeof DEMO) {
 async function expectRendered(page: Page) {
   await expect(page.locator('#root')).not.toBeEmpty();
   await expect(page.getByTestId('error-boundary')).toHaveCount(0);
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-  expect(overflow, 'no horizontal scroll').toBeLessThanOrEqual(1);
+  // Compare with the configured viewport, not innerWidth: mobile browsers zoom out (inflating innerWidth) when content is too wide.
+  const width = page.viewportSize()!.width;
+  const docWidth = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, window.innerWidth));
+  expect(docWidth, 'no horizontal scroll').toBeLessThanOrEqual(width + 1);
 }
 
 test('landing loads with hero and CTA', async ({ page }) => {
