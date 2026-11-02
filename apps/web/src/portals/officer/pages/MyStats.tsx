@@ -1,9 +1,10 @@
 // Personal stats and SLA streak (Spec C §5.4).
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Flame } from 'lucide-react';
+import type { Status } from '@contracts/types';
 import { ErrorState, PageTransition, StatSkeleton } from '@/design/components';
 import { api, qk, type InboxQuery } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
@@ -11,21 +12,26 @@ import { ChartCard } from '@/portals/gov-shared/components/ChartCard';
 import { KPIStatGov } from '@/portals/gov-shared/components/KPIStatGov';
 import { computeOfficerStats } from '@/portals/gov-shared/lib/officerStats';
 
-const FINISHED: InboxQuery = {
-  status: ['closed', 'resolved_pending_verification'],
-  sort: 'newest',
-  page_size: 100,
-};
+// #28 matches one status at a time on the live API, so each finished state is fetched separately.
+const finished = (status: Status): InboxQuery => ({ status, sort: 'newest', page_size: 100 });
+const STATES: Status[] = ['closed', 'resolved_pending_verification'];
 
 export default function MyStats() {
   const { t } = useTranslation('gov');
   const fmt = useLangFormat();
-  const q = useQuery({
-    queryKey: qk.officer.inbox(FINISHED),
-    queryFn: ({ signal }) => api.officerInbox(FINISHED, signal),
+  const [closed, pending] = useQueries({
+    queries: STATES.map((s) => ({
+      queryKey: qk.officer.inbox(finished(s)),
+      queryFn: ({ signal }: { signal: AbortSignal }) => api.officerInbox(finished(s), signal),
+    })),
   });
-  const stats = useMemo(() => (q.data ? computeOfficerStats(q.data.items) : null), [q.data]);
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
+  const stats = useMemo(
+    () =>
+      closed.data && pending.data ? computeOfficerStats([...closed.data.items, ...pending.data.items]) : null,
+    [closed.data, pending.data],
+  );
+  const failed = closed.isError ? closed : pending.isError ? pending : null;
+  if (failed) return <ErrorState error={failed.error} onRetry={() => failed.refetch()} />;
   return (
     <PageTransition className="space-y-4">
       <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.my_stats')}</h1>

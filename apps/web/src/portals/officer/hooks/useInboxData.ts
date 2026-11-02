@@ -12,12 +12,16 @@ export const PAGE_SIZE = 25;
 const CLIENT_WINDOW = 100;
 export type InboxSort = NonNullable<InboxQuery['sort']>;
 
+// Ward ids look like W-CHM-01. #28 filters by ward id only, so a zone name is applied on the client (gap G7).
+const isZone = (ward?: string) => !!ward && !ward.startsWith('W-');
+
 function applyClientFilters(items: Grievance[], f: Filters) {
   const fromMs = f.from ? Date.parse(f.from) : null;
   const toMs = f.to ? Date.parse(f.to) + 86_400_000 : null;
   return items.filter(
     (g) =>
       (!f.lang || g.language === f.lang) &&
+      (!isZone(f.ward) || g.location.zone === f.ward) &&
       (!f.due || isDueToday(g)) &&
       (fromMs == null || Date.parse(g.created_at) >= fromMs) &&
       (toMs == null || Date.parse(g.created_at) < toMs),
@@ -28,13 +32,13 @@ export function useInboxData(filters: Filters, sort: InboxSort, page: number) {
   const text = filters.q?.trim() ?? '';
   const ticket = text ? ticketFromInput(text) : null;
   const semantic = !!text && !ticket;
-  const clientOnly = !!(filters.lang || filters.from || filters.to || filters.due);
+  const clientOnly = !!(filters.lang || filters.from || filters.to || filters.due || isZone(filters.ward));
 
   const query: InboxQuery = {
     status: filters.status as Status | undefined,
     priority: filters.priority as Priority | undefined,
     category: filters.category as DepartmentId | undefined,
-    ward: filters.ward,
+    ward: isZone(filters.ward) ? undefined : filters.ward,
     overdue: filters.overdue === 'true' ? true : undefined,
     sort: filters.due ? 'sla' : sort,
     page: clientOnly ? 1 : page,

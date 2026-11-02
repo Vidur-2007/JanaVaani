@@ -81,6 +81,15 @@ async function register() {
     return { ...out, items, total: items.length };
   });
 
+  // B takes `delay_reason` as an object, so the mock unwraps it before the built-in stores it as text.
+  const STATUS = '/officer/grievances/:id/status';
+  const status = builtIn(STATUS);
+  registerMockHandler('POST', STATUS, (ctx) => {
+    const body = ctx.body as { delay_reason?: { reason?: string } };
+    const reason = body.delay_reason?.reason;
+    return status({ ...ctx, body: { ...body, delay_reason: reason } });
+  });
+
   const RESOLVE = '/officer/grievances/:id/resolve';
   const resolve = builtIn(RESOLVE);
   registerMockHandler('POST', RESOLVE, async (ctx) => {

@@ -12,6 +12,7 @@ import { Textarea } from '@/design/ui/textarea';
 import { DEPARTMENT_ICONS } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { Panel } from '@/portals/gov-shared/components/Panel';
+import type { DelayReasonIn } from '@/portals/gov-shared/types-ext';
 import { useCaseAction } from '../../hooks/useCaseAction';
 
 const DEPARTMENTS = Object.keys(DEPARTMENT_ICONS) as DepartmentId[];
@@ -24,14 +25,15 @@ export function StatusControl({ grievance: g }: { grievance: Grievance }) {
   const [reason, setReason] = useState('');
   const set = useCaseAction(
     g.id,
-    (body: { status: Grievance['status']; delay_reason?: string }) => api.setStatus(g.id, body),
+    (body: { status: Grievance['status']; delay_reason?: DelayReasonIn }) =>
+      api.setStatus(g.id, body as Parameters<typeof api.setStatus>[1]),
     () => {
       setDelaying(false);
       setReason('');
       toast.success(t('status_control.updated'));
     },
   );
-  const canStart = g.status === 'assigned' || g.status === 'reopened' || g.status === 'registered';
+  const canStart = g.status === 'assigned' || g.status === 'reopened';
   return (
     <Panel title={t('status_control.title')}>
       <div className="flex gap-2">
@@ -78,7 +80,7 @@ export function StatusControl({ grievance: g }: { grievance: Grievance }) {
             variant="outline"
             className="min-h-11 w-full md:min-h-9"
             disabled={!reason || set.isPending}
-            onClick={() => set.mutate({ status: g.status, delay_reason: reason })}
+            onClick={() => set.mutate({ status: g.status, delay_reason: { reason } })}
           >
             {t('status_control.record_delay')}
           </Button>

@@ -27,6 +27,7 @@ import { beforeAfter } from '@/portals/gov-shared/components/EvidenceViewer';
 import { RoutingExplain } from '@/portals/gov-shared/components/RoutingExplain';
 import { TranslationSplit } from '@/portals/gov-shared/components/TranslationSplit';
 import { VerificationBadge } from '@/portals/gov-shared/components/VerificationBadge';
+import { mediaUrl } from '@/portals/gov-shared/lib/inbox';
 
 const KINDS: ReviewKind[] = ['routing', 'emergency', 'disputed', 'appeal'];
 const DEPARTMENTS = Object.keys(DEPARTMENT_ICONS) as DepartmentId[];
@@ -133,8 +134,14 @@ function EmergencyItem({ g }: { g: Grievance }) {
 function DisputedItem({ g }: { g: Grievance }) {
   const { t } = useTranslation('gov');
   const { before, after } = beforeAfter(g.media);
+  // B's transitions: a pending closure must reopen first, and only a pending closure can close.
+  const pending = g.status === 'resolved_pending_verification';
   const newProof = useQueueAction(
-    () => api.setStatus(g.id, { status: 'in_progress', note: 'New proof demanded by supervisor' }),
+    () =>
+      api.setStatus(g.id, {
+        status: pending ? 'reopened' : 'in_progress',
+        note: 'New proof demanded by supervisor',
+      }),
     t('queues.proof_demanded'),
   );
   const close = useQueueAction(
@@ -145,7 +152,7 @@ function DisputedItem({ g }: { g: Grievance }) {
     <Card g={g}>
       <div className="grid gap-4 md:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         {before && after ? (
-          <BeforeAfterSlider before={before.url} after={after.url} />
+          <BeforeAfterSlider before={mediaUrl(before.url)} after={mediaUrl(after.url)} />
         ) : (
           <TranslationSplit text={g.description} className="sm:grid-cols-1 2xl:grid-cols-1" />
         )}
@@ -169,15 +176,17 @@ function DisputedItem({ g }: { g: Grievance }) {
         >
           {t('queues.demand_proof')}
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="min-h-11 flex-1 md:min-h-9"
-          disabled={close.isPending}
-          onClick={() => close.mutate(undefined)}
-        >
-          {t('queues.close_disputed')}
-        </Button>
+        {pending && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="min-h-11 flex-1 md:min-h-9"
+            disabled={close.isPending}
+            onClick={() => close.mutate(undefined)}
+          >
+            {t('queues.close_disputed')}
+          </Button>
+        )}
       </div>
     </Card>
   );

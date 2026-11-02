@@ -21,7 +21,7 @@ import { PriorityFactorList } from '@/portals/gov-shared/components/PriorityFact
 import { RoutingExplain } from '@/portals/gov-shared/components/RoutingExplain';
 import { SLACountdownGov } from '@/portals/gov-shared/components/SLACountdownGov';
 import { TranslationSplit } from '@/portals/gov-shared/components/TranslationSplit';
-import { isOpenStatus } from '@/portals/gov-shared/lib/inbox';
+import { canResolve, isOpenStatus } from '@/portals/gov-shared/lib/inbox';
 import { AIBriefCard } from '../components/case/AIBriefCard';
 import { NoteForm, ReassignForm, StatusControl } from '../components/case/ActionForms';
 import { MessageThread } from '../components/case/MessageThread';
@@ -152,7 +152,7 @@ export default function CaseDetail() {
           {working && <StatusControl grievance={g} />}
           <ReplyComposer grievance={g} />
           <NoteForm id={g.id} />
-          {working && <ResolveForm grievance={g} />}
+          {canResolve(g.status) && <ResolveForm grievance={g} />}
           {working && <ReassignForm grievance={g} />}
           <Panel ai title={t('case.routing')}>
             <RoutingExplain routing={g.routing} />

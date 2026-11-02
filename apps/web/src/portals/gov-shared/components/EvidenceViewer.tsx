@@ -5,6 +5,7 @@ import { ImageOff, TriangleAlert } from 'lucide-react';
 import type { Media } from '@contracts/types';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/design/ui/dialog';
 import { AIBadge, BeforeAfterSlider, EmptyState } from '@/design/components';
+import { mediaUrl } from '../lib/inbox';
 
 export const beforeAfter = (media: Media[]) => ({
   before: media.find((m) => m.purpose === 'evidence'),
@@ -20,8 +21,8 @@ export function EvidenceViewer({ media }: { media: Media[] }) {
     <div className="space-y-3">
       {before && after && (
         <BeforeAfterSlider
-          before={before.url}
-          after={after.url}
+          before={mediaUrl(before.url)}
+          after={mediaUrl(after.url)}
           beforeAlt={before.ai?.description_en}
           afterAlt={after.ai?.description_en}
         />
@@ -35,7 +36,7 @@ export function EvidenceViewer({ media }: { media: Media[] }) {
               aria-label={t('case.open_photo', { description: m.ai?.description_en ?? t(`case.purpose.${m.purpose}`) })}
               className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-sm)] border"
             >
-              <img src={m.url} alt="" className="size-full object-cover" loading="lazy" />
+              <img src={mediaUrl(m.url)} alt="" className="size-full object-cover" loading="lazy" />
               {m.quality && !m.quality.ok && (
                 <span className="bg-warning/90 absolute end-1 top-1 grid size-5 place-items-center rounded-full text-black">
                   <TriangleAlert className="size-3" aria-label={t('case.low_quality')} />
@@ -52,7 +53,7 @@ export function EvidenceViewer({ media }: { media: Media[] }) {
           {open && (
             <div className="space-y-2">
               <img
-                src={open.url}
+                src={mediaUrl(open.url)}
                 alt={open.ai?.description_en ?? t(`case.purpose.${open.purpose}`)}
                 className="max-h-[65dvh] w-full rounded-[var(--radius-sm)] object-contain"
               />

@@ -221,7 +221,8 @@
     "choose_photo": "Choose or take a photo",
     "note": "Action taken",
     "resolved_one": "{{count}} report sent for citizen verification",
-    "resolved_other": "{{count}} reports sent for citizen verification"
+    "resolved_other": "{{count}} reports sent for citizen verification",
+    "nothing_open": "Every report here is already resolved or awaiting verification"
   },
   "kpi": {
     "open": "Open",
@@ -233,7 +234,10 @@
     "trend_formula": "Daily count of complaints registered, and of complaints resolved, across all departments.",
     "date": "Date",
     "created": "Created",
-    "resolved": "Resolved"
+    "resolved": "Resolved",
+    "total": "Total",
+    "avg_resolution": "Avg resolution",
+    "satisfaction": "Satisfaction"
   },
   "case": {
     "original": "Original",
@@ -403,5 +407,96 @@
     "trend_title": "Cases resolved",
     "trend_unit": "Per day, last 14 days",
     "trend_formula": "Your cases with a resolution submitted on each day. SLA met means resolved before the due time."
+  },
+  "admin": {
+    "date_range": "Date range",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "insights": "AI insights",
+    "numbers_verified": "Numbers verified ✓",
+    "regenerate": "Regenerate insights",
+    "no_alerts": "No active alerts",
+    "leaderboard": "Department leaderboard",
+    "see_all": "See all",
+    "close": "Close",
+    "top_categories": "Top categories",
+    "recurring_spots": "Recurring spots",
+    "none_recurring": "None detected",
+    "open_ward_cases": "Open cases in this ward",
+    "more_cases_one": "{{count}} more case in this cluster",
+    "more_cases_other": "{{count}} more cases in this cluster",
+    "presets": "Hotspot presets",
+    "preset": {
+      "potholes": "Potholes",
+      "water_leaks": "Water leaks",
+      "garbage": "Garbage",
+      "drainage": "Drainage"
+    },
+    "replay": "Replay 30 days",
+    "replay_loading": "Loading…",
+    "replay_frame": "Day {{day}} of 30",
+    "value": "Value"
+  },
+  "departments": {
+    "score": "Score",
+    "sla": "SLA %",
+    "avg_resolution": "Avg resolution",
+    "satisfaction": "Satisfaction",
+    "reopen": "Reopen rate",
+    "formula_label": "How the score works",
+    "formula": "0.4 × SLA % + 0.3 × (satisfaction ÷ 5 × 100) + 0.2 × (100 − reopen %) + 0.1 × speed index. Speed index compares the citywide median resolution time with this department's, capped at 100.",
+    "open": "Open details for {{name}}",
+    "drawer_hint_one": "Last {{count}} day",
+    "drawer_hint_other": "Last {{count}} days",
+    "sub_departments": "Open cases by sub-department",
+    "unspecified": "Unspecified",
+    "none_overdue": "Nothing overdue",
+    "chart_sla": "SLA compliance",
+    "chart_resolution": "Average resolution vs SLA target",
+    "chart_satisfaction": "Average satisfaction",
+    "chart_overdue": "Overdue leaderboard",
+    "hours": "Hours",
+    "out_of_five": "Out of 5",
+    "cases": "Cases",
+    "formula_sla": "Share of closed cases resolved within their SLA hours.",
+    "formula_resolution": "Mean hours from registration to resolution. The dashed line marks the 96 hour medium-priority SLA.",
+    "formula_satisfaction": "Mean citizen rating of closed cases.",
+    "formula_overdue": "Open cases past their SLA due time."
+  },
+  "officers": {
+    "officer": "Officer",
+    "overloaded": "Overloaded",
+    "open": "Open",
+    "critical": "Critical",
+    "overdue": "Overdue",
+    "resolved_7d": "Resolved (7 days)",
+    "other_open": "Other open",
+    "overdue_count_one": "{{count}} overdue",
+    "overdue_count_other": "{{count}} overdue",
+    "empty": "No officers found",
+    "chart_title": "Open cases by officer",
+    "chart_unit": "Twelve busiest officers",
+    "chart_formula": "Open cases per officer, split into critical and all others. Overloaded means at least 1.5 times the department median."
+  },
+  "analytics": {
+    "grouping": "Group by",
+    "day": "Day",
+    "week": "Week",
+    "per_day": "Complaints per day",
+    "per_week": "Complaints per week",
+    "spike": "Spike",
+    "trend_formula": "Complaints registered and resolved in each period. Dashed lines mark detected spikes.",
+    "by_category": "By category",
+    "category_formula": "Complaints registered in each period, stacked by department.",
+    "breakdown_formula": "Open and overdue cases in the selected period, up to 15 groups charted. The table lists all.",
+    "delay_risk": "Cases at high delay risk",
+    "no_delay_risk": "No cases at high risk",
+    "eta": "Average time to resolve",
+    "eta_label": "Historical estimate from resolved cases, not a commitment.",
+    "by": {
+      "ward": "By ward",
+      "zone": "By zone",
+      "category": "By category"
+    }
   }
 }

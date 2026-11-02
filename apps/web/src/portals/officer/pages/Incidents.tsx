@@ -30,7 +30,7 @@ import { errorMessage } from '@/lib/api/client';
 import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { GovStatusChip } from '@/portals/gov-shared/components/GovStatusChip';
-import { isOpenStatus } from '@/portals/gov-shared/lib/inbox';
+import { canResolve } from '@/portals/gov-shared/lib/inbox';
 import { InboxTabs } from '../components/InboxTabs';
 
 function ResolveAllDialog({ incident, onClose }: { incident: Incident; onClose: () => void }) {
@@ -41,21 +41,24 @@ function ResolveAllDialog({ incident, onClose }: { incident: Incident; onClose: 
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState('');
 
-  // No bulk resolve endpoint exists (gap G11), so one uploaded proof goes through #38 per open member.
+  // No bulk resolve endpoint exists (gap G11): one proof goes through #38 per resolvable member.
+  // Merged members can't be resolved themselves; B carries them along with their parent.
   const resolve = useMutation({
     mutationFn: async () => {
-      const media = await api.upload({ file: file!, purpose: 'resolution_proof' });
       const members = await Promise.all(incident.grievance_ids.map((id) => api.getGrievance(id)));
-      const open = members.filter(
-        (g) => isOpenStatus(g.status) && g.status !== 'resolved_pending_verification',
-      );
-      await Promise.all(open.map((g) => api.resolve(g.id, { media_ids: [media.id], note })));
-      return open.length;
+      const targets = members.filter((g) => canResolve(g.status));
+      if (targets.length === 0) return 0;
+      const media = await api.upload({ file: file!, purpose: 'resolution_proof' });
+      for (const g of targets) {
+        await api.resolve(g.id, { media_ids: [media.id], note });
+      }
+      return targets.length + members.filter((g) => g.status === 'merged').length;
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: qk.officer.all });
       qc.invalidateQueries({ queryKey: qk.grievances.all });
-      toast.success(t('incidents.resolved', { count }));
+      if (count > 0) toast.success(t('incidents.resolved', { count }));
+      else toast.info(t('incidents.nothing_open'));
       onClose();
     },
     onError: (e) => toast.error(errorMessage(e)),
