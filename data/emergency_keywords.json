@@ -1,0 +1,16 @@
+{
+  "_note": "Phrase lists per language. Matching is NFC + lowercase phrase match. Never add bare 'current' or 'danger'.",
+  "en": ["fire", "smoke coming", "electric shock", "electrocuted", "live wire", "current wire", "current shock", "wire fell", "sparking", "transformer blast", "gas leak", "building collapse", "wall collapse", "roof collapse", "flooding", "water entering house", "drowning", "open manhole", "child fell", "tree fell on"],
+  "te": ["మంటలు", "అగ్ని ప్రమాదం", "కరెంట్ షాక్", "కరెంటు తీగ", "తీగ తెగి", "గ్యాస్ లీక్", "కూలిపోయింది", "వరద", "మునిగిపోతున్నారు", "మ్యాన్‌హోల్ తెరిచి"],
+  "hi": ["आग", "आग लगी", "करंट लगा", "बिजली का तार", "तार टूटा", "गैस लीक", "इमारत गिर", "दीवार गिर", "बाढ़", "डूब रहा", "खुला मैनहोल"],
+  "ur": ["آگ", "آگ لگی", "کرنٹ لگا", "بجلی کا تار", "گیس لیک", "دیوار گر", "عمارت گر", "سیلاب", "ڈوب رہا"],
+  "translit": ["aag lagi", "current shock", "current teega", "teega tegindi", "mantalu", "agni pramadam", "gas leak", "deewar gir", "building gir gaya", "varada", "manhole open"],
+  "hazard_map": {
+    "live_wire": ["live wire", "current wire", "wire fell", "sparking", "electric shock", "electrocuted", "current shock", "current teega", "teega tegindi", "కరెంటు తీగ", "తీగ తెగి", "కరెంట్ షాక్", "बिजली का तार", "तार टूटा", "करंट लगा", "بجلی کا تار", "کرنٹ لگا"],
+    "fire": ["fire", "smoke coming", "transformer blast", "aag lagi", "mantalu", "agni pramadam", "మంటలు", "అగ్ని ప్రమాదం", "आग", "آگ"],
+    "gas_leak": ["gas leak", "గ్యాస్ లీక్", "गैस लीक", "گیس لیک"],
+    "collapse_risk": ["building collapse", "wall collapse", "roof collapse", "deewar gir", "building gir gaya", "కూలిపోయింది", "इमारत गिर", "दीवार गिर", "دیوار گر", "عمارت گر"],
+    "flooding": ["flooding", "water entering house", "drowning", "varada", "వరద", "మునిగిపోతున్నారు", "बाढ़", "डूब रहा", "سیلاب", "ڈوب رہا"],
+    "open_manhole": ["open manhole", "manhole open", "మ్యాన్‌హోల్ తెరిచి", "खुला मैनहोल"]
+  }
+}
