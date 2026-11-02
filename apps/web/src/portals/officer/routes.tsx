@@ -4,10 +4,12 @@ import { Route, Routes } from 'react-router';
 import { RequireRole } from '@/lib/auth/RequireRole';
 import NotFound from '@/app/NotFound';
 import { GovLayout } from '@/portals/gov-shared/layout/GovLayout';
-import { GovPlaceholder } from '@/portals/gov-shared/components/GovPlaceholder';
 
 const Inbox = lazy(() => import('./pages/Inbox'));
 const Incidents = lazy(() => import('./pages/Incidents'));
+const CaseDetail = lazy(() => import('./pages/CaseDetail'));
+const MyStats = lazy(() => import('./pages/MyStats'));
+const SupervisorQueues = lazy(() => import('./pages/SupervisorQueues'));
 
 export default function OfficerRoutes() {
   return (
@@ -15,9 +17,9 @@ export default function OfficerRoutes() {
       <Route element={<RequireRole roles={['officer', 'supervisor', 'admin']} />}>
         <Route element={<GovLayout />}>
           <Route index element={<Inbox />} />
-          <Route path="case/:id" element={<GovPlaceholder titleKey="nav.inbox" />} />
+          <Route path="case/:id" element={<CaseDetail />} />
           <Route path="incidents" element={<Incidents />} />
-          <Route path="stats" element={<GovPlaceholder titleKey="nav.my_stats" />} />
+          <Route path="stats" element={<MyStats />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
@@ -30,7 +32,7 @@ export function SupervisorRoutes() {
     <Routes>
       <Route element={<RequireRole roles={['supervisor', 'admin']} />}>
         <Route element={<GovLayout />}>
-          <Route index element={<GovPlaceholder titleKey="nav.queues" />} />
+          <Route index element={<SupervisorQueues />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>

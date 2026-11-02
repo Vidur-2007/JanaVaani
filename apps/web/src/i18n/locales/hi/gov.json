@@ -234,5 +234,174 @@
     "date": "तारीख",
     "created": "दर्ज",
     "resolved": "हल"
+  },
+  "case": {
+    "original": "मूल पाठ",
+    "english": "अंग्रेज़ी अनुवाद",
+    "citizen_words": "नागरिक के शब्द",
+    "formal": "औपचारिक रूप",
+    "anonymous": "गुमनाम नागरिक",
+    "location": "स्थान",
+    "evidence": "सबूत",
+    "messages": "संदेश",
+    "timeline": "समयरेखा और ऑडिट",
+    "routing": "रूटिंग",
+    "priority": "प्राथमिकता",
+    "sla": "SLA",
+    "due": "देय समय",
+    "remaining": "शेष समय",
+    "eta": "अनुमानित समापन",
+    "escalation": "एस्केलेशन",
+    "delay_risk": "देरी का जोखिम",
+    "no_evidence": "कोई फ़ोटो नहीं",
+    "no_messages": "अभी कोई संदेश नहीं",
+    "open_photo": "फ़ोटो खोलें: {{description}}",
+    "photo_detail": "AI विवरण के साथ बड़ी फ़ोटो",
+    "low_quality": "कम गुणवत्ता वाली फ़ोटो",
+    "show_original": "मूल दिखाएँ",
+    "show_english": "अंग्रेज़ी दिखाएँ",
+    "keyboard_hint": "r जवाब · n टिप्पणी · s स्थिति · v चेन जाँच · Esc इनबॉक्स पर",
+    "purpose": {
+      "evidence": "नागरिक का सबूत",
+      "resolution_proof": "समाधान का प्रमाण",
+      "verification": "सत्यापन फ़ोटो"
+    },
+    "sender": {
+      "citizen": "नागरिक",
+      "bot": "सहायक",
+      "officer": "अधिकारी",
+      "system": "सिस्टम"
+    },
+    "sentiment": {
+      "calm": "शांत",
+      "concerned": "चिंतित",
+      "frustrated": "परेशान",
+      "angry": "नाराज़",
+      "distressed": "व्यथित"
+    },
+    "risk": {
+      "low": "कम",
+      "medium": "मध्यम",
+      "high": "अधिक"
+    }
+  },
+  "brief": {
+    "title": "AI सारांश",
+    "refresh": "सारांश फिर बनाएँ",
+    "evidence": "सबूत",
+    "risks": "जोखिम",
+    "next_steps": "सुझाए गए अगले कदम",
+    "similar": "हल किए गए मिलते-जुलते मामले"
+  },
+  "audit": {
+    "verify": "चेन जाँचें",
+    "valid_one": "चेन सही है: {{count}} घटना जाँची गई",
+    "valid_other": "चेन सही है: {{count}} घटनाएँ जाँची गईं",
+    "broken": "चेन टूटी है: एक घटना बदली गई"
+  },
+  "emergency": {
+    "confirm": "आपातकाल की पुष्टि करें",
+    "deny": "आपातकाल नहीं",
+    "deny_reason": "अस्वीकार करने का कारण",
+    "back": "वापस",
+    "confirmed": "आपातकाल की पुष्टि हुई। SLA 4 घंटे",
+    "denied": "आपातकाल अस्वीकृत, सामान्य प्राथमिकता"
+  },
+  "reply": {
+    "title": "नागरिक को जवाब",
+    "intent": "जवाब का प्रकार",
+    "draft": "AI से मसौदा",
+    "drafting": "मसौदा बन रहा है…",
+    "english": "आपका जवाब अंग्रेज़ी में",
+    "citizen_sees": "नागरिक को यह दिखेगा",
+    "edited_note": "आपने मसौदा बदला है, भेजते समय फिर अनुवाद होगा।",
+    "delivered_in": "{{language}} में पहुँचेगा",
+    "send": "भेजें",
+    "sent": "{{language}} में भेजा गया",
+    "intents": {
+      "acknowledge": "पावती",
+      "request_info": "जानकारी माँगें",
+      "schedule_visit": "दौरा तय करें",
+      "work_started": "काम शुरू",
+      "delay_update": "देरी की सूचना",
+      "resolved": "हल हुआ",
+      "transfer": "स्थानांतरण"
+    }
+  },
+  "resolve": {
+    "title": "हल करें",
+    "result": "AI सत्यापन",
+    "proof": "प्रमाण फ़ोटो",
+    "choose_photo": "फ़ोटो लें या चुनें",
+    "capture_gps": "डिवाइस का स्थान लें",
+    "gps_captured": "स्थान मिल गया",
+    "gps_denied": "स्थान उपलब्ध नहीं, फिर भी जमा कर सकते हैं",
+    "note": "की गई कार्रवाई",
+    "submit": "समाधान जमा करें",
+    "verifying": "जाँच हो रही है…",
+    "submitted": "समाधान जमा हुआ",
+    "supervisor_notified": "सुपरवाइज़र को सूचित किया गया"
+  },
+  "status_control": {
+    "title": "स्थिति",
+    "start": "काम शुरू करें",
+    "delay": "देरी बताएँ",
+    "delay_reason": "देरी का कारण",
+    "record_delay": "देरी दर्ज करें",
+    "updated": "स्थिति अपडेट हुई",
+    "reasons": {
+      "materials": "सामग्री का इंतज़ार",
+      "weather": "मौसम",
+      "other_department": "दूसरे विभाग का इंतज़ार",
+      "access": "स्थल तक पहुँच नहीं",
+      "staffing": "दल उपलब्ध नहीं"
+    }
+  },
+  "note": {
+    "title": "आंतरिक टिप्पणी",
+    "internal": "नागरिक को नहीं दिखेगी",
+    "add": "टिप्पणी जोड़ें"
+  },
+  "reassign": {
+    "title": "फिर से सौंपें",
+    "least_loaded": "सबसे कम काम वाला अधिकारी",
+    "reason": "कारण (ज़रूरी)",
+    "trains": "यह सुधार आगे की रूटिंग बेहतर करता है",
+    "submit": "फिर से सौंपें",
+    "done": "मामला फिर से सौंपा गया"
+  },
+  "queues": {
+    "open_case": "मामला {{id}} खोलें",
+    "routed": "{{department}} को भेजा गया। सुधार दर्ज हुआ",
+    "route": "यहाँ भेजें",
+    "since_report": "शिकायत के बाद {{time}}",
+    "proof_demanded": "नया प्रमाण माँगा गया",
+    "closed_disputed": "विवादित रूप में बंद",
+    "reassign": "फिर से सौंपें",
+    "demand_proof": "नया प्रमाण माँगें",
+    "close_disputed": "विवादित रूप में बंद करें",
+    "appeal_decided": "अपील पर निर्णय हुआ",
+    "decision_note": "निर्णय टिप्पणी (ज़रूरी)",
+    "uphold": "स्वीकार करें",
+    "dismiss": "खारिज करें",
+    "clear": "कतार खाली ✓",
+    "clear_hint": "अभी यहाँ किसी मानव निर्णय की ज़रूरत नहीं है।",
+    "tab": {
+      "routing": "रूटिंग समीक्षा",
+      "emergency": "आपातकाल",
+      "disputed": "विवादित समापन",
+      "appeal": "अपीलें"
+    }
+  },
+  "stats": {
+    "streak_one": "मामला लगातार SLA के भीतर",
+    "streak_other": "मामले लगातार SLA के भीतर",
+    "resolved_week": "इस सप्ताह हल",
+    "avg_resolution": "औसत समाधान समय",
+    "sla": "SLA पूरा",
+    "rating": "औसत रेटिंग",
+    "trend_title": "हल किए गए मामले",
+    "trend_unit": "प्रति दिन, पिछले 14 दिन",
+    "trend_formula": "हर दिन समाधान जमा किए गए आपके मामले। देय समय से पहले हल होने पर SLA पूरा माना जाता है।"
   }
 }

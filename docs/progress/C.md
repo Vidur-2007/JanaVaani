@@ -4,19 +4,28 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 ## Status
 
-- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`.
+- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`.
 - **In progress:** nothing.
-- **Next:** P2 case cockpit and supervisor queues.
+- **Next:** P3: connect to B's API in hybrid mode, then the admin pages.
 - **Blockers:**
   - **CARTO tiles are watermarked "API KEY REQUIRED"** on every anonymous request, with or without a referrer. The URL is hardcoded in A's `MapViewImpl.tsx`, and CARTO is in the locked stack (master §4), so this needs a team decision. It affects every map, including landing and citizen. Proposed: A adds an optional tile URL/attribution prop to `MapView`.
   - A's `e2e/citizen/smoke.spec.ts` "gov routes render" test asserts the `gov-placeholder` and `inbox-stub` test ids on `/officer` and `/admin`, which P1 replaced. A should update it; C does not own that file.
   - Items B1–B3 below need B's human.
 - **Contract notes:** see section 6. Copy the agreed ones to `docs/contract-notes/C.md`.
 
+### P2 notes for later phases
+
+- Disputed-closure buttons use #30 as a stopgap until B answers B3: "demand new proof" sets `in_progress`, "close as disputed" sets `closed`, each with a note. The closure type stays whatever B sets.
+- Mock `/admin/audit/verify` allows officers, but the contract says admin-only (B2). "Verify chain" will show an error for officers on the live API until B changes it.
+- My stats is computed client-side from up to 100 finished cases from #28 (G1), so it undercounts beyond that.
+- The AI brief uses its own query key (`jv-brief`), outside `qk.officer`, so live events don't re-run the LLM.
+- Mock resolve always returns `suspicious` for streetlights, to rehearse the Ameerpet story. The red "broken chain" state has no fixture until P4.
+- `AuditChain` is the compact form; the full block view is P4.
+- Shell commands over about 6 KB get truncated here. Put long scripts in a file with the Write tool.
+
 ### P1 notes for later phases
 
 - `CommandCenterStub.tsx` is an interim page that exercises `KPIStatGov`, `GovMap`, `AlertCard` and `ChartCard`. P3 replaces it.
-- `PriorityFactorList`, `RoutingExplain` and `VerificationBadge` compile but have no page or test until P2.
 - `.touch-target` beats responsive `md:min-h-*` utilities. On dense gov controls use `min-h-11 min-w-11 md:min-h-9 md:min-w-0` instead.
 - `DataTable` uses `content-visibility` for lists over 100 rows instead of a virtualizer, since data is server-paged. Revisit in P6 if needed.
 - `@tanstack/react-table` is v9: the option is `features`, not v8's API.

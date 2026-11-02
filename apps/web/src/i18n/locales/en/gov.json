@@ -234,5 +234,174 @@
     "date": "Date",
     "created": "Created",
     "resolved": "Resolved"
+  },
+  "case": {
+    "original": "Original",
+    "english": "English translation",
+    "citizen_words": "Citizen's words",
+    "formal": "Formal version",
+    "anonymous": "Anonymous citizen",
+    "location": "Location",
+    "evidence": "Evidence",
+    "messages": "Messages",
+    "timeline": "Timeline and audit",
+    "routing": "Routing",
+    "priority": "Priority",
+    "sla": "SLA",
+    "due": "Due",
+    "remaining": "Remaining",
+    "eta": "Estimated finish",
+    "escalation": "Escalation",
+    "delay_risk": "Delay risk",
+    "no_evidence": "No photos attached",
+    "no_messages": "No messages yet",
+    "open_photo": "Open photo: {{description}}",
+    "photo_detail": "Enlarged photo with the AI description",
+    "low_quality": "Low quality photo",
+    "show_original": "Show original",
+    "show_english": "Show English",
+    "keyboard_hint": "r reply · n note · s status · v verify chain · Esc back to inbox",
+    "purpose": {
+      "evidence": "Citizen evidence",
+      "resolution_proof": "Resolution proof",
+      "verification": "Verification photo"
+    },
+    "sender": {
+      "citizen": "Citizen",
+      "bot": "Assistant",
+      "officer": "Officer",
+      "system": "System"
+    },
+    "sentiment": {
+      "calm": "Calm",
+      "concerned": "Concerned",
+      "frustrated": "Frustrated",
+      "angry": "Angry",
+      "distressed": "Distressed"
+    },
+    "risk": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    }
+  },
+  "brief": {
+    "title": "AI brief",
+    "refresh": "Regenerate brief",
+    "evidence": "Evidence",
+    "risks": "Risks",
+    "next_steps": "Suggested next steps",
+    "similar": "Similar resolved cases"
+  },
+  "audit": {
+    "verify": "Verify chain",
+    "valid_one": "Chain intact: {{count}} event checked",
+    "valid_other": "Chain intact: {{count}} events checked",
+    "broken": "Chain broken: an event was changed"
+  },
+  "emergency": {
+    "confirm": "Confirm emergency",
+    "deny": "Not an emergency",
+    "deny_reason": "Reason for denying",
+    "back": "Back",
+    "confirmed": "Emergency confirmed. SLA set to 4 hours",
+    "denied": "Emergency denied, normal priority restored"
+  },
+  "reply": {
+    "title": "Reply to citizen",
+    "intent": "Reply type",
+    "draft": "Draft with AI",
+    "drafting": "Drafting…",
+    "english": "Your reply in English",
+    "citizen_sees": "What the citizen sees",
+    "edited_note": "You edited the draft, so this text is translated again on send.",
+    "delivered_in": "Will be delivered in {{language}}",
+    "send": "Send",
+    "sent": "Sent in {{language}}",
+    "intents": {
+      "acknowledge": "Acknowledge",
+      "request_info": "Request info",
+      "schedule_visit": "Schedule visit",
+      "work_started": "Work started",
+      "delay_update": "Delay update",
+      "resolved": "Resolved",
+      "transfer": "Transfer"
+    }
+  },
+  "resolve": {
+    "title": "Resolve",
+    "result": "AI verification",
+    "proof": "Proof photo",
+    "choose_photo": "Take or choose a photo",
+    "capture_gps": "Capture device location",
+    "gps_captured": "Location captured",
+    "gps_denied": "Location unavailable, you can still submit",
+    "note": "Action taken",
+    "submit": "Submit resolution",
+    "verifying": "Verifying…",
+    "submitted": "Resolution submitted",
+    "supervisor_notified": "Supervisor has been notified"
+  },
+  "status_control": {
+    "title": "Status",
+    "start": "Start work",
+    "delay": "Report delay",
+    "delay_reason": "Delay reason",
+    "record_delay": "Record delay",
+    "updated": "Status updated",
+    "reasons": {
+      "materials": "Waiting for materials",
+      "weather": "Weather",
+      "other_department": "Waiting on another department",
+      "access": "Site not accessible",
+      "staffing": "Crew unavailable"
+    }
+  },
+  "note": {
+    "title": "Internal note",
+    "internal": "Not visible to citizen",
+    "add": "Add note"
+  },
+  "reassign": {
+    "title": "Reassign",
+    "least_loaded": "Least loaded officer",
+    "reason": "Reason (required)",
+    "trains": "This correction improves future routing",
+    "submit": "Reassign",
+    "done": "Case reassigned"
+  },
+  "queues": {
+    "open_case": "Open case {{id}}",
+    "routed": "Routed to {{department}}. Correction logged",
+    "route": "Route here",
+    "since_report": "{{time}} since report",
+    "proof_demanded": "New proof requested",
+    "closed_disputed": "Closed as disputed",
+    "reassign": "Reassign",
+    "demand_proof": "Demand new proof",
+    "close_disputed": "Close as disputed",
+    "appeal_decided": "Appeal decided",
+    "decision_note": "Decision note (required)",
+    "uphold": "Uphold",
+    "dismiss": "Dismiss",
+    "clear": "Queue clear ✓",
+    "clear_hint": "Nothing here needs a human decision right now.",
+    "tab": {
+      "routing": "Routing review",
+      "emergency": "Emergencies",
+      "disputed": "Disputed closures",
+      "appeal": "Appeals"
+    }
+  },
+  "stats": {
+    "streak_one": "case in a row within SLA",
+    "streak_other": "cases in a row within SLA",
+    "resolved_week": "Resolved this week",
+    "avg_resolution": "Average resolution",
+    "sla": "SLA met",
+    "rating": "Average rating",
+    "trend_title": "Cases resolved",
+    "trend_unit": "Per day, last 14 days",
+    "trend_formula": "Your cases with a resolution submitted on each day. SLA met means resolved before the due time."
   }
 }
