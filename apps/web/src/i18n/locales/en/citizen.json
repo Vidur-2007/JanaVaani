@@ -95,5 +95,11 @@
   "asset": {
     "title": "Report a problem with this asset",
     "report": "Report a problem here"
+  },
+  "shell": {
+    "new_update": "New update on your complaint",
+    "view": "View",
+    "unread_one": "{{count}} unread",
+    "unread_other": "{{count}} unread"
   }
 }
