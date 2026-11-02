@@ -193,7 +193,19 @@
     "support": "{{count}} people reported this"
   },
   "nearby": {
-    "title": "Issues near you"
+    "title": "Issues near you",
+    "subtitle": "Open problems reported around you. Only public details are shown.",
+    "use_my_location": "Use my location",
+    "no_gps": "Location is not available on this device.",
+    "gps_denied": "We could not get your location. Allow location access, or move the map instead.",
+    "map_label": "Map of open issues near you",
+    "map_hint": "Move the map to look somewhere else. Dots are open issues, coloured by department.",
+    "radius": "Search radius",
+    "count_one": "{{count}} open issue within {{distance}}",
+    "count_other": "{{count}} open issues within {{distance}}",
+    "empty_title": "No open issues within {{distance}}",
+    "empty_body": "Try a bigger radius, or move the map to another area.",
+    "away": "{{distance}} away"
   },
   "asset": {
     "title": "Report a problem with this asset",

@@ -35,7 +35,17 @@ import { cn } from '@/lib/utils';
 
 type Icon = ComponentType<SVGProps<SVGSVGElement>>;
 
-function Section({ id, icon: Icon, title, children }: { id: string; icon: Icon; title: string; children: ReactNode }) {
+function Section({
+  id,
+  icon: Icon,
+  title,
+  children,
+}: {
+  id: string;
+  icon: Icon;
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <section className="space-y-3" aria-labelledby={`set-${id}`}>
       <h2 id={`set-${id}`} className="font-display flex items-center gap-2 text-lg font-semibold">
@@ -47,7 +57,19 @@ function Section({ id, icon: Icon, title, children }: { id: string; icon: Icon; 
   );
 }
 
-function Row({ id, icon: Icon, label, hint, children }: { id?: string; icon?: Icon; label: string; hint?: string; children: ReactNode }) {
+function Row({
+  id,
+  icon: Icon,
+  label,
+  hint,
+  children,
+}: {
+  id?: string;
+  icon?: Icon;
+  label: string;
+  hint?: string;
+  children: ReactNode;
+}) {
   return (
     <div className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
       {Icon && <Icon className="text-muted-foreground size-5 shrink-0" aria-hidden />}
@@ -63,7 +85,21 @@ function Row({ id, icon: Icon, label, hint, children }: { id?: string; icon?: Ic
   );
 }
 
-function SwitchRow({ id, icon, label, hint, checked, onChange }: { id: string; icon?: Icon; label: string; hint?: string; checked: boolean; onChange: (v: boolean) => void }) {
+function SwitchRow({
+  id,
+  icon,
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  id: string;
+  icon?: Icon;
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <Row id={id} icon={icon} label={label} hint={hint}>
       <Switch id={id} checked={checked} onCheckedChange={onChange} data-testid={`pref-${id}`} />
@@ -92,8 +128,17 @@ function usePermission(name: 'geolocation' | 'microphone'): PermState {
 
 function PermissionBadge({ state }: { state: PermState }) {
   const { t } = useTranslation('citizen');
-  const tone = state === 'granted' ? 'bg-success/12 text-success' : state === 'denied' ? 'bg-danger/12 text-danger' : 'bg-surface-2 text-muted-foreground';
-  return <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', tone)}>{t(`settings.perm.${state}`)}</span>;
+  const tone =
+    state === 'granted'
+      ? 'bg-success/12 text-success'
+      : state === 'denied'
+        ? 'bg-danger/12 text-danger'
+        : 'bg-surface-2 text-muted-foreground';
+  return (
+    <span className={cn('rounded-full px-2.5 py-1 text-xs font-medium', tone)}>
+      {t(`settings.perm.${state}`)}
+    </span>
+  );
 }
 
 function VoiceAvailability() {
@@ -101,7 +146,9 @@ function VoiceAvailability() {
   const [avail, setAvail] = useState<Partial<Record<DeepLang, boolean>>>({});
   useEffect(() => {
     let alive = true;
-    Promise.all(DEEP_LANGS.map(async (l) => [l, await hasBrowserVoice(l)] as const)).then((r) => alive && setAvail(Object.fromEntries(r)));
+    Promise.all(DEEP_LANGS.map(async (l) => [l, await hasBrowserVoice(l)] as const)).then(
+      (r) => alive && setAvail(Object.fromEntries(r)),
+    );
     return () => {
       alive = false;
     };
@@ -114,7 +161,10 @@ function VoiceAvailability() {
           <li
             key={l}
             lang={l}
-            className={cn('rounded-full border px-3 py-1 text-sm', avail[l] ? 'border-success/40 text-success' : 'text-muted-foreground')}
+            className={cn(
+              'rounded-full border px-3 py-1 text-sm',
+              avail[l] ? 'border-success/40 text-success' : 'text-muted-foreground',
+            )}
             title={avail[l] ? t('settings.voice_yes') : t('settings.voice_no')}
           >
             {LANGUAGE_NAMES[l].native} {avail[l] === undefined ? '…' : avail[l] ? '✓' : '—'}
@@ -169,7 +219,12 @@ export default function Settings() {
       {/* ---- Display */}
       <Section id="display" icon={MonitorSmartphone} title={t('settings.appearance')}>
         <Row label={t('settings.theme')}>
-          <ToggleGroup type="single" value={p.theme} onValueChange={(v) => v && p.set({ theme: v as ThemePref })} aria-label={t('settings.theme')}>
+          <ToggleGroup
+            type="single"
+            value={p.theme}
+            onValueChange={(v) => v && p.set({ theme: v as ThemePref })}
+            aria-label={t('settings.theme')}
+          >
             {(['auto', 'paper', 'ink'] as const).map((v) => (
               <ToggleGroupItem key={v} value={v} className="h-11 px-3" data-testid={`theme-${v}`}>
                 {t(`settings.theme_${v}`)}
@@ -177,7 +232,13 @@ export default function Settings() {
             ))}
           </ToggleGroup>
         </Row>
-        <SwitchRow id="font" icon={Type} label={t('settings.large_text')} checked={p.font === 'large'} onChange={(v) => p.set({ font: v ? 'large' : 'normal' })} />
+        <SwitchRow
+          id="font"
+          icon={Type}
+          label={t('settings.large_text')}
+          checked={p.font === 'large'}
+          onChange={(v) => p.set({ font: v ? 'large' : 'normal' })}
+        />
         <SwitchRow
           id="contrast"
           icon={Contrast}
@@ -186,7 +247,12 @@ export default function Settings() {
           onChange={(v) => p.set({ contrast: v ? 'high' : 'normal' })}
         />
         <Row icon={Gauge} label={t('settings.reduced_motion')} hint={t('settings.motion_hint')}>
-          <ToggleGroup type="single" value={p.motion} onValueChange={(v) => v && p.set({ motion: v as MotionPref })} aria-label={t('settings.reduced_motion')}>
+          <ToggleGroup
+            type="single"
+            value={p.motion}
+            onValueChange={(v) => v && p.set({ motion: v as MotionPref })}
+            aria-label={t('settings.reduced_motion')}
+          >
             {(['system', 'reduced', 'full'] as const).map((v) => (
               <ToggleGroupItem key={v} value={v} className="h-11 px-3">
                 {t(`settings.motion_${v}`)}
@@ -212,7 +278,11 @@ export default function Settings() {
           hint={t('settings.low_literacy_hint')}
           checked={p.low_literacy}
           // Low-literacy implies voice-first input and spoken bot replies.
-          onChange={(v) => p.set(v ? { low_literacy: true, voice_first: true, voice_autoplay: true } : { low_literacy: false })}
+          onChange={(v) =>
+            p.set(
+              v ? { low_literacy: true, voice_first: true, voice_autoplay: true } : { low_literacy: false },
+            )
+          }
         />
         {p.low_literacy && (
           <ul className="text-muted-foreground grid gap-1 px-4 py-3 text-sm">
@@ -255,7 +325,10 @@ export default function Settings() {
             step={0.1}
             value={[p.tts_rate]}
             onValueChange={([v]) => p.set({ tts_rate: v })}
-            aria-label={t('settings.speech_rate')}
+            thumbProps={{
+              'aria-label': t('settings.speech_rate'),
+              'aria-valuetext': `${p.tts_rate.toFixed(1)}×`,
+            }}
           />
           <ListenButton text={t('settings.voice_sample')} lang={ui} variant="outline" />
         </div>
@@ -278,11 +351,21 @@ export default function Settings() {
         />
         <Row icon={MapPin} label={t('onboarding.consent_location')} hint={t('settings.perm_hint')}>
           <PermissionBadge state={geo} />
-          <Switch id="consent_location" checked={p.consent_location === true} onCheckedChange={(v) => p.set({ consent_location: v })} aria-label={t('onboarding.consent_location')} />
+          <Switch
+            id="consent_location"
+            checked={p.consent_location === true}
+            onCheckedChange={(v) => p.set({ consent_location: v })}
+            aria-label={t('onboarding.consent_location')}
+          />
         </Row>
         <Row icon={Mic} label={t('onboarding.consent_microphone')} hint={t('settings.perm_hint')}>
           <PermissionBadge state={mic} />
-          <Switch id="consent_microphone" checked={p.consent_microphone === true} onCheckedChange={(v) => p.set({ consent_microphone: v })} aria-label={t('onboarding.consent_microphone')} />
+          <Switch
+            id="consent_microphone"
+            checked={p.consent_microphone === true}
+            onCheckedChange={(v) => p.set({ consent_microphone: v })}
+            aria-label={t('onboarding.consent_microphone')}
+          />
         </Row>
       </Section>
 

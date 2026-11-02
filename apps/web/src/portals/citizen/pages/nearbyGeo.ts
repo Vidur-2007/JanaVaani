@@ -1,0 +1,15 @@
+// Small geo helpers for /app/nearby (kept out of the lazy map chunk).
+import type { DepartmentId, GeoPoint } from '@contracts/types';
+import { DEPARTMENT_ICONS } from '@/design/components';
+
+export const DEPARTMENT_IDS = Object.keys(DEPARTMENT_ICONS) as DepartmentId[];
+
+/** Great-circle distance in metres. */
+export function distanceM(a: GeoPoint, b: GeoPoint): number {
+  const R = 6_371_000;
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
