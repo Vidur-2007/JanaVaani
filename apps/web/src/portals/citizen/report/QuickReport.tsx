@@ -51,7 +51,7 @@ export default function QuickReport() {
   const location = useMemo<Location | undefined>(() => {
     if (!rawLocation || rawLocation.ward_id) return rawLocation;
     const w = wardAt(wards.data, rawLocation.lat, rawLocation.lng);
-    return w ? { ...rawLocation, ward_id: w.id, ward_name: w.name, zone: w.zone, address: rawLocation.address ??  } : rawLocation;
+    return w ? { ...rawLocation, ward_id: w.id, ward_name: w.name, zone: w.zone, address: rawLocation.address ?? `${w.name}, Hyderabad` } : rawLocation;
   }, [rawLocation, wards.data]);
   const [text, setText] = useState('');
   const [draft, setDraft] = useState<GrievanceDraft | null>(null);
