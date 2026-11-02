@@ -7,12 +7,13 @@ import { motion } from 'motion/react';
 import { AlertTriangle, RotateCw } from 'lucide-react';
 import type { Lang } from '@contracts/types';
 import { Button } from '@/design/ui/button';
-import { AIBadge, ListenButton, SLACountdown, StatusChip } from '@/design/components';
+import { AIBadge, DepartmentBadge, ListenButton, SLACountdown, StatusChip } from '@/design/components';
 import { easeOutExpo } from '@/design/motion';
 import { pickLocalized } from '@/lib/localized';
 import { usePrefs, useReducedMotion } from '@/lib/prefs/store';
 import { useSpeak } from '@/lib/tts/useSpeak';
 import { cn } from '@/lib/utils';
+import { MiniSteps } from '../tracker/StepProgress';
 import type { ChatMessage } from './useChatSession';
 
 /** Reveals words over 400–900 ms. The full text is always available to screen readers. */
@@ -64,39 +65,76 @@ export function TypingIndicator() {
   );
 }
 
+/** "What happened to my water complaint?" → mini tracker cards for the matching complaints (Spec A §5.8). */
 function TrackedCards({ items }: { items: NonNullable<ChatMessage['tracked']> }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('citizen');
   return (
-    <ul className="mt-2 space-y-2">
-      {items.map((g) => {
-        const title = pickLocalized(g.title, i18n.language);
-        return (
-          <li key={g.id}>
-            <Link to={`/app/complaints/${g.id}`} className="bg-surface-2 block rounded-xl p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusChip status={g.status} size="sm" />
-                <SLACountdown sla={g.sla} compact stopped={['closed', 'rejected', 'merged', 'resolved_pending_verification'].includes(g.status)} />
-              </div>
-              <p className="mt-1 text-sm font-medium" lang={title.lang} dir={title.dir}>
-                {title.text}
-              </p>
-              <p className="text-muted-foreground font-mono text-xs">{g.id}</p>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="mt-2 space-y-2" data-testid="tracked-cards">
+      <ul className="space-y-2">
+        {items.map((g) => {
+          const title = pickLocalized(g.title, i18n.language);
+          return (
+            <li key={g.id}>
+              <Link
+                to={`/app/complaints/${g.id}`}
+                className="bg-surface-2 hover:border-primary/50 block space-y-2 rounded-xl border border-transparent p-3 transition-colors"
+                data-testid="tracked-card"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusChip status={g.status} size="sm" />
+                  <DepartmentBadge department={g.category} size="sm" />
+                  <SLACountdown
+                    sla={g.sla}
+                    compact
+                    stopped={['closed', 'rejected', 'merged', 'resolved_pending_verification'].includes(
+                      g.status,
+                    )}
+                  />
+                </div>
+                <p className="text-sm font-medium" lang={title.lang} dir={title.dir}>
+                  {title.text}
+                </p>
+                <MiniSteps status={g.status} />
+                <p className="text-muted-foreground flex items-center justify-between gap-2 text-xs">
+                  <span className="shrink-0 font-mono whitespace-nowrap">{g.id}</span>
+                  {g.assigned_officer && <span className="truncate">{g.assigned_officer.office_name}</span>}
+                </p>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <Link
+        to="/app/complaints"
+        className="text-primary touch-target inline-flex items-center text-sm font-medium"
+      >
+        {t('report.see_all_complaints')}
+      </Link>
+    </div>
   );
 }
 
-function BotBubble({ m, onSettled, onRetry, big }: { m: ChatMessage; onSettled: (id: string) => void; onRetry: () => void; big?: boolean }) {
+function BotBubble({
+  m,
+  onSettled,
+  onRetry,
+  big,
+}: {
+  m: ChatMessage;
+  onSettled: (id: string) => void;
+  onRetry: () => void;
+  big?: boolean;
+}) {
   const { t } = useTranslation('citizen');
   const reduced = useReducedMotion();
   const [showEn, setShowEn] = useState(false);
   const text = showEn && m.en ? m.en : m.text;
   if (m.error)
     return (
-      <div className="bg-danger/10 border-danger/30 flex max-w-[85%] items-start gap-2 rounded-2xl border p-3 text-sm" role="alert">
+      <div
+        className="bg-danger/10 border-danger/30 flex max-w-[85%] items-start gap-2 rounded-2xl border p-3 text-sm"
+        role="alert"
+      >
         <AlertTriangle className="text-danger mt-0.5 size-4 shrink-0" aria-hidden />
         <div className="space-y-2">
           <p>{t('report.error_send')}</p>
@@ -109,15 +147,31 @@ function BotBubble({ m, onSettled, onRetry, big }: { m: ChatMessage; onSettled: 
     );
   return (
     <div className="max-w-[85%] space-y-1.5">
-      <div className={cn('bg-surface rounded-2xl rounded-es-sm border px-4 py-3 leading-relaxed', big && 'px-5 py-4 text-xl')} lang={showEn ? 'en' : m.lang} dir={showEn ? 'ltr' : m.dir}>
+      <div
+        className={cn(
+          'bg-surface rounded-2xl rounded-es-sm border px-4 py-3 leading-relaxed',
+          big && 'px-5 py-4 text-xl',
+        )}
+        lang={showEn ? 'en' : m.lang}
+        dir={showEn ? 'ltr' : m.dir}
+      >
         <WordReveal text={text} animate={!!m.fresh && !reduced && !showEn} onDone={() => onSettled(m.id)} />
         {m.tracked && <TrackedCards items={m.tracked} />}
       </div>
       <div className="flex flex-wrap items-center gap-1 ps-1">
         <AIBadge variant="generated" />
-        <ListenButton text={text} lang={(showEn ? 'en' : m.lang) as Lang} size="sm" className="h-8 min-h-8 px-2 text-xs" />
+        <ListenButton
+          text={text}
+          lang={(showEn ? 'en' : m.lang) as Lang}
+          size="sm"
+          className="h-8 min-h-8 px-2 text-xs"
+        />
         {m.en && m.en !== m.text && (
-          <button type="button" className="text-muted-foreground hover:text-text px-2 text-xs underline-offset-2 hover:underline" onClick={() => setShowEn((v) => !v)}>
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-text px-2 text-xs underline-offset-2 hover:underline"
+            onClick={() => setShowEn((v) => !v)}
+          >
             {showEn ? t('report.show_original') : t('report.show_english')}
           </button>
         )}
@@ -132,12 +186,21 @@ function UserBubble({ m }: { m: ChatMessage }) {
       {m.media && (
         <div className="flex flex-wrap justify-end gap-1.5">
           {m.media.map((x) => (
-            <img key={x.id} src={x.url} alt={x.ai?.description_en ?? ''} className="size-20 rounded-xl border object-cover" />
+            <img
+              key={x.id}
+              src={x.url}
+              alt={x.ai?.description_en ?? ''}
+              className="size-20 rounded-xl border object-cover"
+            />
           ))}
         </div>
       )}
       {m.text && (
-        <div className="bg-primary text-primary-foreground rounded-2xl rounded-ee-sm px-4 py-3 leading-relaxed whitespace-pre-wrap" lang={m.lang} dir={m.dir}>
+        <div
+          className="bg-primary text-primary-foreground rounded-2xl rounded-ee-sm px-4 py-3 leading-relaxed whitespace-pre-wrap"
+          lang={m.lang}
+          dir={m.dir}
+        >
           {m.text}
         </div>
       )}
@@ -188,9 +251,20 @@ export function MessageList({
   }, [messages, autoplay, speak]);
 
   return (
-    <div className="space-y-4" role="log" aria-live="polite" aria-label={t('report.conversation')} data-testid="chat-log">
+    <div
+      className="space-y-4"
+      role="log"
+      aria-live="polite"
+      aria-label={t('report.conversation')}
+      data-testid="chat-log"
+    >
       {hidden > 0 && (
-        <button type="button" onClick={() => setShowAll(true)} className="text-muted-foreground hover:text-text mx-auto block text-sm underline-offset-2 hover:underline" data-testid="show-earlier">
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="text-muted-foreground hover:text-text mx-auto block text-sm underline-offset-2 hover:underline"
+          data-testid="show-earlier"
+        >
           {t('ll.show_earlier', { count: hidden })}
         </button>
       )}
@@ -203,7 +277,11 @@ export function MessageList({
           transition={{ duration: 0.3, ease: easeOutExpo }}
           data-role={m.role}
         >
-          {m.role === 'bot' ? <BotBubble m={m} onSettled={onSettled} onRetry={onRetry} big={easy} /> : <UserBubble m={m} />}
+          {m.role === 'bot' ? (
+            <BotBubble m={m} onSettled={onSettled} onRetry={onRetry} big={easy} />
+          ) : (
+            <UserBubble m={m} />
+          )}
         </motion.div>
       ))}
       {pending && <TypingIndicator />}
@@ -216,7 +294,11 @@ export function MessageList({
 /** The citizen's latest answer (if any) and the assistant's latest message after it. */
 function lastExchange(messages: ChatMessage[]): ChatMessage[] {
   let bot = -1;
-  for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'bot') { bot = i; break; }
+  for (let i = messages.length - 1; i >= 0; i--)
+    if (messages[i].role === 'bot') {
+      bot = i;
+      break;
+    }
   const last = messages[messages.length - 1];
   if (last && last.role === 'user') return [last];
   if (bot < 0) return messages.slice(-1);

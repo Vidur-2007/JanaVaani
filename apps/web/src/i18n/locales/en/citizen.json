@@ -254,7 +254,8 @@
       "facility_or_area": "Facility or area",
       "school_name": "School",
       "address": "Address"
-    }
+    },
+    "see_all_complaints": "See all my complaints"
   },
   "location": {
     "title": "Where is the problem?",
