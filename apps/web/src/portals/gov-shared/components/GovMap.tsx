@@ -89,6 +89,7 @@ export function GovMap({
         {children}
       </MapView>
 
+      {availableLayers.length > 1 && (
       <div className="glass absolute end-2 top-2 z-[500] flex max-w-[calc(100%-1rem)] items-center gap-1 overflow-x-auto rounded-[var(--radius-md)] p-1">
         <Layers className="text-muted-foreground mx-1 size-4 shrink-0" aria-hidden />
         <ToggleGroup
@@ -105,6 +106,7 @@ export function GovMap({
           ))}
         </ToggleGroup>
       </div>
+      )}
 
       {show('clusters') && (
         <ul

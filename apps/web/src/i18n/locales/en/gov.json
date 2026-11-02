@@ -101,7 +101,8 @@
       "wards": "Wards",
       "incidents": "Incidents",
       "critical": "Critical"
-    }
+    },
+    "critical_case": "Open critical case"
   },
   "priority_card": {
     "total": "Priority score"
@@ -287,7 +288,8 @@
       "low": "Low",
       "medium": "Medium",
       "high": "High"
-    }
+    },
+    "updated": "Updated just now"
   },
   "brief": {
     "title": "AI brief",
@@ -609,5 +611,32 @@
       "issues": "Top issues",
       "alerts": "Alerts"
     }
+  },
+  "public": {
+    "home": "JanaVaani home",
+    "title": "How your city is responding",
+    "subtitle": "Live numbers from every complaint filed in Hyderabad. No names, no personal details.",
+    "resolution_rate": "Resolution rate",
+    "avg_time": "Average time to resolve",
+    "hours": "hours",
+    "total_resolved": "Complaints resolved",
+    "map_title": "Where issues are reported",
+    "map_note": "Locations are blurred by about 75 metres. The map shows no text, no IDs and no photos of people.",
+    "departments_title": "Department report cards",
+    "resolved_of_one": "resolved, of {{count}} complaint",
+    "resolved_of_other": "resolved, of {{count}} complaints",
+    "avg_hours": "average {{value}} hours",
+    "zones_title": "Zone comparison",
+    "zones_unit": "Share of complaints resolved, %",
+    "zones_formula": "Resolved complaints divided by all complaints in each zone.",
+    "fixed_title": "Recently fixed",
+    "fixed_empty": "Fixed issues will appear here",
+    "method_title": "How we count, and how we protect privacy",
+    "method_counts": "A complaint counts as resolved only when the citizen confirms the fix, or it closes after the verification window.",
+    "method_time": "Time to resolve runs from registration to the resolution being submitted.",
+    "method_location": "Public locations are randomly shifted by about 75 metres, and private complaints are left out.",
+    "method_no_people": "Before and after pictures are proof photos of the place, never of people.",
+    "method_ai": "AI helps sort complaints, but people make the safety-critical decisions.",
+    "report": "Report an issue"
   }
 }
