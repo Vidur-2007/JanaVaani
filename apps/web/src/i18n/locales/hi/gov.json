@@ -1,1 +1,238 @@
-{}
+{
+  "nav": {
+    "group_department": "विभाग",
+    "group_government": "सरकार",
+    "group_public": "जनता",
+    "inbox": "इनबॉक्स",
+    "incidents": "घटनाएँ",
+    "my_stats": "मेरे आँकड़े",
+    "queues": "समीक्षा कतारें",
+    "command_center": "कमांड सेंटर",
+    "map": "शहर का नक्शा",
+    "departments": "विभाग",
+    "officers": "अधिकारी",
+    "analytics": "विश्लेषण",
+    "alerts": "अलर्ट",
+    "audit": "ऑडिट",
+    "ai": "AI मॉडल",
+    "reports": "रिपोर्ट",
+    "demo": "डेमो नियंत्रण",
+    "public": "सार्वजनिक पोर्टल"
+  },
+  "shell": {
+    "all_departments": "सभी विभाग",
+    "collapse": "साइडबार छोटा करें",
+    "expand": "साइडबार बड़ा करें",
+    "open_menu": "मेनू",
+    "menu_description": "सरकारी पेजों के बीच जाएँ",
+    "breadcrumb": "पेज का रास्ता"
+  },
+  "palette": {
+    "title": "खोजें और जाएँ",
+    "description": "ID से टिकट खोलें, किसी पेज पर जाएँ या त्वरित फ़िल्टर लगाएँ",
+    "placeholder": "टिकट ID, पेज या शिकायत का विवरण…",
+    "search_hint": "टिकट और पेज खोजें",
+    "empty": "कोई परिणाम नहीं",
+    "ticket": "टिकट",
+    "open_ticket": "टिकट खोलें",
+    "cases": "मिलते-जुलते मामले",
+    "quick_filters": "त्वरित फ़िल्टर",
+    "pages": "पेज",
+    "critical_overdue": "मेरे ज़ोन में समय-सीमा पार गंभीर मामले",
+    "overdue": "समय-सीमा पार सभी मामले",
+    "due_today": "आज देय"
+  },
+  "notifications": {
+    "label_one": "सूचनाएँ, {{count}} अपठित",
+    "label_other": "सूचनाएँ, {{count}} अपठित",
+    "title": "सूचनाएँ",
+    "mark_all": "सभी को पढ़ा हुआ करें",
+    "empty": "कोई नई सूचना नहीं",
+    "new": "नई सूचना",
+    "new_alert": "नया शहर अलर्ट"
+  },
+  "status": {
+    "resolved_pending_verification": "नागरिक की पुष्टि बाकी"
+  },
+  "filters": {
+    "label": "फ़िल्टर",
+    "all": "सभी",
+    "search": "टिकट ID या किसी भी भाषा में खोजें",
+    "department": "विभाग",
+    "priority": "प्राथमिकता",
+    "status": "स्थिति",
+    "ward": "वार्ड या ज़ोन",
+    "zones": "ज़ोन",
+    "wards": "वार्ड",
+    "language": "भाषा",
+    "from": "से",
+    "to": "तक",
+    "overdue_only": "केवल समय-सीमा पार",
+    "clear_one": "{{count}} फ़िल्टर हटाएँ",
+    "clear_other": "{{count}} फ़िल्टर हटाएँ"
+  },
+  "table": {
+    "columns": "कॉलम",
+    "select_all": "सभी पंक्तियाँ चुनें",
+    "select_row": "{{id}} चुनें",
+    "keyboard_hint": "j / k चलने के लिए · Enter खोलने के लिए · x चुनने के लिए",
+    "pagination": "पेज",
+    "previous": "पिछला पेज",
+    "next": "अगला पेज",
+    "page": "{{total}} में से पेज {{page}}"
+  },
+  "chart": {
+    "how_computed": "इसकी गणना कैसे होती है",
+    "view_table": "तालिका के रूप में देखें",
+    "view_chart": "चार्ट के रूप में देखें",
+    "export_png": "PNG निर्यात करें",
+    "export_failed": "चार्ट निर्यात नहीं हो सका",
+    "empty": "इस अवधि का कोई डेटा नहीं"
+  },
+  "map": {
+    "label": "शहर की शिकायतों का नक्शा",
+    "layers": "नक्शे की परतें",
+    "legend": "विभाग के रंग",
+    "reports_one": "{{count}} शिकायत",
+    "reports_other": "{{count}} शिकायतें",
+    "layer": {
+      "heat": "हीट",
+      "clusters": "समूह",
+      "wards": "वार्ड",
+      "incidents": "घटनाएँ",
+      "critical": "गंभीर"
+    }
+  },
+  "priority_card": {
+    "total": "प्राथमिकता स्कोर"
+  },
+  "routing": {
+    "confidence": "रूटिंग विश्वास",
+    "votes": "रूटिंग वोट",
+    "agrees": "सहमत",
+    "disagrees": "असहमत",
+    "needs_review": "कम विश्वास: सुपरवाइज़र इस रूटिंग की समीक्षा करेंगे",
+    "source": {
+      "classifier": "हमारा क्लासिफ़ायर",
+      "gemini": "Gemini",
+      "groq": "Groq",
+      "rule": "सुरक्षा नियम",
+      "human": "मानव निर्णय"
+    }
+  },
+  "verification": {
+    "verified": "सत्यापित",
+    "suspicious": "संदिग्ध",
+    "unclear": "अस्पष्ट",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "unknown": "अज्ञात",
+    "same_location": "वही स्थान",
+    "issue_resolved": "फ़ोटो में सुधार दिख रहा है",
+    "duplicate_photo": "डुप्लिकेट फ़ोटो",
+    "distance": "शिकायत स्थल से दूरी"
+  },
+  "alert": {
+    "view_cases_one": "{{count}} मामला देखें",
+    "view_cases_other": "{{count}} मामले देखें",
+    "acknowledge": "स्वीकार करें",
+    "acknowledged": "स्वीकार किया गया"
+  },
+  "inbox": {
+    "views": "इनबॉक्स दृश्य",
+    "summary": "इनबॉक्स सारांश",
+    "search": "टिकट ID, या समस्या किसी भी भाषा में लिखें",
+    "new_case": "नया मामला सौंपा गया",
+    "count_one": "{{count}} मामला",
+    "count_other": "{{count}} मामले",
+    "empty": "इनबॉक्स खाली है",
+    "empty_hint": "नए मामले सौंपे जाते ही यहाँ दिखेंगे।",
+    "empty_filtered": "इन फ़िल्टर से कोई मामला नहीं मिला",
+    "empty_filtered_hint": "कोई फ़िल्टर हटाएँ या दूसरी भाषा में खोजें।",
+    "escalation_level": "एस्केलेशन स्तर {{level}}",
+    "tile": {
+      "open": "मेरे खुले मामले",
+      "critical": "गंभीर",
+      "overdue": "समय-सीमा पार",
+      "due_today": "आज देय",
+      "pending": "सत्यापन बाकी"
+    },
+    "sort": {
+      "label": "मामले क्रमबद्ध करें",
+      "priority": "प्राथमिकता क्रम",
+      "sla": "शेष SLA",
+      "newest": "नए पहले"
+    },
+    "column": {
+      "priority": "प्राथमिकता",
+      "case": "मामला",
+      "department": "विभाग",
+      "sla": "SLA",
+      "support": "प्रभावित नागरिक",
+      "status": "स्थिति",
+      "escalation": "एस्केलेशन"
+    },
+    "flag": {
+      "emergency": "आपातकाल",
+      "needs_review": "समीक्षा ज़रूरी",
+      "suspicious": "संदिग्ध समापन",
+      "reopened_one": "फिर खोला गया ×{{count}}",
+      "reopened_other": "फिर खोला गया ×{{count}}"
+    }
+  },
+  "bulk": {
+    "label": "सामूहिक कार्रवाई",
+    "selected_one": "{{count}} चुना गया",
+    "selected_other": "{{count}} चुने गए",
+    "set_status": "स्थिति बदलें",
+    "assign": "सौंपें",
+    "merge": "घटना में मिलाएँ",
+    "clear": "चयन हटाएँ",
+    "undo": "पूर्ववत करें",
+    "undone": "रद्द किया गया, कुछ नहीं बदला",
+    "pending_one": "{{count}} मामला अपडेट हो रहा है…",
+    "pending_other": "{{count}} मामले अपडेट हो रहे हैं…",
+    "done_one": "{{count}} मामला अपडेट हुआ",
+    "done_other": "{{count}} मामले अपडेट हुए",
+    "confirm_status_one": "{{count}} मामले की स्थिति बदलें?",
+    "confirm_status_other": "{{count}} मामलों की स्थिति बदलें?",
+    "confirm_assign_one": "{{count}} मामला सौंपें?",
+    "confirm_assign_other": "{{count}} मामले सौंपें?",
+    "confirm_merge_one": "{{count}} मामले को उसकी घटना में मिलाएँ?",
+    "confirm_merge_other": "{{count}} मामलों को उनकी घटना में मिलाएँ?",
+    "confirm_body": "पुष्टि के बाद पूर्ववत करने के लिए {{seconds}} सेकंड मिलेंगे।",
+    "choose_status": "स्थिति चुनें",
+    "officer": "अधिकारी",
+    "choose_officer": "अधिकारी चुनें",
+    "open_cases_one": "{{count}} खुला",
+    "open_cases_other": "{{count}} खुले"
+  },
+  "incidents": {
+    "empty": "कोई सक्रिय घटना नहीं",
+    "empty_hint": "एक ही समस्या की शिकायतें यहाँ अपने आप जुड़ जाती हैं।",
+    "location": "{{title}} का स्थान",
+    "languages": "शिकायत की भाषाएँ",
+    "members_one": "{{count}} शिकायत",
+    "members_other": "{{count}} शिकायतें",
+    "resolve_all": "एक प्रमाण से सभी हल करें",
+    "resolve_body_one": "यह प्रमाण और टिप्पणी इस घटना की {{count}} शिकायत पर लागू होंगे। AI फ़ोटो जाँचता है और नागरिक सुधार की पुष्टि करते हैं।",
+    "resolve_body_other": "यह प्रमाण और टिप्पणी इस घटना की सभी {{count}} शिकायतों पर लागू होंगे। AI फ़ोटो जाँचता है और हर नागरिक सुधार की पुष्टि करता है।",
+    "proof": "प्रमाण फ़ोटो",
+    "choose_photo": "फ़ोटो चुनें या लें",
+    "note": "की गई कार्रवाई",
+    "resolved_one": "{{count}} शिकायत नागरिक की पुष्टि के लिए भेजी गई",
+    "resolved_other": "{{count}} शिकायतें नागरिकों की पुष्टि के लिए भेजी गईं"
+  },
+  "kpi": {
+    "open": "खुले",
+    "overdue": "समय-सीमा पार",
+    "critical_open": "खुले गंभीर मामले",
+    "sla": "SLA अनुपालन",
+    "trend_title": "दर्ज बनाम हल",
+    "trend_unit": "प्रति दिन शिकायतें, पिछले 30 दिन",
+    "trend_formula": "सभी विभागों में प्रतिदिन दर्ज और हल की गई शिकायतों की संख्या।",
+    "date": "तारीख",
+    "created": "दर्ज",
+    "resolved": "हल"
+  }
+}

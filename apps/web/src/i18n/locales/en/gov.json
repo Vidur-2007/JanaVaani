@@ -50,5 +50,189 @@
     "empty": "You're all caught up",
     "new": "New notification",
     "new_alert": "New city alert"
+  },
+  "status": {
+    "resolved_pending_verification": "Awaiting citizen check"
+  },
+  "filters": {
+    "label": "Filters",
+    "all": "All",
+    "search": "Search by ticket ID or any language",
+    "department": "Department",
+    "priority": "Priority",
+    "status": "Status",
+    "ward": "Ward or zone",
+    "zones": "Zones",
+    "wards": "Wards",
+    "language": "Language",
+    "from": "From",
+    "to": "To",
+    "overdue_only": "Overdue only",
+    "clear_one": "Clear {{count}} filter",
+    "clear_other": "Clear {{count}} filters"
+  },
+  "table": {
+    "columns": "Columns",
+    "select_all": "Select all rows",
+    "select_row": "Select {{id}}",
+    "keyboard_hint": "j / k to move · Enter to open · x to select",
+    "pagination": "Pagination",
+    "previous": "Previous page",
+    "next": "Next page",
+    "page": "Page {{page}} of {{total}}"
+  },
+  "chart": {
+    "how_computed": "How this is computed",
+    "view_table": "View as table",
+    "view_chart": "View as chart",
+    "export_png": "Export PNG",
+    "export_failed": "Could not export the chart",
+    "empty": "No data for this period"
+  },
+  "map": {
+    "label": "City complaints map",
+    "layers": "Map layers",
+    "legend": "Department colors",
+    "reports_one": "{{count}} report",
+    "reports_other": "{{count}} reports",
+    "layer": {
+      "heat": "Heat",
+      "clusters": "Clusters",
+      "wards": "Wards",
+      "incidents": "Incidents",
+      "critical": "Critical"
+    }
+  },
+  "priority_card": {
+    "total": "Priority score"
+  },
+  "routing": {
+    "confidence": "Routing confidence",
+    "votes": "Routing votes",
+    "agrees": "Agrees",
+    "disagrees": "Disagrees",
+    "needs_review": "Low confidence: a supervisor reviews this routing",
+    "source": {
+      "classifier": "Our classifier",
+      "gemini": "Gemini",
+      "groq": "Groq",
+      "rule": "Safety rule",
+      "human": "Human decision"
+    }
+  },
+  "verification": {
+    "verified": "Verified",
+    "suspicious": "Suspicious",
+    "unclear": "Unclear",
+    "yes": "Yes",
+    "no": "No",
+    "unknown": "Unknown",
+    "same_location": "Same location",
+    "issue_resolved": "Fix visible in photo",
+    "duplicate_photo": "Duplicate photo",
+    "distance": "Distance from complaint"
+  },
+  "alert": {
+    "view_cases_one": "View {{count}} case",
+    "view_cases_other": "View {{count}} cases",
+    "acknowledge": "Acknowledge",
+    "acknowledged": "Acknowledged"
+  },
+  "inbox": {
+    "views": "Inbox views",
+    "summary": "Inbox summary",
+    "search": "Ticket ID, or describe the issue in any language",
+    "new_case": "New case assigned",
+    "count_one": "{{count}} case",
+    "count_other": "{{count}} cases",
+    "empty": "Inbox clear",
+    "empty_hint": "New cases appear here as soon as they are assigned.",
+    "empty_filtered": "No cases match these filters",
+    "empty_filtered_hint": "Try removing a filter or searching in another language.",
+    "escalation_level": "Escalation level {{level}}",
+    "tile": {
+      "open": "My open",
+      "critical": "Critical",
+      "overdue": "Overdue",
+      "due_today": "Due today",
+      "pending": "Pending verification"
+    },
+    "sort": {
+      "label": "Sort cases",
+      "priority": "Priority order",
+      "sla": "SLA remaining",
+      "newest": "Newest first"
+    },
+    "column": {
+      "priority": "Priority",
+      "case": "Case",
+      "department": "Department",
+      "sla": "SLA",
+      "support": "Citizens affected",
+      "status": "Status",
+      "escalation": "Escalation"
+    },
+    "flag": {
+      "emergency": "Emergency",
+      "needs_review": "Needs review",
+      "suspicious": "Suspicious closure",
+      "reopened_one": "Reopened ×{{count}}",
+      "reopened_other": "Reopened ×{{count}}"
+    }
+  },
+  "bulk": {
+    "label": "Bulk actions",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "set_status": "Set status",
+    "assign": "Assign",
+    "merge": "Merge into incident",
+    "clear": "Clear selection",
+    "undo": "Undo",
+    "undone": "Cancelled, nothing was changed",
+    "pending_one": "Updating {{count}} case…",
+    "pending_other": "Updating {{count}} cases…",
+    "done_one": "{{count}} case updated",
+    "done_other": "{{count}} cases updated",
+    "confirm_status_one": "Change status of {{count}} case?",
+    "confirm_status_other": "Change status of {{count}} cases?",
+    "confirm_assign_one": "Assign {{count}} case?",
+    "confirm_assign_other": "Assign {{count}} cases?",
+    "confirm_merge_one": "Merge {{count}} case into its incident?",
+    "confirm_merge_other": "Merge {{count}} cases into their incident?",
+    "confirm_body": "You will have {{seconds}} seconds to undo after confirming.",
+    "choose_status": "Choose a status",
+    "officer": "Officer",
+    "choose_officer": "Choose an officer",
+    "open_cases_one": "{{count}} open",
+    "open_cases_other": "{{count}} open"
+  },
+  "incidents": {
+    "empty": "No active incidents",
+    "empty_hint": "Reports of the same issue are grouped here automatically.",
+    "location": "Location of {{title}}",
+    "languages": "Languages reported in",
+    "members_one": "{{count}} report",
+    "members_other": "{{count}} reports",
+    "resolve_all": "Resolve all with one proof",
+    "resolve_body_one": "This proof and note apply to the {{count}} report in this incident. AI verifies the photo and each citizen confirms the fix.",
+    "resolve_body_other": "This proof and note apply to all {{count}} reports in this incident. AI verifies the photo and each citizen confirms the fix.",
+    "proof": "Proof photo",
+    "choose_photo": "Choose or take a photo",
+    "note": "Action taken",
+    "resolved_one": "{{count}} report sent for citizen verification",
+    "resolved_other": "{{count}} reports sent for citizen verification"
+  },
+  "kpi": {
+    "open": "Open",
+    "overdue": "Overdue",
+    "critical_open": "Critical open",
+    "sla": "SLA compliance",
+    "trend_title": "Created vs resolved",
+    "trend_unit": "Complaints per day, last 30 days",
+    "trend_formula": "Daily count of complaints registered, and of complaints resolved, across all departments.",
+    "date": "Date",
+    "created": "Created",
+    "resolved": "Resolved"
   }
 }
