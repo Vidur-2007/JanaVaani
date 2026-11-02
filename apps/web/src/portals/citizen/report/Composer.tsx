@@ -56,9 +56,11 @@ export interface ComposerProps {
   tools?: ReactNode;
   autoFocus?: boolean;
   placeholder?: string;
+  /** Pending photos: allows sending with an empty text box. */
+  hasAttachments?: boolean;
 }
 
-export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder }: ComposerProps) {
+export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder, hasAttachments }: ComposerProps) {
   const { t } = useTranslation('citizen');
   const [text, setText] = useState('');
   const [viaVoice, setViaVoice] = useState(false);
@@ -77,7 +79,7 @@ export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder
 
   const submit = () => {
     const v = text.trim();
-    if (!v || disabled) return;
+    if ((!v && !hasAttachments) || disabled) return;
     onSend(v, viaVoice ? 'voice' : 'text');
     setText('');
     setViaVoice(false);
@@ -128,7 +130,7 @@ export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder
           {dictation.listening ? <MicOff className="size-5" aria-hidden /> : <Mic className="size-5" aria-hidden />}
         </Button>
       )}
-      <Button type="submit" size="icon" className="touch-target shrink-0 rounded-full" disabled={disabled || !text.trim()} aria-label={t('report.send')} data-testid="composer-send">
+      <Button type="submit" size="icon" className="touch-target shrink-0 rounded-full" disabled={disabled || (!text.trim() && !hasAttachments)} aria-label={t('report.send')} data-testid="composer-send">
         <SendHorizontal className="rtl-flip size-5" aria-hidden />
       </Button>
     </form>

@@ -193,6 +193,18 @@
     "retry": "Try again",
     "show_english": "Show in English",
     "show_original": "Show original",
-    "asset": "Reporting about: {{label}}"
+    "asset": "Reporting about: {{label}}",
+    "photo_add": "Add a photo",
+    "photo_alt": "Your photo",
+    "photo_ok": "Clear",
+    "photo_remove": "Remove photo",
+    "photo_issue": {
+      "blurry": "Blurry",
+      "dark": "Too dark",
+      "too_small": "Too small",
+      "none": "Check"
+    },
+    "photo_retake_hint": "This photo may be hard for the officer to see. Want to take a clearer one?",
+    "photo_retake": "Retake"
   }
 }

@@ -11,6 +11,7 @@ import { replyLang, usePrefs } from '@/lib/prefs/store';
 import { Composer } from './Composer';
 import { LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
 import { MessageList } from './MessageList';
+import { PhotoButton, PhotoTray, usePhotoUpload } from './PhotoAttach';
 import { isActionValue, useChatSession } from './useChatSession';
 
 export default function ReportPage() {
@@ -26,6 +27,8 @@ export default function ReportPage() {
   const asset = useQuery({ queryKey: qk.meta.asset(assetId ?? ''), queryFn: ({ signal }) => api.asset(assetId!, signal), enabled: !!assetId });
   const { setAsset } = chat;
   useEffect(() => setAsset(assetId), [assetId, setAsset]);
+
+  const photo = usePhotoUpload(chat.attachMedia, chat.snap.location);
 
   const pick = (q: QuickReply) => {
     if (isActionValue(q.value)) send({ action: q.value as never, display: q.label });
@@ -58,8 +61,24 @@ export default function ReportPage() {
 
       <div className="bg-bg/95 sticky bottom-16 z-10 -mx-4 space-y-2 px-4 pt-2 pb-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">
         <QuickReplies items={quickReplies} onPick={pick} disabled={pending} />
+        <PhotoTray
+          media={chat.snap.media}
+          onRemove={chat.removeMedia}
+          onRetake={() => {
+            chat.snap.media.filter((m) => m.quality?.ok === false).forEach((m) => chat.removeMedia(m.id));
+            photo.open();
+          }}
+        />
+        {photo.inputEl}
         {stage !== 'submitted' && (
-          <Composer lang={uiLang} disabled={pending} onSend={(text, mode) => send({ text, input_mode: mode })} autoFocus={params.get('mode') !== 'voice'} />
+          <Composer
+            lang={uiLang}
+            disabled={pending || photo.busy}
+            hasAttachments={chat.snap.media.length > 0}
+            onSend={(text, mode) => send({ text: text || undefined, input_mode: mode })}
+            autoFocus={params.get('mode') !== 'voice'}
+            tools={<PhotoButton onClick={photo.open} busy={photo.busy} />}
+          />
         )}
       </div>
     </PageTransition>
