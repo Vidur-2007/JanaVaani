@@ -15,7 +15,7 @@ import { SplitDrafts } from './SplitDrafts';
 import { DuplicateSheet, SupportCelebration } from './DuplicateSheet';
 import { EmergencyTakeover } from './EmergencyTakeover';
 import { SubmittedScreen } from './SubmittedScreen';
-import { LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
+import { CategoryTiles, LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
 import { MessageList } from './MessageList';
 import { LocationButton, LocationSheet, locationLabel } from './LocationSheet';
 import { PhotoButton, PhotoTray, usePhotoUpload } from './PhotoAttach';
@@ -272,7 +272,12 @@ export default function ReportPage() {
       )}
 
       <div className="flex-1 py-2">
-        <MessageList messages={chat.snap.messages} pending={pending} onSettled={chat.settle} onRetry={chat.retry} footer={footer} />
+        <MessageList messages={chat.snap.messages} pending={pending} onSettled={chat.settle} onRetry={chat.retry} footer={footer} muted={voiceOpen} />
+        {prefs.low_literacy && !hasUserTurn && !resume && (
+          <div className="mt-6">
+            <CategoryTiles disabled={pending} onPick={(text, label) => send({ text, display: label })} />
+          </div>
+        )}
       </div>
 
       <div className="bg-bg/95 sticky bottom-16 z-10 -mx-4 space-y-2 px-4 pt-2 pb-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">

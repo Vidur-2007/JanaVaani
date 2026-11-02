@@ -8,7 +8,8 @@ import { Button } from '@/design/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/design/ui/sheet';
 import { LangBadge, StatusChip } from '@/design/components';
 import { pickLocalized } from '@/lib/localized';
-import { useReducedMotion } from '@/lib/prefs/store';
+import { usePrefs, useReducedMotion } from '@/lib/prefs/store';
+import { cn } from '@/lib/utils';
 
 const distance = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`);
 
@@ -28,6 +29,7 @@ export function DuplicateSheet({
   onFileNew: () => void;
 }) {
   const { t, i18n } = useTranslation('citizen');
+  const easy = usePrefs((s) => s.low_literacy);
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="mx-auto max-h-[90dvh] max-w-2xl overflow-y-auto rounded-t-[var(--radius-xl)]" data-testid="duplicate-sheet">
@@ -58,7 +60,7 @@ export function DuplicateSheet({
                     <LangBadge lang={m.language} />
                     <span className="tabular font-mono text-xs">{t('dup.similar', { pct: Math.round(m.similarity * 100) })}</span>
                   </div>
-                  <Button className="touch-target h-12 w-full text-base" disabled={busy} onClick={() => onSupport(m)} data-testid={`dup-support-${i}`}>
+                  <Button className={cn('touch-target w-full text-base', easy ? 'h-16 rounded-2xl text-lg' : 'h-12')} disabled={busy} onClick={() => onSupport(m)} data-testid={`dup-support-${i}`}>
                     {busy ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <HandHeart className="size-5" aria-hidden />}
                     {t('dup.support')}
                   </Button>
@@ -66,7 +68,7 @@ export function DuplicateSheet({
               );
             })}
           </ul>
-          <Button variant="outline" className="touch-target h-12 w-full" disabled={busy} onClick={onFileNew} data-testid="dup-file-new">
+          <Button variant="outline" className={cn('touch-target w-full', easy ? 'h-16 rounded-2xl text-lg' : 'h-12')} disabled={busy} onClick={onFileNew} data-testid="dup-file-new">
             {t('dup.file_new')}
           </Button>
         </div>

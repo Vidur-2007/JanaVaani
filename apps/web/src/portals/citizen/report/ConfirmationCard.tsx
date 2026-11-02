@@ -31,7 +31,19 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function ToggleRow({ id, label, hint, checked, onChange }: { id: string; label: string; hint: string; checked: boolean; onChange: (v: boolean) => void }) {
+function ToggleRow({
+  id,
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  hint: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <div className="flex min-h-12 items-center gap-3">
       <Label htmlFor={id} className="flex-1 text-base">
@@ -39,7 +51,11 @@ function ToggleRow({ id, label, hint, checked, onChange }: { id: string; label: 
       </Label>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button type="button" className="text-muted-foreground touch-target grid place-items-center" aria-label={hint}>
+          <button
+            type="button"
+            className="text-muted-foreground touch-target grid place-items-center"
+            aria-label={hint}
+          >
             <Info className="size-4" aria-hidden />
           </button>
         </TooltipTrigger>
@@ -92,7 +108,12 @@ export function ConfirmationCard({
   const priority = draft.priority_preview;
   const easy = prefs.low_literacy;
   const textLang = view === 'english' ? 'en' : draft.formal_text.lang;
-  const shown = view === 'english' ? draft.formal_text.en : view === 'original' ? draft.cleaned_original : draft.formal_text.original;
+  const shown =
+    view === 'english'
+      ? draft.formal_text.en
+      : view === 'original'
+        ? draft.cleaned_original
+        : draft.formal_text.original;
   const dept = depts[draft.category];
   const fieldLabel = (key: string) => {
     const f = dept?.required_fields.find((x) => x.key === key);
@@ -102,7 +123,11 @@ export function ConfirmationCard({
   const confirm = () => onConfirm({ is_anonymous: anon, is_private: priv });
 
   return (
-    <article className="bg-surface shadow-glow-ai mx-auto w-full max-w-xl space-y-4 rounded-[var(--radius-xl)] border p-5" aria-labelledby="confirm-title" data-testid="confirmation-card">
+    <article
+      className="bg-surface shadow-glow-ai mx-auto w-full max-w-xl space-y-4 rounded-[var(--radius-xl)] border p-5"
+      aria-labelledby="confirm-title"
+      data-testid="confirmation-card"
+    >
       <header className="flex items-start justify-between gap-3">
         <h2 id="confirm-title" className="font-display text-lg font-semibold">
           {t('confirm.title')}
@@ -112,7 +137,11 @@ export function ConfirmationCard({
 
       {/* Complaint text: formal (citizen language) · English · original words */}
       <div className="space-y-2">
-        <p className="font-display text-xl leading-snug font-semibold" lang={draft.title.lang} dir={isRtl(draft.title.lang) ? 'rtl' : 'ltr'}>
+        <p
+          className="font-display text-xl leading-snug font-semibold"
+          lang={draft.title.lang}
+          dir={isRtl(draft.title.lang) ? 'rtl' : 'ltr'}
+        >
           {draft.title.original}
         </p>
         {editing ? (
@@ -145,45 +174,87 @@ export function ConfirmationCard({
             </div>
           </div>
         ) : (
-          <p className="bg-surface-2 rounded-xl p-3 leading-relaxed" lang={textLang} dir={isRtl(textLang) ? 'rtl' : 'ltr'} data-testid="confirm-text">
+          <p
+            className="bg-surface-2 rounded-xl p-3 leading-relaxed"
+            lang={textLang}
+            dir={isRtl(textLang) ? 'rtl' : 'ltr'}
+            data-testid="confirm-text"
+          >
             {shown}
           </p>
         )}
-        <div className="flex flex-wrap gap-1" role="group" aria-label={t('confirm.text_views')}>
-          {(['formal', 'english', 'original'] as const).map((v) => (
-            <Button key={v} size="sm" variant={view === v ? 'secondary' : 'ghost'} className="h-9" aria-pressed={view === v} onClick={() => setView(v)} data-testid={`view-${v}`}>
-              {t(`confirm.view_${v}`)}
-            </Button>
-          ))}
-        </div>
+        {!easy && (
+          <div className="flex flex-wrap gap-1" role="group" aria-label={t('confirm.text_views')}>
+            {(['formal', 'english', 'original'] as const).map((v) => (
+              <Button
+                key={v}
+                size="sm"
+                variant={view === v ? 'secondary' : 'ghost'}
+                className="h-9"
+                aria-pressed={view === v}
+                onClick={() => setView(v)}
+                data-testid={`view-${v}`}
+              >
+                {t(`confirm.view_${v}`)}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Routing preview */}
       <Section title={t('confirm.routing')}>
         <div className="flex flex-wrap items-center gap-2">
           <DepartmentBadge department={draft.category} />
-          {draft.sub_department && <span className="bg-surface-2 rounded-full px-2.5 py-1 text-xs">{t(`report.sub.${draft.sub_department}`, { defaultValue: draft.sub_department.replace(/_/g, ' ') })}</span>}
+          {draft.sub_department && (
+            <span className="bg-surface-2 rounded-full px-2.5 py-1 text-xs">
+              {t(`report.sub.${draft.sub_department}`, {
+                defaultValue: draft.sub_department.replace(/_/g, ' '),
+              })}
+            </span>
+          )}
         </div>
         <p className="text-sm" data-testid="routing-line">
           {t('confirm.will_go_to', {
             dept: pickRecord(dept?.name, uiLang) || tc(`departments.${draft.category}`),
             zone: loc?.zone ? t('confirm.zone', { zone: loc.zone }) : '',
-            officer: routing?.officer_name ? `${routing.officer_name}${routing.office_name ? ` (${routing.office_name})` : ''}` : t('confirm.officer_tbd'),
+            officer: routing?.officer_name
+              ? `${routing.officer_name}${routing.office_name ? ` (${routing.office_name})` : ''}`
+              : t('confirm.officer_tbd'),
           })}
         </p>
-        <div className="flex items-center gap-3">
-          <span className="text-muted-foreground text-xs">{t('confirm.confidence')}</span>
-          <div className="bg-surface-2 h-2 flex-1 overflow-hidden rounded-full" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={confidence} aria-label={t('confirm.confidence')}>
-            <div className={cn('h-full rounded-full', confidence >= 75 ? 'bg-success' : confidence >= 60 ? 'bg-warning' : 'bg-danger')} style={{ width: `${confidence}%` }} />
-          </div>
-          <span className="tabular w-10 text-end font-mono text-xs">{confidence}%</span>
-        </div>
-        {routing?.explanation_en && (
-          <p className="text-muted-foreground text-xs" lang="en">
-            {routing.explanation_en}
-          </p>
+        {!easy && (
+          <>
+            <div className="flex items-center gap-3">
+              <span className="text-muted-foreground text-xs">{t('confirm.confidence')}</span>
+              <div
+                className="bg-surface-2 h-2 flex-1 overflow-hidden rounded-full"
+                role="meter"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={confidence}
+                aria-label={t('confirm.confidence')}
+              >
+                <div
+                  className={cn(
+                    'h-full rounded-full',
+                    confidence >= 75 ? 'bg-success' : confidence >= 60 ? 'bg-warning' : 'bg-danger',
+                  )}
+                  style={{ width: `${confidence}%` }}
+                />
+              </div>
+              <span className="tabular w-10 text-end font-mono text-xs">{confidence}%</span>
+            </div>
+            {routing?.explanation_en && (
+              <p className="text-muted-foreground text-xs" lang="en">
+                {routing.explanation_en}
+              </p>
+            )}
+          </>
         )}
-        {routing?.needs_review && <p className="bg-warning/12 rounded-lg p-2 text-xs">{t('confirm.needs_review')}</p>}
+        {routing?.needs_review && (
+          <p className="bg-warning/12 rounded-lg p-2 text-xs">{t('confirm.needs_review')}</p>
+        )}
       </Section>
 
       {/* Priority */}
@@ -193,14 +264,18 @@ export function ConfirmationCard({
             <PriorityChip priority={priority.level} score={priority.score} />
             <span className="text-sm">{t('confirm.sla', { hours: priority.sla_hours })}</span>
           </div>
-          <ul className="flex flex-wrap gap-1.5" data-testid="priority-factors">
-            {priority.factors.map((f) => (
-              <li key={f.key} className="bg-surface-2 rounded-full px-2.5 py-1 text-xs" lang="en">
-                {f.label_en} <span className="tabular font-mono font-semibold">+{f.points}</span>
-              </li>
-            ))}
-          </ul>
-          {priority.level === 'critical' && <p className="text-muted-foreground text-xs">{t('confirm.critical_note')}</p>}
+          {!easy && (
+            <ul className="flex flex-wrap gap-1.5" data-testid="priority-factors">
+              {priority.factors.map((f) => (
+                <li key={f.key} className="bg-surface-2 rounded-full px-2.5 py-1 text-xs" lang="en">
+                  {f.label_en} <span className="tabular font-mono font-semibold">+{f.points}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {priority.level === 'critical' && (
+            <p className="text-muted-foreground text-xs">{t('confirm.critical_note')}</p>
+          )}
         </Section>
       )}
 
@@ -233,11 +308,16 @@ export function ConfirmationCard({
         {media.length > 0 && (
           <div className="flex gap-2 overflow-x-auto">
             {media.map((m) => (
-              <img key={m.id} src={m.url} alt={m.ai?.description_en ?? t('report.photo_alt')} className="size-20 shrink-0 rounded-xl border object-cover" />
+              <img
+                key={m.id}
+                src={m.url}
+                alt={m.ai?.description_en ?? t('report.photo_alt')}
+                className="size-20 shrink-0 rounded-xl border object-cover"
+              />
             ))}
           </div>
         )}
-        {Object.keys(draft.fields).length > 0 && (
+        {!easy && Object.keys(draft.fields).length > 0 && (
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
             {Object.entries(draft.fields).map(([k, v]) => (
               <div key={k} className="contents">
@@ -250,29 +330,72 @@ export function ConfirmationCard({
       </Section>
 
       <Section title={t('confirm.privacy')}>
-        <ToggleRow id="anonymous" label={t('confirm.anonymous')} hint={t('confirm.anonymous_hint')} checked={anon} onChange={setAnon} />
-        <ToggleRow id="private" label={t('confirm.private')} hint={t('confirm.private_hint')} checked={priv} onChange={setPriv} />
+        <ToggleRow
+          id="anonymous"
+          label={t('confirm.anonymous')}
+          hint={t('confirm.anonymous_hint')}
+          checked={anon}
+          onChange={setAnon}
+        />
+        <ToggleRow
+          id="private"
+          label={t('confirm.private')}
+          hint={t('confirm.private_hint')}
+          checked={priv}
+          onChange={setPriv}
+        />
       </Section>
 
-      {prefs.voice_first && <p className="text-muted-foreground text-center text-sm">{t('confirm.voice_hint')}</p>}
+      {prefs.voice_first && (
+        <p className="text-muted-foreground text-center text-sm">{t('confirm.voice_hint')}</p>
+      )}
 
       {easy ? (
         <div className="grid grid-cols-2 gap-3 pt-2">
-          <Button onClick={confirm} disabled={busy} className="bg-success hover:bg-success/90 h-20 rounded-2xl text-white" aria-label={t('confirm.submit')} data-testid="confirm-submit">
-            {busy ? <Loader2 className="size-8 animate-spin" aria-hidden /> : <Check className="size-10" aria-hidden />}
+          <Button
+            onClick={confirm}
+            disabled={busy}
+            className="bg-success hover:bg-success/90 h-20 rounded-2xl text-white"
+            aria-label={t('confirm.submit')}
+            data-testid="confirm-submit"
+          >
+            {busy ? (
+              <Loader2 className="size-8 animate-spin" aria-hidden />
+            ) : (
+              <Check className="size-10" aria-hidden />
+            )}
           </Button>
-          <Button onClick={() => setEditing(true)} variant="outline" className="border-danger/40 text-danger h-20 rounded-2xl" aria-label={tc('actions.edit')}>
+          <Button
+            onClick={() => setEditing(true)}
+            variant="outline"
+            className="border-danger/40 text-danger h-20 rounded-2xl"
+            aria-label={tc('actions.edit')}
+          >
             <X className="size-10" aria-hidden />
           </Button>
         </div>
       ) : (
         <div className="flex flex-wrap gap-2 pt-2">
-          <Button onClick={confirm} disabled={busy} className="touch-target h-12 flex-1 text-base" data-testid="confirm-submit">
-            {busy ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Check className="size-5" aria-hidden />}
+          <Button
+            onClick={confirm}
+            disabled={busy}
+            className="touch-target h-12 flex-1 text-base"
+            data-testid="confirm-submit"
+          >
+            {busy ? (
+              <Loader2 className="size-5 animate-spin" aria-hidden />
+            ) : (
+              <Check className="size-5" aria-hidden />
+            )}
             {t('confirm.submit')}
           </Button>
           {onEdit && (
-            <Button variant="outline" className="touch-target h-12" onClick={() => setEditing(true)} disabled={busy}>
+            <Button
+              variant="outline"
+              className="touch-target h-12"
+              onClick={() => setEditing(true)}
+              disabled={busy}
+            >
               <Pencil className="size-4" aria-hidden />
               {tc('actions.edit')}
             </Button>

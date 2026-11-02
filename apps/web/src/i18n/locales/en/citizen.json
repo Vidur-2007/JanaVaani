@@ -391,5 +391,22 @@
     "unsupported_body": "This browser cannot record audio. Please type your complaint instead.",
     "no_voice": "Voice not available on this device for {{lang}}. The reply is shown as text.",
     "got_it": "Got it"
+  },
+  "ll": {
+    "show_earlier_one": "Show {{count}} earlier message",
+    "show_earlier_other": "Show {{count}} earlier messages",
+    "tiles_title": "What is the problem about?",
+    "tiles": {
+      "roads": "Problem with the road",
+      "sanitation": "Garbage not picked up",
+      "water": "Water problem",
+      "streetlights": "Streetlight not working",
+      "power": "No electricity",
+      "drainage": "Drain is blocked",
+      "traffic": "Traffic signal problem",
+      "health": "Too many mosquitoes",
+      "education": "School problem",
+      "town_planning": "Illegal construction"
+    }
   }
 }

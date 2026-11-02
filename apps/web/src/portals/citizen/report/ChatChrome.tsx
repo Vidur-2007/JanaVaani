@@ -1,8 +1,9 @@
-// Small pieces of the report screen: language chip, progress dots, quick-reply chips.
+// Small pieces of the report screen: language chip, progress dots, quick-reply chips, easy-mode category tiles.
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
-import { Check, MapPin, X } from 'lucide-react';
-import type { Lang } from '@contracts/types';
+import { CalendarDays, Check, Circle, Clock, Home, MapPin, Users, X, type LucideIcon } from 'lucide-react';
+import type { DepartmentId, Lang } from '@contracts/types';
+import { DEPARTMENT_ICONS } from '@/design/components';
 import { LANGUAGE_NAMES } from '@/lib/i18n';
 import { usePrefs } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,16 @@ export interface QuickReply {
 }
 
 const YES = new Set(['yes', 'confirm']);
+/** Icons for common follow-up answers (shown first in easy mode). */
+const VALUE_ICON: Record<string, LucideIcon> = {
+  today: Clock,
+  'a few days': CalendarDays,
+  'more than a week': CalendarDays,
+  'my house': Home,
+  'the street': Users,
+  'whole area': Users,
+};
+const SIZE_DOT: Record<string, string> = { small: 'size-2.5', large: 'size-4', 'very large': 'size-6' };
 const NO = new Set(['no', 'cancel']);
 
 /** Quick replies. In easy (low-literacy) mode they become big icon-first buttons. */
@@ -70,7 +81,8 @@ export function QuickReplies({ items, onPick, onLocation, disabled }: { items: Q
         </motion.button>
       )}
       {items.map((q) => {
-        const Icon = YES.has(q.value) ? Check : NO.has(q.value) ? X : null;
+        const Icon = YES.has(q.value) ? Check : NO.has(q.value) ? X : (VALUE_ICON[q.value] ?? null);
+        const dot = SIZE_DOT[q.value];
         return (
           <motion.button
             key={q.value}
@@ -87,10 +99,47 @@ export function QuickReplies({ items, onPick, onLocation, disabled }: { items: Q
             data-testid={`qr-${q.value}`}
           >
             {Icon && <Icon className={easy ? 'size-6' : 'size-4'} aria-hidden />}
+            {dot && easy && <Circle className={cn('fill-current', dot)} aria-hidden />}
             {q.label}
           </motion.button>
         );
       })}
     </motion.div>
+  );
+}
+
+const TILE_DEPTS: DepartmentId[] = ['roads', 'sanitation', 'water', 'streetlights', 'power', 'drainage', 'traffic', 'health', 'education', 'town_planning'];
+
+/** Easy mode: icon-first category tiles before the first message. A tap sends a short phrase in the citizen's language. */
+export function CategoryTiles({ onPick, disabled }: { onPick: (text: string, label: string) => void; disabled?: boolean }) {
+  const { t } = useTranslation('citizen');
+  const { t: tc } = useTranslation('common');
+  return (
+    <section className="space-y-3" aria-labelledby="ll-tiles" data-testid="category-tiles">
+      <h2 id="ll-tiles" className="font-display text-lg font-semibold">
+        {t('ll.tiles_title')}
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {TILE_DEPTS.map((d) => {
+          const Icon = DEPARTMENT_ICONS[d];
+          const label = tc(`departments.${d}`);
+          return (
+            <button
+              key={d}
+              type="button"
+              disabled={disabled}
+              onClick={() => onPick(t(`ll.tiles.${d}`), label)}
+              className="bg-surface hover:border-primary/50 flex min-h-28 flex-col items-center justify-center gap-2 rounded-[var(--radius-xl)] border-2 p-3 text-center transition-colors"
+              data-testid={`tile-${d}`}
+            >
+              <span className="grid size-14 place-items-center rounded-2xl" style={{ background: `color-mix(in oklab, var(--dept-${d}) 22%, transparent)` }}>
+                <Icon className="size-8" style={{ color: `var(--dept-${d})` }} aria-hidden />
+              </span>
+              <span className="text-base font-semibold">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }

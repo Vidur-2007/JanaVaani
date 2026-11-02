@@ -89,7 +89,7 @@ function TrackedCards({ items }: { items: NonNullable<ChatMessage['tracked']> })
   );
 }
 
-function BotBubble({ m, onSettled, onRetry }: { m: ChatMessage; onSettled: (id: string) => void; onRetry: () => void }) {
+function BotBubble({ m, onSettled, onRetry, big }: { m: ChatMessage; onSettled: (id: string) => void; onRetry: () => void; big?: boolean }) {
   const { t } = useTranslation('citizen');
   const reduced = useReducedMotion();
   const [showEn, setShowEn] = useState(false);
@@ -109,7 +109,7 @@ function BotBubble({ m, onSettled, onRetry }: { m: ChatMessage; onSettled: (id: 
     );
   return (
     <div className="max-w-[85%] space-y-1.5">
-      <div className="bg-surface rounded-2xl rounded-es-sm border px-4 py-3 leading-relaxed" lang={showEn ? 'en' : m.lang} dir={showEn ? 'ltr' : m.dir}>
+      <div className={cn('bg-surface rounded-2xl rounded-es-sm border px-4 py-3 leading-relaxed', big && 'px-5 py-4 text-xl')} lang={showEn ? 'en' : m.lang} dir={showEn ? 'ltr' : m.dir}>
         <WordReveal text={text} animate={!!m.fresh && !reduced && !showEn} onDone={() => onSettled(m.id)} />
         {m.tracked && <TrackedCards items={m.tracked} />}
       </div>
@@ -151,17 +151,25 @@ export function MessageList({
   onSettled,
   onRetry,
   footer,
+  muted,
 }: {
   messages: ChatMessage[];
   pending: boolean;
   onSettled: (id: string) => void;
   onRetry: () => void;
   footer?: ReactNode;
+  /** Don't auto-speak replies (voice mode speaks them itself). */
+  muted?: boolean;
 }) {
   const { t } = useTranslation('citizen');
   const end = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
-  const autoplay = usePrefs((s) => s.voice_autoplay || s.low_literacy);
+  const autoplay = usePrefs((s) => s.voice_autoplay || s.low_literacy) && !muted;
+  // Easy mode: one question at a time — only the latest exchange, earlier turns behind "Show earlier".
+  const easy = usePrefs((s) => s.low_literacy);
+  const [showAll, setShowAll] = useState(false);
+  const visible = easy && !showAll ? lastExchange(messages) : messages;
+  const hidden = messages.length - visible.length;
   const { speak } = useSpeak();
   const spoken = useRef(new Set<string>());
 
@@ -181,7 +189,12 @@ export function MessageList({
 
   return (
     <div className="space-y-4" role="log" aria-live="polite" aria-label={t('report.conversation')} data-testid="chat-log">
-      {messages.map((m) => (
+      {hidden > 0 && (
+        <button type="button" onClick={() => setShowAll(true)} className="text-muted-foreground hover:text-text mx-auto block text-sm underline-offset-2 hover:underline" data-testid="show-earlier">
+          {t('ll.show_earlier', { count: hidden })}
+        </button>
+      )}
+      {visible.map((m) => (
         <motion.div
           key={m.id}
           className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}
@@ -190,7 +203,7 @@ export function MessageList({
           transition={{ duration: 0.3, ease: easeOutExpo }}
           data-role={m.role}
         >
-          {m.role === 'bot' ? <BotBubble m={m} onSettled={onSettled} onRetry={onRetry} /> : <UserBubble m={m} />}
+          {m.role === 'bot' ? <BotBubble m={m} onSettled={onSettled} onRetry={onRetry} big={easy} /> : <UserBubble m={m} />}
         </motion.div>
       ))}
       {pending && <TypingIndicator />}
@@ -198,4 +211,15 @@ export function MessageList({
       <div ref={end} />
     </div>
   );
+}
+
+/** The citizen's latest answer (if any) and the assistant's latest message after it. */
+function lastExchange(messages: ChatMessage[]): ChatMessage[] {
+  let bot = -1;
+  for (let i = messages.length - 1; i >= 0; i--) if (messages[i].role === 'bot') { bot = i; break; }
+  const last = messages[messages.length - 1];
+  if (last && last.role === 'user') return [last];
+  if (bot < 0) return messages.slice(-1);
+  const user = bot > 0 && messages[bot - 1].role === 'user' ? [messages[bot - 1]] : [];
+  return [...user, messages[bot]];
 }
