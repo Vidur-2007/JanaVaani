@@ -278,6 +278,8 @@ export default function Analytics() {
           <p className="text-muted-foreground text-xs">{t('analytics.eta_label')}</p>
           {categories.isPending ? (
             <TextSkeleton lines={4} />
+          ) : categories.isError ? (
+            <ErrorState compact error={categories.error} onRetry={() => categories.refetch()} />
           ) : (
             <ul className="space-y-1 text-sm">
               {eta.map((r) => (

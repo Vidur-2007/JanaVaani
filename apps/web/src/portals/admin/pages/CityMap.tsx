@@ -98,6 +98,8 @@ function WardPanel({
     <PanelShell title={feature?.properties.name ?? wardId} onClose={onClose}>
       {breakdown.isPending ? (
         <TextSkeleton lines={3} />
+      ) : breakdown.isError ? (
+        <ErrorState compact error={breakdown.error} onRetry={() => breakdown.refetch()} />
       ) : (
         <dl className="grid grid-cols-2 gap-2 text-sm">
           {(

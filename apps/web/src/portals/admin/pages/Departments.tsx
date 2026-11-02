@@ -1,7 +1,7 @@
 // Departments (Spec C §6.3): leaderboard, per-department drawer, comparison charts.
 // No satisfaction histogram or sub-department endpoint exists (gap G5): charts show averages, and sub-departments
 // are counted from the department's open cases.
-import { useMemo, useRef, useState } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -33,7 +33,7 @@ import { axisTick, CHART_ANIMATION_MS, deptColor, tooltipStyle } from '@/portals
 
 const MEDIUM_SLA_HOURS = 96;
 
-function PerDeptBar({
+const PerDeptBar = memo(function PerDeptBar({
   rows,
   dataKey,
   name,
@@ -60,7 +60,7 @@ function PerDeptBar({
       </BarChart>
     </ResponsiveContainer>
   );
-}
+});
 
 function DepartmentDrawer({ id, days, onClose }: { id: DepartmentId; days: number; onClose: () => void }) {
   const { t } = useTranslation('gov');
@@ -115,6 +115,8 @@ function DepartmentDrawer({ id, days, onClose }: { id: DepartmentId; days: numbe
         <Panel title={t('departments.sub_departments')}>
           {open.isPending ? (
             <TextSkeleton lines={3} />
+          ) : open.isError ? (
+            <ErrorState compact error={open.error} onRetry={() => open.refetch()} />
           ) : (
             <ul className="space-y-1 text-sm">
               {subs.map(([s, n]) => (
@@ -129,6 +131,8 @@ function DepartmentDrawer({ id, days, onClose }: { id: DepartmentId; days: numbe
         <Panel title={t('nav.officers')}>
           {workload.isPending ? (
             <TextSkeleton lines={3} />
+          ) : workload.isError ? (
+            <ErrorState compact error={workload.error} onRetry={() => workload.refetch()} />
           ) : (
             <ul className="space-y-1 text-sm">
               {workload.data?.map((w) => (
@@ -177,9 +181,19 @@ export default function Departments() {
     () => (q.data ?? []).map((d) => ({ ...d, name: tc(`departments.${d.department_id}`) })),
     [q.data, tc],
   );
-  const sorted = (key: keyof DepartmentPerformance) =>
-    [...rows].sort((a, b) => Number(b[key]) - Number(a[key]));
-  const table = (key: keyof DepartmentPerformance) => ({
+  const orders = useMemo(() => {
+    const by = (key: keyof DepartmentPerformance) => [...rows].sort((a, b) => Number(b[key]) - Number(a[key]));
+    return {
+      score: by('score'),
+      sla_compliance_pct: by('sla_compliance_pct'),
+      avg_resolution_hours: by('avg_resolution_hours'),
+      satisfaction_avg: by('satisfaction_avg'),
+      overdue: by('overdue'),
+    };
+  }, [rows]);
+  type Ordered = keyof typeof orders;
+  const sorted = (key: Ordered) => orders[key];
+  const table = (key: Ordered) => ({
     columns: [t('inbox.column.department'), t('admin.value')],
     rows: sorted(key).map((r) => [r.name, Number(r[key])]),
   });
