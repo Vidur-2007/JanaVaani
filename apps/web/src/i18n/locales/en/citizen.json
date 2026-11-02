@@ -353,6 +353,12 @@
     "queued_title": "Saved — you are offline",
     "queued_body": "Will send automatically when you're back online. You'll get your ticket number then.",
     "sent": "Your complaint {{id}} was sent",
-    "sent_pin": "Guest PIN: {{pin}}. Save it to track."
+    "sent_pin": "Guest PIN: {{pin}}. Save it to track.",
+    "offline_banner": "You are offline. You can keep going — we will save your complaint and send it when you are back online."
+  },
+  "drafts": {
+    "title": "Continue your unfinished complaint?",
+    "continue": "Continue",
+    "start_new": "Start new"
   }
 }

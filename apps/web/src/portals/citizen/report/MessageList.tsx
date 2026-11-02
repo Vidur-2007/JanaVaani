@@ -49,7 +49,7 @@ function WordReveal({ text, animate, onDone }: { text: string; animate: boolean;
 export function TypingIndicator() {
   const { t } = useTranslation('citizen');
   return (
-    <div className="flex items-end gap-2" role="status" aria-label={t('report.typing')}>
+    <div className="flex items-end gap-2" role="status" aria-label={t('report.typing')} data-testid="typing">
       <div className="bg-surface flex h-10 items-center gap-1 rounded-2xl rounded-es-sm border px-4">
         {[0, 1, 2].map((i) => (
           <motion.span

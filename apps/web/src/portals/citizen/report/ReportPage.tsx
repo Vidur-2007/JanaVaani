@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, QrCode, Users } from 'lucide-react';
+import { CloudOff, History, MapPin, QrCode, Users } from 'lucide-react';
 import { Button } from '@/design/ui/button';
 import type { DeepLang, Lang, Location } from '@contracts/types';
 import { PageTransition } from '@/design/components';
@@ -20,6 +20,8 @@ import { MessageList } from './MessageList';
 import { LocationButton, LocationSheet, locationLabel } from './LocationSheet';
 import { PhotoButton, PhotoTray, usePhotoUpload } from './PhotoAttach';
 import { isActionValue, useChatSession } from './useChatSession';
+import { clearDraft, loadDraft, saveDraft, userText, type SavedDraft } from './drafts';
+import { queueOutbox } from './outbox';
 
 export default function ReportPage() {
   const { t } = useTranslation('citizen');
@@ -37,6 +39,31 @@ export default function ReportPage() {
   useEffect(() => setAsset(assetId), [assetId, setAsset]);
 
   const photo = usePhotoUpload(chat.attachMedia, chat.snap.location);
+
+  // ---- Drafts: offer to resume an unfinished conversation; save after every turn.
+  const online = useOnline();
+  const [resume, setResume] = useState<SavedDraft | null>(null);
+  const [queued, setQueued] = useState(false);
+  useEffect(() => {
+    if (assetId) return; // A QR scan starts a new report.
+    let alive = true;
+    loadDraft().then((d) => alive && setResume(d));
+    return () => {
+      alive = false;
+    };
+  }, [assetId]);
+  const hasUserTurn = chat.snap.messages.some((m) => m.role === 'user');
+  useEffect(() => {
+    if (stage === 'submitted' || queued || (stage === 'answered' && res?.intent === 'smalltalk')) clearDraft();
+    else if (hasUserTurn && !pending) saveDraft(chat.snap);
+  }, [chat.snap, stage, pending, queued, hasUserTurn, res]);
+  const continueDraft = (d: SavedDraft) => {
+    setResume(null);
+    // Restore what the citizen saw, then rebuild the server session from their own words.
+    chat.setSnap({ ...d.snap, session_id: undefined, response: undefined, media: [] });
+    const text = userText(d.snap);
+    if (text) send({ text, silent: true, location: d.snap.location });
+  };
 
   const pick = (q: QuickReply) => {
     if (isActionValue(q.value)) send({ action: q.value as never, display: q.label });
@@ -65,9 +92,35 @@ export default function ReportPage() {
   const quickReplies = useMemo(() => (richStage ? [] : (res?.quick_replies ?? [])), [res, richStage]);
   const allMedia = useMemo(() => chat.snap.messages.flatMap((m) => m.media ?? []), [chat.snap.messages]);
 
-  const confirm = (o: ConfirmOptions) => send({ action: 'confirm', submit_options: o, display: t('confirm.submit') });
+  const confirm = async (o: ConfirmOptions) => {
+    // Offline: queue the confirmed complaint and send it when the connection returns.
+    if (!navigator.onLine && res?.draft) {
+      await queueOutbox(
+        {
+          draft: res.draft,
+          location: chat.snap.location ?? res.draft.location ?? { lat: 17.385, lng: 78.4867, source: 'text' },
+          media_ids: allMedia.map((m) => m.id),
+          asset_id: chat.snap.asset_id,
+          is_anonymous: o.is_anonymous,
+          is_private: o.is_private,
+        },
+        res.draft.title.original,
+      );
+      setQueued(true);
+      return;
+    }
+    send({ action: 'confirm', submit_options: o, display: t('confirm.submit') });
+  };
 
   let footer: ReactNode = null;
+  if (queued)
+    footer = (
+      <div className="bg-surface mx-auto w-full max-w-xl space-y-2 rounded-[var(--radius-xl)] border p-5 text-center" role="status" data-testid="queued-notice">
+        <CloudOff className="text-warning mx-auto size-8" aria-hidden />
+        <p className="font-display text-lg font-semibold">{t('outbox.queued_title')}</p>
+        <p className="text-muted-foreground text-sm">{t('outbox.queued_body')}</p>
+      </div>
+    );
   if (stage === 'duplicate_check' && res?.duplicates?.length && !pending)
     footer = (
       <div className="bg-surface mx-auto flex w-full max-w-xl flex-wrap items-center gap-3 rounded-[var(--radius-lg)] border p-4">
@@ -80,9 +133,11 @@ export default function ReportPage() {
     );
   const reportAnother = () => {
     setSupported(null);
+    setQueued(false);
+    clearDraft();
     chat.reset();
   };
-  if (stage === 'submitted' && !pending)
+  if (stage === 'submitted' && !pending && !queued)
     footer = supported ? (
       <div className="space-y-3">
         <SupportCelebration count={supported.count} />
@@ -93,7 +148,7 @@ export default function ReportPage() {
     ) : res?.submitted?.length ? (
       <SubmittedScreen items={res.submitted} onReportAnother={reportAnother} />
     ) : null;
-  if (stage === 'confirming' && res?.drafts && res.drafts.length > 1 && !pending)
+  if (stage === 'confirming' && res?.drafts && res.drafts.length > 1 && !pending && !queued)
     footer = (
       <SplitDrafts
         drafts={res.drafts}
@@ -102,7 +157,7 @@ export default function ReportPage() {
         onCancel={() => send({ action: 'cancel', display: tc('actions.cancel') })}
       />
     );
-  if (stage === 'confirming' && res?.draft && !pending)
+  if (stage === 'confirming' && res?.draft && !pending && !queued)
     footer = (
       <ConfirmationCard
         key={res.draft.draft_id + res.session_id + chat.snap.messages.length}
@@ -173,6 +228,36 @@ export default function ReportPage() {
 
       <LocationSheet open={locOpen} onOpenChange={setLocOpen} onSelect={onLocation} suggestion={suggestion} current={chat.snap.location} />
 
+      {!online && (
+        <p className="bg-warning/15 mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-sm" role="status" data-testid="offline-banner">
+          <CloudOff className="size-4 shrink-0" aria-hidden />
+          {t('outbox.offline_banner')}
+        </p>
+      )}
+
+      {resume && (
+        <div className="bg-surface mb-3 flex flex-wrap items-center gap-3 rounded-[var(--radius-lg)] border p-4" role="region" aria-label={t('drafts.title')} data-testid="resume-prompt">
+          <History className="text-primary size-5 shrink-0" aria-hidden />
+          <p className="min-w-0 flex-1 font-medium">{t('drafts.title')}</p>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => continueDraft(resume)} data-testid="resume-continue">
+              {t('drafts.continue')}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setResume(null);
+                clearDraft();
+              }}
+              data-testid="resume-discard"
+            >
+              {t('drafts.start_new')}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 py-2">
         <MessageList messages={chat.snap.messages} pending={pending} onSettled={chat.settle} onRetry={chat.retry} footer={footer} />
       </div>
@@ -188,7 +273,7 @@ export default function ReportPage() {
           }}
         />
         {photo.inputEl}
-        {stage !== 'submitted' && (
+        {stage !== 'submitted' && !queued && (
           <Composer
             lang={uiLang}
             disabled={pending || photo.busy}
@@ -206,4 +291,19 @@ export default function ReportPage() {
       </div>
     </PageTransition>
   );
+}
+
+function useOnline() {
+  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+    };
+  }, []);
+  return online;
 }

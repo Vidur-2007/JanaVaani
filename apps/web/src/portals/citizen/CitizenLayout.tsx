@@ -22,6 +22,7 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { useLiveEvent } from '@/lib/live/useLiveEvents';
 import { usePrefs, useSurfaceTheme } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
+import { useOutboxFlush } from './report/outbox';
 
 const NAV = [
   { to: '/app', key: 'home', icon: Home, end: true },
@@ -131,6 +132,7 @@ function UnreadCount({ n, className }: { n: number; className?: string }) {
 export function CitizenLayout() {
   useSurfaceTheme('paper');
   useNotificationToasts();
+  useOutboxFlush();
   const { t } = useTranslation('common');
   const unread = useUnread();
   const onboarded = usePrefs((s) => s.onboarded);
