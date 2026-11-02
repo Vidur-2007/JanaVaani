@@ -138,6 +138,25 @@ def _create(db, res, user, *, media_ids, asset_id, opts, location=None) -> list[
     return out, g
 
 
+def _officer_preview(db, res) -> dict | None:
+    loc = res["location"] or {}
+    if not loc.get("ward_id"):
+        return None
+    off = workflow.pick_officer(db, res["routing"]["department"], loc["ward_id"], loc.get("zone"))
+    return {"name": off.name, "office_name": off.office_name} if off else None
+
+
+def _support_target(db, target_id: str | None) -> Grievance:
+    """Citizens support a grievance or a whole incident (DuplicateMatch carries either id); an incident's support lands on its oldest open member."""
+    g = db.get(Grievance, target_id) if target_id else None
+    if not g and target_id:
+        g = db.execute(select(Grievance).where(Grievance.incident_id == target_id, Grievance.status.not_in(["rejected", "merged"]))
+                       .order_by(Grievance.created_at).limit(1)).scalar_one_or_none()
+    if not g:
+        raise err(404, "not_found", "Grievance not found.")
+    return g
+
+
 # ---------------- #1 chat ----------------
 @router.post("/chat/turn")
 @limiter.limit("30/minute")
@@ -161,17 +180,32 @@ def chat_turn(request: Request, body: ChatTurnRequest, db: Session = Depends(get
     if act == "cancel":
         st = {"stage": "collecting", "texts": []}
         return reply("collecting", "smalltalk", "Cancelled. You can start a new complaint any time.")
-    if act == "edit":
+    payload = body.action_payload or {}
+    edited_text = (payload.get("text") or "").strip() if act == "edit" else ""
+    if act == "edit" and not edited_text and not body.location:
         st["stage"] = "collecting"
         return reply("collecting", "new_complaint", "What would you like to change?")
+    if edited_text:     # the corrected text replaces what the citizen said before
+        st["texts"] = []
     if act == "support_existing":
-        gid = (body.action_payload or {}).get("grievance_id")
-        g = db.get(Grievance, gid) if gid else None
-        if not g:
-            raise err(404, "not_found", "Grievance to support not found.")
+        g = _support_target(db, payload.get("grievance_id") or payload.get("incident_id"))
         workflow.add_support(db, g, user.id or f"session:{s.id}", user)
         return reply("submitted", "new_complaint", "Thank you. Your voice was added to the existing complaint.",
                      submitted=[{"grievance_id": g.id}])
+    if act == "split_confirm" and st.get("split"):
+        chosen = [st["split"][i] for i in payload.get("draft_ids", list(st["split"])) if i in st["split"]]
+        if not chosen:
+            raise err(409, "nothing_to_confirm", "None of the selected drafts are in this session.")
+        submitted, created = [], []
+        for r in chosen:
+            out, g = _create(db, r, user, media_ids=st.get("media_ids", []), asset_id=st.get("asset_id"), opts=body.submit_options or {})
+            submitted += out
+            created.append(g)
+        for g in created:
+            g.related_ids = [x.id for x in created if x.id != g.id]
+        st.pop("split")
+        st.pop("analysis_result", None)
+        return reply("submitted", "new_complaint", "Your complaint has been submitted.", submitted=submitted)
     if act in ("confirm", "file_new_anyway", "split_confirm"):
         res = st.get("analysis_result")
         if not res:
@@ -192,76 +226,86 @@ def chat_turn(request: Request, body: ChatTurnRequest, db: Session = Depends(get
         st.pop("analysis_result", None)
         return reply("submitted", "new_complaint", "Your complaint has been submitted.", submitted=submitted)
 
-    text = (body.text or "").strip()
-    if not text:
-        return reply("collecting", "smalltalk", "Please tell me about the problem you are facing.")
-    db.add(Message(session_id=s.id, sender="citizen", text={"original": safety.mask_pii(text), "en": "", "lang": lang}))
-    em = safety.detect_emergency(text)
-    spam, why = safety.spam_score(text)
-    if not em["is_emergency"] and 0.5 <= spam < 0.8:     # borderline -> LLM spam_check (Spec B §6 step 2)
-        from pydantic import BaseModel as BM
-
-        from ..ai import gateway
-
-        class Sp(BM):
-            spam_likelihood: float
-            reason: str = ""
-        sc, _ = gateway.run("spam_check", 'Is this a genuine civic complaint or spam? Respond with JSON only: '
-                            '{"spam_likelihood": 0.0, "reason": "..."} Text: <<<' + safety.mask_pii(text) + ">>>", Sp)
-        spam = sc["spam_likelihood"] if sc else spam
-    if not em["is_emergency"] and spam >= 0.8:
-        return reply("collecting", "smalltalk", "Please tell me about the problem you are facing.")
-    if em["is_emergency"] and act != "continue_after_emergency" and not st.get("emergency_ack"):
-        st.update(emergency=True, emergency_ack=True, texts=st.get("texts", []) + [text])
-        lid = safety.identify_language(text)
-        lang = lid["language"] if lid["language"] in ("en", "te", "hi", "ur") else lang
-        st["language"] = lang
-        return reply("emergency", "emergency", "We are sorry. This looks like an emergency. Please call the numbers below right now.",
-                     emergency={"matched_terms": em["matched_terms"], "contacts": emergency_contacts(),
-                                "message": localize("We are sorry. This looks like an emergency. Please call the numbers below right now.", lang)},
+    def emergency_reply(terms):
+        msg = "We are sorry. This looks like an emergency. Please call the numbers below right now."
+        return reply("emergency", "emergency", msg,
+                     emergency={"matched_terms": terms, "contacts": emergency_contacts(), "message": localize(msg, lang)},
                      quick_replies=[{"label": "Continue filing complaint", "value": "continue_after_emergency"}])
-    # track status intent: explicit ticket id or status words
-    m = re.search(r"GRV-\d{4}-\d{6}", text, re.I)
-    if m or re.search(r"\b(status|track|where is my complaint|naa complaint|meri shikayat)\b", text, re.I):
-        q = select(Grievance)
-        q = q.where(Grievance.id == m.group(0).upper()) if m else q.where(Grievance.citizen_id == user.id) if user.authenticated else q.where(False)
-        tracked = [grievance_dict(g, db, user) for g in db.execute(q.order_by(Grievance.created_at.desc()).limit(5)).scalars()
-                   if user.is_gov or g.citizen_id == user.id or (m and not g.is_private)]
-        msg = "Here is the latest status of your complaint." if tracked else "I could not find a complaint with that number."
-        return reply("answered", "track_status", msg, tracked=tracked)
 
-    texts = st.get("texts", []) + [text]
-    st["texts"] = texts
+    text = (body.text or edited_text).strip()
+    # A turn without new words carries on from what the citizen already said (continue, new location, new photo).
+    resuming = st.get("texts") and (act in ("continue_after_emergency", "edit") or body.location or body.media_ids)
+    if not text and not resuming:
+        return reply("collecting", "smalltalk", "Please tell me about the problem you are facing.")
+    if text:
+        db.add(Message(session_id=s.id, sender="citizen", text={"original": safety.mask_pii(text), "en": "", "lang": lang}))
+        em = safety.detect_emergency(text)
+        spam, why = safety.spam_score(text)
+        if not em["is_emergency"] and 0.5 <= spam < 0.8:     # borderline -> LLM spam_check (Spec B §6 step 2)
+            from pydantic import BaseModel as BM
+
+            from ..ai import gateway
+
+            class Sp(BM):
+                spam_likelihood: float
+                reason: str = ""
+            sc, _ = gateway.run("spam_check", 'Is this a genuine civic complaint or spam? Respond with JSON only: '
+                                '{"spam_likelihood": 0.0, "reason": "..."} Text: <<<' + safety.mask_pii(text) + ">>>", Sp)
+            spam = sc["spam_likelihood"] if sc else spam
+        if not em["is_emergency"] and spam >= 0.8:
+            return reply("collecting", "smalltalk", "Please tell me about the problem you are facing.")
+        if em["is_emergency"] and act != "continue_after_emergency" and not st.get("emergency_ack"):
+            st.update(emergency=True, emergency_ack=True, texts=st.get("texts", []) + [text])
+            lid = safety.identify_language(text)
+            lang = lid["language"] if lid["language"] in ("en", "te", "hi", "ur") else lang
+            st["language"] = lang
+            return emergency_reply(em["matched_terms"])
+        # track status intent: explicit ticket id or status words
+        m = re.search(r"GRV-\d{4}-\d{6}", text, re.I)
+        if m or re.search(r"\b(status|track|where is my complaint|naa complaint|meri shikayat)\b", text, re.I):
+            q = select(Grievance)
+            q = q.where(Grievance.id == m.group(0).upper()) if m else q.where(Grievance.citizen_id == user.id) if user.authenticated else q.where(False)
+            tracked = [grievance_dict(g, db, user) for g in db.execute(q.order_by(Grievance.created_at.desc()).limit(5)).scalars()
+                       if user.is_gov or g.citizen_id == user.id or (m and not g.is_private)]
+            msg = "Here is the latest status of your complaint." if tracked else "I could not find a complaint with that number."
+            return reply("answered", "track_status", msg, tracked=tracked)
+        st["texts"] = st.get("texts", []) + [text]
+
+    texts = st["texts"]
     st["media_ids"] = list(dict.fromkeys(st.get("media_ids", []) + (body.media_ids or [])))
     st["asset_id"] = body.asset_id or st.get("asset_id")
+    st.pop("split", None)
     full = " ".join(texts)
-    res = an.analyze(full, body.location.model_dump() if body.location else st.get("location"), _imgs(db, st["media_ids"]))
+    # An AI-flagged emergency already holds its analysis; continuing must not pay for a second LLM call.
+    unchanged = act == "continue_after_emergency" and not text and not body.location and not body.media_ids
+    res = (unchanged and st.get("analysis_result")) or \
+        an.analyze(full, body.location.model_dump() if body.location else st.get("location"), _imgs(db, st["media_ids"]))
     if st.get("emergency"):
-        res["emergency"]["is_emergency"] = True
         res["analysis"]["is_emergency"] = True
     if body.location:
         st["location"] = body.location.model_dump()
     lang = res["analysis"]["language"] if res["analysis"]["language"] in ("en", "te", "hi", "ur") else body.ui_lang
     st.update(language=lang, is_code_mixed=res["analysis"]["is_code_mixed"])
-    officer = None
-    loc = res["location"] or {}
-    if loc.get("ward_id"):
-        off = workflow.pick_officer(db, res["routing"]["department"], loc["ward_id"], loc.get("zone"))
-        officer = {"name": off.name, "office_name": off.office_name} if off else None
-    draft = an.to_draft(res, st["media_ids"], officer)
+    if res["analysis"].get("is_emergency") and not st.get("emergency_ack"):   # the LLM saw what the keyword list missed
+        st.update(emergency=True, emergency_ack=True, analysis_result=res)
+        return emergency_reply(res["emergency"]["matched_terms"] or res["analysis"].get("hazards", []))
+    draft = an.to_draft(res, st["media_ids"], _officer_preview(db, res))
     st["analysis_result"], st["draft"] = res, draft
-    ask = [f for f in draft["missing_fields"] if f in ("location_detail", "address")] if not res["location"] else []
     if not res["location"] and len(texts) <= 4:
         from ..refdata import department
         q = next((f["question"] for f in department(draft["category"])["required_fields"] if f["key"] in ("location_detail", "address")),
                  {"en": "Where exactly is it? Please share a landmark or your location."})
-        return reply("collecting", "new_complaint", q.get("en"), draft=draft, missing_fields=ask or ["location"],
+        return reply("collecting", "new_complaint", q.get("en"), draft=draft, missing_fields=["location_detail"],
                      quick_replies=[{"label": "Share my location", "value": "share_location"}])
     drafts = None
     issues = res["analysis"].get("issues") or []
     if len(issues) > 1:
-        drafts = [{**draft, "draft_id": str(uuid.uuid4()), "summary_en": i.get("summary_en", ""),
-                   "category": i.get("category", draft["category"])} for i in issues]
+        drafts, st["split"] = [], {}
+        for issue in issues:
+            r_i = an.split_issue(res, issue)
+            d_i = an.to_draft(r_i, st["media_ids"], _officer_preview(db, r_i))
+            st["split"][d_i["draft_id"]] = r_i
+            drafts.append(d_i)
     return reply("confirming", "new_complaint", "Thank you. Please check the details and confirm your complaint.",
                  draft=draft, drafts=drafts, missing_fields=draft["missing_fields"],
                  quick_replies=[{"label": "Confirm", "value": "confirm"}, {"label": "Edit", "value": "edit"}])
@@ -318,11 +362,11 @@ def check_dups(body: DupIn, db: Session = Depends(get_db)):
 
 @router.post("/grievances/{gid}/support")
 def support(gid: str, request: Request, db: Session = Depends(get_db), user: User = Depends(current_user)):
-    g = db.get(Grievance, gid)
-    if not g:
-        raise err(404, "not_found", "Grievance not found.")
+    g = _support_target(db, gid)
     key = user.id or f"ip:{request.client.host if request.client else 'anon'}"
     out = workflow.add_support(db, g, key, user)
+    if g.id != gid:    # supported through the incident id: report the incident's total
+        out["support_count"] = db.scalar(select(func.sum(Grievance.support_count)).where(Grievance.incident_id == gid))
     db.commit()
     return out
 

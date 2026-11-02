@@ -10,6 +10,7 @@ import uuid
 from pydantic import BaseModel, Field
 
 from ..ai import gateway, prompts
+from ..ai.localize import localize
 from ..ml import classifier, embeddings
 from ..refdata import DEPARTMENT_IDS, department, ward_by_mention, ward_for_point
 from . import safety, scoring
@@ -141,6 +142,25 @@ def analyze(original_text: str, location: dict | None = None, images=None) -> di
         "embedding_kind": embeddings.mode(), "llm_meta": llm_meta,
         "pipeline_ms": int((time.perf_counter() - t0) * 1000),
     }
+
+
+def split_issue(res: dict, issue: dict) -> dict:
+    """One analysis result per issue of a multi-issue complaint (Spec B §6 step 8). Hazards and priority stay shared."""
+    a = res["analysis"]
+    summary = issue.get("summary_en") or a.get("summary_en", "")
+    cat = _clean_cat(issue.get("category"))
+    original = localize(summary, a["language"])["original"]
+    src = a.get("analysis_source")
+    routing = scoring.route(classifier.predict(summary), cat if src == "gemini" else None, cat if src == "groq" else None)
+    if routing["department"] != cat:   # the LLM separated the issues; a disagreeing classifier goes to a human
+        routing.update(department=cat, method="auto_flagged", needs_review=True,
+                       explanation_en=f"Split from a multi-issue complaint and routed to {department(cat)['name']['en']} as identified "
+                                      f"by the AI; our model suggested {routing['department']}, so a human reviews it.")
+    routing.update(sub_department=None, secondary_departments=[])
+    return {**res, "routing": routing, "embedding": embeddings.embed(summary),
+            "analysis": {**a, "category": cat, "summary_en": summary, "text_en": summary, "issues": [issue], "secondary_categories": [],
+                         "sub_department": "", "title": {"original": original, "en": summary},
+                         "formal_text": {"original": original, "en": summary}}}
 
 
 def resolve_location(loc: dict | None, mentions: list[str], text: str) -> dict | None:

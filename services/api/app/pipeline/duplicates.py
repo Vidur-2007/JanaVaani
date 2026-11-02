@@ -48,7 +48,7 @@ def find(db: Session, embedding: list[float], lat: float | None, lng: float | No
         strong = score >= STRONG[mode]
         if strong_only and not strong:
             continue
-        out.append({"grievance_id": g.id, "incident_id": g.incident_id, "title": g.title,
+        out.append({"grievance_id": g.id, "incident_id": g.incident_id, "title": {"lang": g.language, **(g.title or {})},
                     "similarity": round(score, 3), "distance_m": round(d), "support_count": g.support_count,
                     "status": g.status, "created_at": clock.iso(g.created_at), "language": g.language,
                     "strong": strong,
