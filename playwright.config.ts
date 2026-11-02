@@ -20,6 +20,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     // Keep smoke runs independent of service-worker caching; PWA behaviour gets its own test in P5.
     serviceWorkers: 'block',
+    // Voice mode: a fake microphone (a continuous tone) and no permission prompt. All projects are Chromium-based.
+    launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] },
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },

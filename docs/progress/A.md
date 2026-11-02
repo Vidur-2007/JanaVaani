@@ -1,7 +1,42 @@
 # Progress — Laptop A (foundation, landing, citizen portal)
 
 ## Current phase
-**P2 — Report assistant: DONE** (on `feat/citizen`, mock mode). Next: **P3**: switch to hybrid mode on B's URL, voice mode (Voice Orb), low-literacy mode.
+**P3 — Voice + low-literacy: DONE (Steps 2 and 3).** **Step 1 (hybrid mode on B's API) is BLOCKED.** As of 2026-11-02, `feat/ai-engine` is still at the docs commit: no `docs/progress/B.md`, no deployed URL. Next: P4 (tracking, verification, appeals, notifications).
+
+### P3 Step 1: do this as soon as B posts the API URL
+1. Read-only check: `git fetch origin && git show origin/feat/ai-engine:docs/progress/B.md` (and `docs/contract-notes/B.md`).
+2. `apps/web/.env.local` (gitignored): `VITE_API_MODE=hybrid` and `VITE_API_BASE_URL=<B's URL>/api/v1`.
+3. Run the report flow live: chat (Telugu, emergency, Miyapur duplicate), upload, analyze, create, track with PIN, `/speech/transcribe`.
+4. Fix our side (extra types go in `portals/citizen/types-ext.ts`). Log API-side mismatches in `docs/contract-notes/A.md`. The MOCK badge shows how many calls fell back to mocks.
+
+## Done (P3)
+- **Voice Orb:** an R3F icosphere displaced by simplex noise that follows the live mic level, with colors per state (listening / thinking / speaking). Lazy three.js chunk; CSS orb under reduced motion or without WebGL.
+- **Mic input** (`report/voice/useVoiceInput.ts`):
+  - `getUserMedia` → AnalyserNode level.
+  - Known language: Web Speech with live captions.
+  - The recorder always runs alongside. If Web Speech stalls or fails, or the language is Auto-detect, the recording goes to `/speech/transcribe`. This matters because headless Chrome defines a recognizer that never answers.
+  - A turn ends on 1.5 s of silence after speech, on a tap, or after 20 s.
+- **Voice-to-voice loop** (`VoiceMode.tsx`):
+  - listen → `/chat/turn` (`input_mode: 'voice'`) → speak the reply in its language via the new additive `speakText()` → listen again;
+  - emergency, duplicates and submitted hand over to the normal UI;
+  - opened by the mic button or `?mode=voice`, and by default for voice-first users (`?mode=text` overrides).
+- **Voice confirm** (`voiceWords.ts`): the §5.5 yes/no words in Latin and native scripts. `npm run test:voice` checks 24 cases. "Yes" submits; "no" opens the card's editor.
+- **Degradation:** mic pre-prompt, denied/unsupported screens with "Type instead", and a one-time "Voice not available on this device for <language>" tip.
+- **Easy (low-literacy) mode:**
+  - one question at a time ("Show earlier" for the rest);
+  - icon-first category tiles whose phrases contain the department keywords (all 40 phrases verified to route correctly);
+  - icon quick replies, a simplified confirmation card with big ✓/✗, bigger duplicate-sheet buttons;
+  - auto TTS + voice by default.
+- **i18n:** P3 strings in en/te/hi/ur, with key and placeholder parity checked.
+- **Quality:**
+  - Build, lint, `test:mocks` and `test:voice` pass.
+  - **Playwright 87/87** on chromium/msedge/mobile-chrome, with fake-microphone launch flags. New `e2e/citizen/voice.spec.ts` covers the voice loop via MediaRecorder → transcribe, voice confirm → ticket, mic blocked, voice-first default, and easy mode end to end.
+
+## Human checks for P3 (to do)
+- [ ] Real mic in Chrome **and** Edge: voice mode in Telugu, Hindi and Urdu. Do the live captions appear (Web Speech), and does the turn end after a pause?
+- [ ] In DevTools, `speechSynthesis.getVoices()`: which of te/hi/ur have voices on the demo laptops? Languages without one show the "voice not available" tip.
+- [ ] Say "avunu" / "haan" at the confirmation step → it submits.
+- [ ] Easy mode on a phone: are the tiles and buttons big enough, and is there one question at a time?
 
 ## Done (P2)
 - **Mock realism** (`packages/contracts/mocks`, additive):
@@ -90,9 +125,8 @@ Scaffold on `main`, tag `v0-scaffold`: workspaces + all deps, contracts (§8/§9
 - [ ] Lighthouse mobile on `/` (target ≥ 85 performance). Run it against `npm run build && npm run preview`, not the dev server.
 - [ ] OS "reduce motion" on → the static hero shows (no 3D), and the scroll story is stacked, not pinned.
 
-## Next (P3, H13–H19)
-- Read B's progress (`git show origin/feat/ai-engine:docs/progress/B.md`), set `VITE_API_BASE_URL` + `VITE_API_MODE=hybrid`, and verify chat/analyze/uploads against the live API.
-- Voice mode (Spec A §5.5): Voice Orb, Web Speech + MediaRecorder fallback, voice confirm words; low-literacy mode polish.
+## Next (P4, H19–H25)
+- Complaint tracker (Spec A §5.10): verify fixed / not fixed, reopen, appeal, messages; guest tracking polish; notifications center; My complaints filters + cross-language search (§5.8, §5.11, §5.12).
 
 ## Blockers
 - None. Supabase keys are not needed in mock mode.
