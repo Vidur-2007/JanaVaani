@@ -24,6 +24,8 @@
   - `npm run build`, `npm run lint` (0 errors / 0 warnings) and `npm run test:mocks` pass.
   - Playwright smoke: 21/21 pass on chromium, msedge and mobile-chrome (two consecutive full runs). It covers every top-level route in mock mode, guards, 404 and Urdu RTL. E2E runs against `vite preview` with 2 workers; more workers overloaded the single preview server on this machine.
 
+- **Human checks (2026-11-02): passed.** Chrome + Edge on localhost:5173, Ink/Paper toggle, Urdu RTL flip, guest tracking with `GRV-2026-000101` / `647556`.
+
 ## In progress
 - Nothing.
 
