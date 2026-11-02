@@ -173,7 +173,18 @@
   "notifications": {
     "empty_title": "No notifications",
     "empty_body": "Updates about your complaints will appear here.",
-    "mark_all": "Mark all as read"
+    "mark_all": "Mark all as read",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "unread": "Unread",
+    "types": {
+      "status": "Status update",
+      "message": "Message from the office",
+      "escalation": "Escalated",
+      "community_update": "Community update",
+      "verification_request": "Please check the fix",
+      "alert": "Alert"
+    }
   },
   "detail": {
     "officer": "Assigned officer",
