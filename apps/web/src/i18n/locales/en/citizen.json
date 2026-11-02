@@ -35,12 +35,39 @@
     "sign_in": "Sign in",
     "or": "or",
     "demo_title": "Demo accounts",
-    "demo_hint": "One click, no password needed."
+    "demo_hint": "One click, no password needed.",
+    "brand_body": "Report a problem in your own language and follow it until it is really fixed.",
+    "guest_hint": "Guests get a ticket ID and a 6-digit PIN to track their complaint without an account.",
+    "demo_citizens": "Citizens",
+    "demo_government": "Government"
   },
   "onboarding": {
     "title": "Choose your language",
     "subtitle": "You can change this any time in Settings.",
-    "start": "Start"
+    "start": "Start",
+    "progress": "Step {{step}} of {{total}}",
+    "more_languages": "More languages",
+    "more_languages_body": "You can also speak or type in these languages. The AI understands them and replies in them; screens stay in English.",
+    "consent_title": "Before you start",
+    "consent_subtitle": "Here is what JanaVaani does with your information.",
+    "consent": {
+      "store": "We store your complaint, any photos you add, and the location you share, only to resolve your complaint. You can report anonymously.",
+      "ai": "AI translates your words, suggests the department and priority, and summarizes the case for officers. AI-made content is marked.",
+      "humans": "People make the decisions that matter: emergencies, critical priority, unclear routing and disputed closures."
+    },
+    "consent_location": "Use my location",
+    "consent_microphone": "Use my microphone",
+    "optional": "Optional. You can change this later.",
+    "synthetic_note": "This is a demo: all complaints shown are synthetic.",
+    "agree": "I understand, continue",
+    "a11y_title": "Make it comfortable",
+    "a11y_subtitle": "Pick anything that helps. You can change these any time in Settings.",
+    "a11y": {
+      "large_text": "Bigger letters everywhere",
+      "high_contrast": "Black and white, strong outlines",
+      "simple_mode": "Only the main buttons",
+      "voice_first": "Speak instead of type, hear replies"
+    }
   },
   "settings": {
     "language": "Language",
@@ -48,7 +75,8 @@
     "high_contrast": "High contrast",
     "large_text": "Large text",
     "reduced_motion": "Reduce motion",
-    "simple_mode": "Simple mode"
+    "simple_mode": "Simple mode",
+    "voice_first": "Voice-first"
   },
   "notifications": {
     "empty_title": "No notifications",

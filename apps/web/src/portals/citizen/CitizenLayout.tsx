@@ -1,6 +1,6 @@
 // Citizen shell: Paper theme by default; bottom nav on mobile, side rail on desktop (master §11).
 import { Suspense } from 'react';
-import { Link, NavLink } from 'react-router';
+import { Link, Navigate, NavLink, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Bell, FileText, Home, Mic, Settings } from 'lucide-react';
@@ -8,7 +8,7 @@ import { AnimatedOutlet } from '@/app/AnimatedOutlet';
 import { LanguageSwitcher, Logo, PageSkeleton, ThemeToggle } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { useAuth } from '@/lib/auth/useAuth';
-import { useSurfaceTheme } from '@/lib/prefs/store';
+import { usePrefs, useSurfaceTheme } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -50,6 +50,10 @@ export function CitizenLayout() {
   useSurfaceTheme('paper');
   const { t } = useTranslation('common');
   const unread = useUnread();
+  const onboarded = usePrefs((s) => s.onboarded);
+  const location = useLocation();
+  // First run: language → consent → accessibility before the app (Spec A §5.2).
+  if (!onboarded) return <Navigate to={`/onboarding?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
   return (
     <div className="min-h-dvh">
       <a

@@ -123,10 +123,8 @@ test('guarded route redirects to login; unknown route shows 404', async ({ page 
   await expect(page.getByTestId('not-found')).toBeVisible();
 });
 
-test('demo login → citizen home, Urdu flips to RTL', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByTestId('demo-citizen-u-lakshmi').click();
-  await expect(page).toHaveURL(/\/app$/);
+test('signed-in citizen switches to Urdu → RTL', async ({ page }) => {
+  await signInAs(page, 'citizen');
   await page.goto('/app/settings');
   await page.getByRole('radio', { name: 'اردو' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
