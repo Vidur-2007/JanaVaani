@@ -3,7 +3,7 @@
 **Branch:** `feat/ai-engine` (8 phase commits on top of `v0-scaffold`, authored by gmur0844-eng). **Verdict: FUNCTIONALLY COMPLETE WITH LIMITATIONS** — every one of the 57 endpoints is implemented and tested in offline mode (41 automated tests pass); the live Supabase / Gemini / Groq / Hugging Face integrations are coded but untested because no credentials existed in the build session.
 
 ## 1. Architecture
-See `docs/architecture.md`. FastAPI (`services/api`) → SQLAlchemy 2 (psycopg v3 on Supabase Postgres; SQLite offline mode) · AI gateway (Gemini/Groq REST, fallback chain, diskcache) · own TF-IDF + calibrated LR classifier · e5 embeddings with lexical fallback · APScheduler on a virtual clock · hash-chained audit.
+See `docs/architecture.md`. FastAPI (`services/api`) → SQLAlchemy 2 (psycopg v3 on Supabase Postgres; SQLite offline mode) · AI gateway (Gemini/Groq REST, fallback chain, diskcache) · own e5 + calibrated LR classifier (TF-IDF fallback) · e5 embeddings with lexical fallback · APScheduler on a virtual clock · hash-chained audit.
 
 ## 2. P1–P8 compliance matrix (PROMPTS-B.md)
 Status: ✅ done & tested · 🟡 done, untested against the live service / partial · ❌ not done (reason given)
@@ -21,7 +21,7 @@ Status: ✅ done & tested · 🟡 done, untested against the live service / part
 | P1 | Dockerfile + HF deploy | 🟡/❌ | Dockerfile written, not built; **HF Space not deployed** (needs team account) |
 | P1 | meta endpoints #20–#24, #57 | ✅ | test_p1 |
 | P2 | 600 rows + human_test_template | ✅ | 1,335 rows; template file; 48-row hand-written set (replace with team's) |
-| P2 | train_classifier + e5 vs LaBSE benchmark + evaluate.py | 🟡 | trained + evaluated; `--features benchmark` coded, not runnable without model download |
+| P2 | train_classifier + e5 vs LaBSE benchmark + evaluate.py | 🟡 | trained + evaluated; benchmark run (TF-IDF 0.750, e5 0.854→0.896 tuned, LaBSE 0.917 human; e5 adopted, see progress) |
 | P2 | seed_db per §7.6 | ✅ | 646 grievances, 3.6k events, 200 assets, stories; Supabase auth users only when keys set |
 | P2 | pipeline modules | ✅ | intake is deterministic (no LLM `intake_turn`); Nominatim not wired |
 | P2 | endpoints #1–#6, #12, #13 | ✅ | test_p2 (13 transcribe returns 501 without Groq key) |
@@ -37,7 +37,7 @@ Status: ✅ done & tested · 🟡 done, untested against the live service / part
 | P8 | fresh keys, redeploy, seed, record_demo, latency, tamper demo, runbook | 🟡 | `docs/runbook.md` written; deploy/warm-up steps need keys + HF account |
 
 ## 3. Model results (measured, `ml/models/metrics.json`)
-Synthetic group-split test (n=392, unseen phrasings): **accuracy 0.778, macro-F1 0.782** · Human-written (n=48): **accuracy 0.750, macro-F1 0.776** · per-language synthetic: en 0.94, code-mixed 0.92, te 0.71, hi 0.69, ur 0.42 · confidence bands: auto 95.9 %, flagged 77 %, review 42.9 %. Data is template-generated → synthetic numbers are optimistic.
+e5 classifier, synthetic group-split test (n=392, unseen phrasings): **accuracy 0.867, macro-F1 0.878** · Human-written (n=48): **accuracy 0.896, macro-F1 0.900** · per-language synthetic: en 0.93, code-mixed 0.89, hi 0.83, te 0.65, ur 1.00 · confidence bands: auto 97.9 %, flagged 65.2 %, review 33.3 %. TF-IDF fallback (`metrics_tfidf.json`): 0.806 / 0.771. Data is template-generated → synthetic numbers are optimistic.
 
 ## 4. Startup (local, offline mode)
 ```bash
