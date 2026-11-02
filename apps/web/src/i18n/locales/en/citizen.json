@@ -281,5 +281,20 @@
     "goes_to": "Goes to {{officer}}",
     "submit_one": "Register {{count}} complaint",
     "submit_other": "Register {{count}} complaints"
+  },
+  "dup": {
+    "title": "People nearby already reported this",
+    "subtitle": "Adding your support raises its priority and you get the same updates.",
+    "away": "{{distance}} away",
+    "affected_one": "{{count}} person affected",
+    "affected_other": "{{count}} people affected",
+    "similar": "{{pct}}% similar",
+    "support": "Add my support",
+    "file_new": "Mine is different — file new",
+    "review": "See similar reports",
+    "thanks": "Your support was added!",
+    "now_affected_one": "{{count}} person has reported this",
+    "now_affected_other": "{{count}} people have reported this now",
+    "notified": "You'll be notified when it's fixed."
   }
 }

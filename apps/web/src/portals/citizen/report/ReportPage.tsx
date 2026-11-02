@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, QrCode } from 'lucide-react';
+import { MapPin, QrCode, Users } from 'lucide-react';
+import { Button } from '@/design/ui/button';
 import type { DeepLang, Lang, Location } from '@contracts/types';
 import { PageTransition } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
@@ -11,6 +12,7 @@ import { replyLang, usePrefs } from '@/lib/prefs/store';
 import { Composer } from './Composer';
 import { ConfirmationCard, type ConfirmOptions } from './ConfirmationCard';
 import { SplitDrafts } from './SplitDrafts';
+import { DuplicateSheet, SupportCelebration } from './DuplicateSheet';
 import { LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
 import { MessageList } from './MessageList';
 import { LocationButton, LocationSheet, locationLabel } from './LocationSheet';
@@ -52,13 +54,29 @@ export default function ReportPage() {
   };
 
   // Stages with their own UI replace the mock's action quick replies.
-  const richStage = stage === 'confirming';
+  const richStage = stage === 'confirming' || stage === 'duplicate_check';
+
+  // Duplicate check: the sheet opens for each new duplicate_check response; closing it leaves a reopen card.
+  const [dupClosedFor, setDupClosedFor] = useState<unknown>(null);
+  const dupOpen = stage === 'duplicate_check' && !!res?.duplicates?.length && dupClosedFor !== res;
+  const [supported, setSupported] = useState<{ count: number } | null>(null);
   const quickReplies = useMemo(() => (richStage ? [] : (res?.quick_replies ?? [])), [res, richStage]);
   const allMedia = useMemo(() => chat.snap.messages.flatMap((m) => m.media ?? []), [chat.snap.messages]);
 
   const confirm = (o: ConfirmOptions) => send({ action: 'confirm', submit_options: o, display: t('confirm.submit') });
 
   let footer: ReactNode = null;
+  if (stage === 'duplicate_check' && res?.duplicates?.length && !pending)
+    footer = (
+      <div className="bg-surface mx-auto flex w-full max-w-xl flex-wrap items-center gap-3 rounded-[var(--radius-lg)] border p-4">
+        <Users className="text-primary size-5" aria-hidden />
+        <p className="min-w-0 flex-1 text-sm">{t('dup.title')}</p>
+        <Button size="sm" onClick={() => setDupClosedFor(null)} data-testid="dup-reopen">
+          {t('dup.review')}
+        </Button>
+      </div>
+    );
+  if (stage === 'submitted' && supported && !pending) footer = <SupportCelebration count={supported.count} />;
   if (stage === 'confirming' && res?.drafts && res.drafts.length > 1 && !pending)
     footer = (
       <SplitDrafts
@@ -112,6 +130,20 @@ export default function ReportPage() {
           <MapPin className="text-primary size-4 shrink-0" aria-hidden />
           <span className="truncate">{locationLabel(chat.snap.location)}</span>
         </button>
+      )}
+
+      {res?.duplicates && (
+        <DuplicateSheet
+          open={dupOpen}
+          onOpenChange={(o) => !o && setDupClosedFor(res)}
+          matches={res.duplicates}
+          busy={pending}
+          onSupport={(m) => {
+            setSupported({ count: m.support_count + 2 });
+            send({ action: 'support_existing', action_payload: { grievance_id: m.grievance_id, incident_id: m.incident_id }, display: t('dup.support') });
+          }}
+          onFileNew={() => send({ action: 'file_new_anyway', display: t('dup.file_new') })}
+        />
       )}
 
       <LocationSheet open={locOpen} onOpenChange={setLocOpen} onSelect={onLocation} suggestion={suggestion} current={chat.snap.location} />
