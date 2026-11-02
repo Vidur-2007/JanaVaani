@@ -11,7 +11,6 @@ Usage: python ml/seed_db.py [--n 600]
 import argparse
 import json
 import math
-import os
 import random
 import sys
 import uuid
@@ -68,7 +67,7 @@ def supabase_user(email, role, name=None):
     """Create (or update) the auth user via the Supabase admin API when configured; else a deterministic local uuid.
     Sets app_metadata.role (server-controlled, read by the frontend before /me) and user_metadata.name/role."""
     s = get_settings()
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    key = s.supabase_service_role_key
     if not (s.supabase_url and key):
         return str(uuid.uuid5(uuid.NAMESPACE_DNS, email))
     import httpx
@@ -85,6 +84,8 @@ def supabase_user(email, role, name=None):
 
 
 def wipe(db):
+    if engine.dialect.name == "postgresql":   # the append-only trigger on timeline_events allows this transaction only
+        db.execute(text("set local janavaani.allow_tamper = on"))
     for m in (LiveEvent, Notification, AlertRow, RoutingCorrection, AICall, Appeal, Message, ChatSession, Supporter,
               TimelineEvent, Media, Grievance, Incident, Asset, ModelVersion, Profile, Setting):
         db.execute(delete(m))

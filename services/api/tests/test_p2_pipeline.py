@@ -41,9 +41,11 @@ def test_priority_formula_and_floor():
 def test_hash_chain_detects_tamper(client, seeded):
     from app.core.db import session_scope
     from app.models import TimelineEvent
-    from sqlalchemy import select
+    from sqlalchemy import select, text
     with session_scope() as db:
         assert audit.verify(db)["valid"]
+        if db.get_bind().dialect.name == "postgresql":   # same bypass as scripts/tamper_demo.py
+            db.execute(text("set local janavaani.allow_tamper = on"))
         e = db.execute(select(TimelineEvent).order_by(TimelineEvent.seq.desc()).limit(1)).scalar_one()
         gid, old = e.grievance_id, e.message_en
         e.message_en = "tampered"
