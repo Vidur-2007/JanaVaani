@@ -383,8 +383,8 @@ def run_escalations(db: Session) -> dict:
 
 def _notify_role(db: Session, role: str, g: Grievance, title: str, body: str):
     q = select(Profile).where(Profile.role == role, Profile.is_active.is_(True))
-    if role == "supervisor":
-        q = q.where(Profile.department_id == g.category)
+    if role == "supervisor":   # department supervisors + city-wide supervisors (no department)
+        q = q.where((Profile.department_id == g.category) | (Profile.department_id.is_(None)))
     for p in db.execute(q).scalars():
         notify(db, p.id, g.id, "escalation", title, body, p.preferred_language)
     live(db, "role:admin", "alert", g.id)

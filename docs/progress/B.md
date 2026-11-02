@@ -30,8 +30,17 @@
 - live_events on create/update with `dept:<id>`, `user:<id>`, `role:admin`, `public` audiences.
 - Tests `tests/test_p3_officer.py` (9). **P1–P3: 26 passed.**
 
+### P4 — Officer AI, resolution verification, escalation, admin analytics
+- #35 brief (similar resolved cases by embedding similarity, cached by updated_at; deterministic fallback brief labelled `generated_by: fallback`), #36 draft-reply (Groq EN → localized; template fallback), #37 officer message (localized, notifies citizen, sets first response).
+- #38 resolve: distance check (request GPS or EXIF), perceptual-hash duplicate check (<8), Gemini vision when available, final rules (duplicate or >500 m → suspicious; no vision → `unclear` / `needs_human_review`, never "verified" by AI alone), suspicious alert, verification_request notification; incident fan-out with community_update notifications in each citizen's language. #39 appeal decision (upheld → reopen). #40 bulk status/assign/merge (incident creation, merged children).
+- APScheduler (escalation + auto-close every 2 min, spike scan every 10 min) on the virtual clock; also runs immediately after a clock advance. Level 1 at SLA breach (supervisors notified), level 2 at breach + 50 % SLA or critical +2 h (admins, `overdue_critical` alert), `emergency_unconfirmed` after 30 min, auto-close after 7 days.
+- #55 demo clock (GET/POST), #56 reset (DEMO_MODE only; re-seeds).
+- Analytics from persisted rows only: #43 KPIs with deltas vs previous period, #44 department performance (0.4·SLA% + 0.3·satisfaction + 0.2·(100−reopen%) + 0.1·speed_index, ranked), #45 workload, #46 trends (day/week), #47 breakdown (ward/zone/category), #48 admin map (with ids), #49 alerts (spike μ+3σ per (category, ward) and citywide, overdue_critical, repeated_reopen, suspicious_closure, routing_review_backlog, emergency_unconfirmed).
+- Fix found by tests: escalation notifications now reach city-wide supervisors.
+- Tests `tests/test_p4_admin.py` (7): brief/draft/message, own-photo → suspicious, far-away → suspicious, new photo without vision → needs_human_review, appeal + bulk merge, clock +48 h → escalations, Charminar water spike detected (ur/hi), analytics. **P1–P4: 33 passed.**
+
 ## In progress
-P4 — officer AI, resolution verification, escalation, admin analytics.
+P5 — insights, AI metrics/retrain, public, guide, hardening.
 
 ## Next
 P3 tracking/notifications/officer core → P4 officer AI/verification/escalation/analytics → P5 hardening.
@@ -46,6 +55,7 @@ P3 tracking/notifications/officer core → P4 officer AI/verification/escalation
 
 ## API URL / live endpoints
 - URL: _not deployed yet_ (local: `http://localhost:8000/api/v1`).
+- Live after P4: #35–#40, #43–#49, #55, #56.
 - Live after P3: #7–#11, #14–#19, #28–#34, #41, #42.
 - Live after P2: #1–#6, #12, #13 (+ demo helper `POST /auth/demo-login` in DEMO_MODE).
 - Live after P1: #20 `/meta/departments`, #21 `/meta/wards`, #22 `/meta/wards.geojson`, #23 `/meta/emergency-contacts`, #24 `/meta/assets/{id}`, #57 `/health`.

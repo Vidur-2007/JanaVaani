@@ -32,7 +32,13 @@ async def lifespan(app: FastAPI):
     from .core import settings_store
     settings_store.load_clock()
     threading.Thread(target=_warm, daemon=True).start()
+    sched = None
+    if get_settings().enable_scheduler:
+        from .jobs.scheduler import start
+        sched = start()
     yield
+    if sched:
+        sched.shutdown(wait=False)
 
 
 app = FastAPI(title="JanaVaani API", version=__version__, lifespan=lifespan,
@@ -51,9 +57,9 @@ async def _rl(_: Request, e: RateLimitExceeded):
 app.add_middleware(CORSMiddleware, allow_origins=get_settings().origins, allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
 
-from .routers import auth, citizen, meta, officer  # noqa: E402
+from .routers import admin, auth, citizen, meta, officer  # noqa: E402
 
-for r in (meta.router, auth.router, citizen.router, officer.router):
+for r in (meta.router, auth.router, citizen.router, officer.router, admin.router):
     app.include_router(r, prefix="/api/v1")
 
 
