@@ -1,6 +1,7 @@
 // App-wide providers: QueryClient, prefs → <html>, i18n, Auth, live events, toasts, tooltips.
 import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MotionConfig } from 'motion/react';
 import { I18nextProvider } from 'react-i18next';
 import { TooltipProvider } from '@/design/ui/tooltip';
 import { RouteFallback } from '@/design/components/Skeletons';
@@ -47,22 +48,30 @@ function ThemedToaster() {
   );
 }
 
+/** P7: one switch for every motion component — reduced motion (OS or in-app toggle) drops transforms, keeps fades. */
+function MotionPrefs({ children }: { children: ReactNode }) {
+  const reduced = useReducedMotion();
+  return <MotionConfig reducedMotion={reduced ? 'always' : 'never'}>{children}</MotionConfig>;
+}
+
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <I18nextProvider i18n={i18n}>
-        <PrefsSync />
-        <TooltipProvider delayDuration={300}>
-          <Suspense fallback={<RouteFallback />}>
-            <AuthProvider>
-              <LiveEventsMount />
-              {children}
-            </AuthProvider>
-          </Suspense>
-        </TooltipProvider>
-        <ThemedToaster />
-      </I18nextProvider>
-    </QueryClientProvider>
+    <MotionPrefs>
+      <QueryClientProvider client={queryClient}>
+        <I18nextProvider i18n={i18n}>
+          <PrefsSync />
+          <TooltipProvider delayDuration={300}>
+            <Suspense fallback={<RouteFallback />}>
+              <AuthProvider>
+                <LiveEventsMount />
+                {children}
+              </AuthProvider>
+            </Suspense>
+          </TooltipProvider>
+          <ThemedToaster />
+        </I18nextProvider>
+      </QueryClientProvider>
+    </MotionPrefs>
   );
 }
 

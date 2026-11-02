@@ -12,7 +12,7 @@ import {
   SLACountdown,
   StatusChip,
 } from '@/design/components';
-import { easeOutExpo } from '@/design/motion';
+import { easeOutExpo, reveal } from '@/design/motion';
 import { useReducedMotion } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
 
@@ -184,10 +184,10 @@ export function HowItWorks({ pinned }: { pinned: boolean }) {
         {header}
         <ol className="space-y-12">
           {STEPS.map((s, i) => (
-            <li key={s.key} className="grid gap-6 md:grid-cols-2 md:items-center">
+            <motion.li key={s.key} className="grid gap-6 md:grid-cols-2 md:items-center" {...reveal}>
               <StepText i={i} active />
               <Vignette step={i} />
-            </li>
+            </motion.li>
           ))}
         </ol>
       </section>
@@ -195,18 +195,27 @@ export function HowItWorks({ pinned }: { pinned: boolean }) {
   }
 
   return (
-    <section id="how" ref={ref} className="relative h-[400vh]" data-testid="how-pinned">
+    // P7 pacing: ~75vh of scroll per step (was 100vh), with a progress rail beside the steps.
+    <section id="how" ref={ref} className="relative h-[300vh]" data-testid="how-pinned">
       <div className="sticky top-0 flex h-dvh items-center">
         <div className="mx-auto grid w-full max-w-6xl gap-12 px-4 md:grid-cols-2 md:items-center">
           <div>
             {header}
-            <ol className="space-y-6" aria-live="polite">
-              {STEPS.map((s, i) => (
-                <li key={s.key}>
-                  <StepText i={i} active={i === step} />
-                </li>
-              ))}
-            </ol>
+            <div className="relative">
+              <div className="bg-border absolute inset-y-1 start-0 w-0.5 rounded-full" aria-hidden>
+                <motion.div
+                  className="bg-primary h-full w-full origin-top rounded-full"
+                  style={{ scaleY: scrollYProgress }}
+                />
+              </div>
+              <ol className="space-y-6 ps-6" aria-live="polite">
+                {STEPS.map((s, i) => (
+                  <li key={s.key}>
+                    <StepText i={i} active={i === step} />
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
           <div className="relative grid min-h-80 place-items-center">
             <AnimatePresence mode="wait">

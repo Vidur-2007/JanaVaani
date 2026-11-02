@@ -9,6 +9,8 @@ import { Button } from '@/design/ui/button';
 import { easeOutExpo } from '@/design/motion';
 import { api, qk } from '@/lib/api/endpoints';
 import { useReducedMotion } from '@/lib/prefs/store';
+import { detectScript } from '@/lib/detectScript';
+import { cn } from '@/lib/utils';
 
 const CityPulse = lazy(() => import('./CityPulse'));
 
@@ -52,7 +54,9 @@ function useAfterFirstPaint(enabled: boolean, lazyUntilInteraction = false) {
       };
     }
     const go = () => {
-      const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+      const idle = (
+        window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }
+      ).requestIdleCallback;
       if (idle) idle(() => !cancelled && setReady(true), { timeout: 2000 });
       else window.setTimeout(() => !cancelled && setReady(true), 600);
     };
@@ -64,6 +68,25 @@ function useAfterFirstPaint(enabled: boolean, lazyUntilInteraction = false) {
     };
   }, [enabled, lazyUntilInteraction]);
   return ready;
+}
+
+const DISPLAY_FACES: Partial<Record<string, string>> = {
+  te: '600 1em "Anek Telugu Variable"',
+  hi: '600 1em "Anek Devanagari Variable"',
+  ur: '700 1em "Noto Nastaliq Urdu"',
+};
+
+function saveData() {
+  const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } })
+    .connection;
+  return !!c?.saveData || /(^|-)2g$/.test(c?.effectiveType ?? '');
+}
+
+function warmDisplayFonts(lines: string[]) {
+  for (const line of lines) {
+    const face = DISPLAY_FACES[detectScript(line).lang];
+    if (face) document.fonts?.load(face, line).catch(() => undefined);
+  }
 }
 
 function CyclingHeadline() {
@@ -83,16 +106,29 @@ function CyclingHeadline() {
       window.clearInterval(id);
     };
   }, [greetings.length]);
+  // P7: each greeting in its own script's display face (Anek Telugu / Anek Devanagari / Nastaliq). The faces
+  // are warmed in the background after the page settles, so they're ready by the first switch (≥ 5 s) and never
+  // compete with first load. Data-saver users keep the lighter Noto faces.
+  const scripted = useState(() => !saveData())[0];
+  const key = greetings.join('\n');
+  useEffect(() => {
+    if (!scripted) return;
+    const t = window.setTimeout(() => warmDisplayFonts(key.split('\n')), 3000);
+    return () => window.clearTimeout(t);
+  }, [scripted, key]);
+  const info = detectScript(greetings[i] ?? '');
   return (
-    <h1 className="font-display relative text-4xl leading-[1.15] font-semibold tracking-tight sm:text-6xl md:text-7xl">
+    <h1 className="font-display relative text-4xl leading-[1.15] font-semibold tracking-tight md:text-7xl">
       {/* Screen readers get every greeting once; the animation is decorative. */}
       <span className="sr-only">{greetings.join(' ')}</span>
-      <span className="grid min-h-[2.4em] items-end sm:min-h-[1.3em]" aria-hidden>
+      <span className="grid h-[3em] items-end md:h-[1.6em]" aria-hidden>
         {/* Lines overlap in one grid cell (crossfade), so a greeting is always on screen. */}
         <AnimatePresence initial={false}>
           <motion.span
             key={i}
-            className="col-start-1 row-start-1 block text-balance"
+            className={cn('col-start-1 row-start-1 block text-balance', scripted && 'hero-script')}
+            lang={info.lang === 'other' ? undefined : info.lang}
+            dir={info.rtl ? 'rtl' : undefined}
             initial={reduced ? { opacity: 0 } : { opacity: 0, y: 24, filter: 'blur(10px)' }}
             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             exit={reduced ? { opacity: 0 } : { opacity: 0, y: -24, filter: 'blur(10px)' }}
@@ -112,12 +148,24 @@ export function Hero() {
   const [webgl] = useState(() => typeof document !== 'undefined' && hasWebGL());
   const [mobile] = useState(isMobileViewport);
   const ready = useAfterFirstPaint(!reduced && webgl, mobile);
-  const wards = useQuery({ queryKey: qk.meta.wards, queryFn: ({ signal }) => api.wards(signal), staleTime: Infinity, enabled: ready });
-  const map = useQuery({ queryKey: qk.public.map({ days: 90 }), queryFn: ({ signal }) => api.publicMap({ days: 90 }, signal), enabled: ready });
+  const wards = useQuery({
+    queryKey: qk.meta.wards,
+    queryFn: ({ signal }) => api.wards(signal),
+    staleTime: Infinity,
+    enabled: ready,
+  });
+  const map = useQuery({
+    queryKey: qk.public.map({ days: 90 }),
+    queryFn: ({ signal }) => api.publicMap({ days: 90 }, signal),
+    enabled: ready,
+  });
   const show3d = ready && wards.data && map.data;
 
   return (
-    <section className="relative isolate flex min-h-[calc(100dvh-4rem)] items-end overflow-hidden md:items-center" aria-labelledby="hero-title">
+    <section
+      className="relative isolate flex min-h-[calc(100dvh-4rem)] items-end overflow-hidden md:items-center"
+      aria-labelledby="hero-title"
+    >
       {/* Static poster: always painted first (LCP), and the fallback for reduced motion / no WebGL. */}
       <div
         className="absolute inset-0 -z-20"
@@ -130,13 +178,21 @@ export function Hero() {
       />
       {show3d && (
         <Suspense fallback={null}>
-          <motion.div className="absolute inset-0 -z-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2 }}>
+          <motion.div
+            className="absolute inset-0 -z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.2 }}
+          >
             <CityPulse wards={wards.data!} points={map.data!} mobile={mobile} />
           </motion.div>
         </Suspense>
       )}
       {/* Legibility scrim behind the copy. */}
-      <div className="from-bg via-bg/70 absolute inset-0 -z-10 bg-gradient-to-t to-transparent md:bg-gradient-to-r rtl:md:bg-gradient-to-l" aria-hidden />
+      <div
+        className="from-bg via-bg/70 absolute inset-0 -z-10 bg-gradient-to-t to-transparent md:bg-gradient-to-r rtl:md:bg-gradient-to-l"
+        aria-hidden
+      />
 
       <div className="mx-auto w-full max-w-6xl px-4 pt-24 pb-16 md:py-24">
         <div className="max-w-2xl">
@@ -146,13 +202,22 @@ export function Hero() {
           </div>
           <p className="text-muted-foreground mt-6 max-w-xl text-lg leading-relaxed">{t('hero.subhead')}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" className="touch-target shadow-glow-primary h-12 rounded-full px-6 text-base">
+            <Button
+              asChild
+              size="lg"
+              className="touch-target shadow-glow-primary h-12 rounded-full px-6 text-base"
+            >
               <Link to="/app/report?mode=voice" data-testid="cta-voice">
                 <Mic className="size-5" aria-hidden />
                 {t('hero.cta_voice')}
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="touch-target glass h-12 rounded-full px-6 text-base">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="touch-target glass h-12 rounded-full px-6 text-base"
+            >
               <Link to="/track" data-testid="cta-track">
                 <Search className="size-5" aria-hidden />
                 {t('hero.cta_track')}
