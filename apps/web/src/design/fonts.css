@@ -20,9 +20,12 @@
 :root {
   --font-body:
     'Noto Sans', 'Noto Sans Telugu', 'Noto Sans Devanagari', 'Noto Naskh Arabic', system-ui, sans-serif;
+  /* P6: the heavy display faces (Anek Telugu ~140 KB, Anek Devanagari ~250 KB, Nastaliq ~150 KB) load only
+   * when the UI is in that language (see :lang below). In other UIs, non-Latin headings such as the landing's
+   * cycling greetings use the much lighter Noto faces, which the body text already needs. */
   --font-heading:
-    'Anek Latin Variable', 'Anek Telugu Variable', 'Anek Devanagari Variable', 'Noto Nastaliq Urdu',
-    'Noto Sans', system-ui, sans-serif;
+    'Anek Latin Variable', 'Noto Sans', 'Noto Sans Telugu', 'Noto Sans Devanagari', 'Noto Naskh Arabic',
+    system-ui, sans-serif;
   --font-code: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
