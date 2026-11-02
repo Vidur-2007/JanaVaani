@@ -26,6 +26,8 @@ Full list with workarounds: `docs/progress/C.md` section 6.
 - Windows setup: `ml/seed_db.py` crashes unless `PYTHONUTF8=1` is set (files read with the system codepage), and copying `.env.example` breaks offline mode because the comment after `DATABASE_URL=` is parsed as the URL.
 - Return `macro_f1` in `human_test` on #53. B's metrics have 0.776, but the response keeps only accuracy, n and per_language.
 - #25 `recent_resolved` has no `before_url` or `after_url` in the seed (0 of 6), so the public before/after slider, one of the demo moments, cannot show. Seed proof photos for these cases.
+- Alert titles use ward ids (`W-CHR-02`); use ward names. Seeded disputed cases say "Seeded history" and mostly show Verified.
+- For demo step 4, seed Ravi with a critical case and some cases inside SLA.
 - The seed has no pending appeals (`kind=appeal` returns 0), so the demo Appeals tab will be empty.
 
 Resolved: supervisors can already call #43–#48, #49 and #50.
