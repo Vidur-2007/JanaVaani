@@ -100,7 +100,67 @@ function Receipt({ g, pin, full }: { g: GrievanceDetail; pin?: string; full: boo
         {row(t('receipt.location'), g.location.address ?? g.location.ward_name ?? '—')}
         {g.assigned_officer && row(t('receipt.officer'), `${g.assigned_officer.name}, ${g.assigned_officer.office_name}`)}
         {pin && row(t('submitted.pin'), <span className="font-mono font-bold tracking-widest">{pin}</span>)}
+        {full && (g.status === 'closed' || g.status === 'rejected') &&
+          row(t('report_pdf.closure'), t(`tracker.closure.${g.closure_type === 'citizen_verified' ? 'verified' : g.closure_type === 'auto_closed_unverified' ? 'auto' : 'rejected'}`))}
+        {full && g.rating != null && row(t('fix.rating'), '★'.repeat(g.rating) + '☆'.repeat(5 - g.rating))}
       </dl>
+
+      {full && (
+        <section className="space-y-1">
+          <h2 className="text-sm font-semibold tracking-wider text-neutral-500 uppercase">{t('tracker.why_priority')}</h2>
+          <ul className="grid grid-cols-2 gap-x-6 text-sm" lang="en">
+            {g.priority_factors.map((f) => (
+              <li key={f.key} className="flex justify-between border-b border-neutral-100 py-1">
+                <span>{f.label_en}</span>
+                <span className="font-mono">+{f.points}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {full && g.ai_verification && (
+        <section className="space-y-1 text-sm">
+          <h2 className="text-sm font-semibold tracking-wider text-neutral-500 uppercase">{t(`tracker.verdict.${g.ai_verification.verdict}`)}</h2>
+          <ul lang="en">
+            {g.ai_verification.reasons_en.map((r) => (
+              <li key={r}>• {r}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {full && g.appeal && (
+        <section className="space-y-1 text-sm">
+          <h2 className="text-sm font-semibold tracking-wider text-neutral-500 uppercase">
+            {t('appeal.title')} · {t(`appeal.status.${g.appeal.status}`)}
+          </h2>
+          <p dir="auto">{g.appeal.reason.original}</p>
+          {g.appeal.decision_note && <p className="text-neutral-600">{g.appeal.decision_note.en}</p>}
+        </section>
+      )}
+
+      {full && g.messages.length > 0 && (
+        <section className="space-y-1.5">
+          <h2 className="text-sm font-semibold tracking-wider text-neutral-500 uppercase">{t('tracker.messages')}</h2>
+          <ol className="space-y-1.5 text-sm">
+            {g.messages.map((m) => {
+              const msg = pickLocalized(m.text, i18n.language);
+              return (
+                <li key={m.id} className="grid grid-cols-[9rem_1fr] gap-3">
+                  <span className="text-neutral-500">
+                    {fmt.dateTime(m.created_at)}
+                    <span className="block text-xs">{m.sender_name ?? t(`tracker.sender.${m.sender}`)}</span>
+                  </span>
+                  <span lang={msg.lang} dir={msg.dir}>
+                    {msg.text}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      )}
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold tracking-wider text-neutral-500 uppercase">{t('detail.timeline')}</h2>

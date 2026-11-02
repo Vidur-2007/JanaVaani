@@ -538,5 +538,8 @@
       "upheld": "Upheld — reopened",
       "dismissed": "Dismissed"
     }
+  },
+  "report_pdf": {
+    "closure": "Closure"
   }
 }
