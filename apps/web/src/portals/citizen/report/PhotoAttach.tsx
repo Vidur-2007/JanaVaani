@@ -12,9 +12,25 @@ import { cn } from '@/lib/utils';
 import { mediaUrl } from '@/lib/api/client';
 
 export async function compressImage(file: File): Promise<File> {
-  const { default: imageCompression } = await import('browser-image-compression');
   try {
-    return await imageCompression(file, { maxWidthOrHeight: 1600, maxSizeMB: 0.2, useWebWorker: true, initialQuality: 0.82 });
+    const [{ default: imageCompression }, { default: libURL }] = await Promise.all([
+      import('browser-image-compression'),
+      // P6: self-host the worker script. By default the library importScripts() it from cdn.jsdelivr.net,
+      // which stalls compression offline, on captive Wi-Fi or where the CDN is blocked.
+      import('browser-image-compression/dist/browser-image-compression.js?url'),
+    ]);
+    const work = imageCompression(file, {
+      maxWidthOrHeight: 1600,
+      maxSizeMB: 0.2,
+      useWebWorker: true,
+      libURL: new URL(libURL, window.location.href).toString(),
+      initialQuality: 0.82,
+      // ~200 KB is a target, not a contract: 4 passes instead of 10 keeps low-end Android under ~2 s.
+      maxIteration: 4,
+    });
+    // Never let a slow phone hold the report hostage: after 10 s upload the original (≤ 8 MB is accepted).
+    const timeout = new Promise<File>((resolve) => setTimeout(() => resolve(file), 10_000));
+    return await Promise.race([work, timeout]);
   } catch {
     return file; // Compression is an optimization; never block the report on it.
   }
