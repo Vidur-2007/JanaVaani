@@ -2,3 +2,5 @@ dist
 node_modules
 docs
 package-lock.json
+packages/contracts/src/types.ts
+packages/contracts/src/endpoints.md
