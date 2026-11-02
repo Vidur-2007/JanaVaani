@@ -296,5 +296,12 @@
     "now_affected_one": "{{count}} person has reported this",
     "now_affected_other": "{{count}} people have reported this now",
     "notified": "You'll be notified when it's fixed."
+  },
+  "emergency": {
+    "call_now": "Call for help now",
+    "title": "This sounds like an emergency",
+    "matched": "We noticed:",
+    "critical_note": "Your complaint is marked critical and sent to the emergency review team.",
+    "continue": "Continue registering"
   }
 }

@@ -13,6 +13,7 @@ import { Composer } from './Composer';
 import { ConfirmationCard, type ConfirmOptions } from './ConfirmationCard';
 import { SplitDrafts } from './SplitDrafts';
 import { DuplicateSheet, SupportCelebration } from './DuplicateSheet';
+import { EmergencyTakeover } from './EmergencyTakeover';
 import { LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
 import { MessageList } from './MessageList';
 import { LocationButton, LocationSheet, locationLabel } from './LocationSheet';
@@ -54,7 +55,7 @@ export default function ReportPage() {
   };
 
   // Stages with their own UI replace the mock's action quick replies.
-  const richStage = stage === 'confirming' || stage === 'duplicate_check';
+  const richStage = stage === 'confirming' || stage === 'duplicate_check' || stage === 'emergency';
 
   // Duplicate check: the sheet opens for each new duplicate_check response; closing it leaves a reopen card.
   const [dupClosedFor, setDupClosedFor] = useState<unknown>(null);
@@ -130,6 +131,15 @@ export default function ReportPage() {
           <MapPin className="text-primary size-4 shrink-0" aria-hidden />
           <span className="truncate">{locationLabel(chat.snap.location)}</span>
         </button>
+      )}
+
+      {stage === 'emergency' && res?.emergency && (
+        <EmergencyTakeover
+          info={res.emergency}
+          uiLang={uiLang}
+          busy={pending}
+          onContinue={() => send({ action: 'continue_after_emergency', display: t('emergency.continue') })}
+        />
       )}
 
       {res?.duplicates && (
