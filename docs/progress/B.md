@@ -64,11 +64,15 @@
 - Stretch (Spec B §13): not started.
 - PR "Final: AI engine": blocked on push access (see blockers).
 
+### P8 — Final deploy and warm-up
+- `docs/runbook.md` ("If something breaks during the demo") and `docs/LAPTOP_B_HANDOVER.md` (P1–P8 compliance matrix, startup, deployment, A/C integration).
+- Deploy, fresh keys, `record_demo.py` warm-up and the live tamper demo need the team's HF account + keys — steps documented, not executed.
+
 ## In progress
-P8 — runbook; final deploy/warm-up steps need keys + HF account.
+Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys / HF Space.
 
 ## Next
-P3 tracking/notifications/officer core → P4 officer AI/verification/escalation/analytics → P5 hardening.
+1. Push `feat/ai-engine` (from Cursor) and open the PR. 2. Fill `services/api/.env`, run migrations + seed against Supabase. 3. Deploy the HF Space; run record_demo + latency. 4. With keys: prompt-quality pass, `--features benchmark`, LLM data augmentation for Urdu.
 
 ## Blockers / deviations (honest list)
 - **No Supabase project, Gemini or Groq keys were available in the build session.** The API runs in *offline mode* (SQLite file DB, deterministic AI fallbacks) until `services/api/.env` is filled. Migrations were NOT run against Supabase; run `python ml/apply_migrations.py` with `DATABASE_URL` set.
