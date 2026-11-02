@@ -6,7 +6,8 @@ import NotFound from '@/app/NotFound';
 import { GovLayout } from '@/portals/gov-shared/layout/GovLayout';
 import { GovPlaceholder } from '@/portals/gov-shared/components/GovPlaceholder';
 
-const Inbox = lazy(() => import('./pages/InboxStub'));
+const Inbox = lazy(() => import('./pages/Inbox'));
+const Incidents = lazy(() => import('./pages/Incidents'));
 
 export default function OfficerRoutes() {
   return (
@@ -15,7 +16,7 @@ export default function OfficerRoutes() {
         <Route element={<GovLayout />}>
           <Route index element={<Inbox />} />
           <Route path="case/:id" element={<GovPlaceholder titleKey="nav.inbox" />} />
-          <Route path="incidents" element={<GovPlaceholder titleKey="nav.incidents" />} />
+          <Route path="incidents" element={<Incidents />} />
           <Route path="stats" element={<GovPlaceholder titleKey="nav.my_stats" />} />
           <Route path="*" element={<NotFound />} />
         </Route>
