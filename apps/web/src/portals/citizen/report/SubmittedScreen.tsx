@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { CalendarClock, Check, CheckCircle2, Copy, Download, Plus, Search, TriangleAlert } from 'lucide-react';
 import { Button } from '@/design/ui/button';
-import { DepartmentBadge, PriorityChip, Skeleton } from '@/design/components';
+import { DepartmentBadge, ErrorState, PriorityChip, Skeleton } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { pickLocalized } from '@/lib/localized';
@@ -106,6 +106,9 @@ function SubmittedCard({ item }: { item: SubmittedItem }) {
             {t('submitted.due', { date: fmt.dateTime(g.sla.due_at) })}
           </p>
         </div>
+      ) : q.isError ? (
+        // P6: the ticket exists even if its details can't load right now — say so and offer a retry.
+        <ErrorState error={q.error} onRetry={() => q.refetch()} compact className="items-start p-0 text-start" />
       ) : null}
       {item.guest_pin && <PinBox pin={item.guest_pin} />}
       <div className="grid gap-2 sm:grid-cols-2">
