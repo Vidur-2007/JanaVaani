@@ -34,6 +34,11 @@
 ## Blockers
 - None. Supabase keys are not needed in mock mode.
 
+## Branch state at v0-scaffold
+- `feat/citizen` was fast-forwarded to `v0-scaffold`.
+- `feat/gov-portals` already had C's planning commit, so it was left untouched. **C must run `git merge v0-scaffold` once** to pick up the scaffold. This merges cleanly: the scaffold does not ship `docs/progress/C.md`.
+- `feat/ai-engine` was left untouched (B branched from the docs commit; B never needs the frontend scaffold).
+
 ## Contract notes
 See `docs/contract-notes/A.md`. Requested from B: `GET /me`, `app_metadata.role` on demo users, ward/asset id formats.
 
