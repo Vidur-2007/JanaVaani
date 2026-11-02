@@ -544,8 +544,19 @@ def _guide_sections():
     return secs
 
 
+_STOP = {"which", "what", "who", "how", "where", "when", "department", "handles", "handle", "the", "and", "for", "about",
+          "does", "can", "should", "complaint", "complain", "report", "problem", "issue", "our", "my", "there", "with", "is"}
+
+
+def _stem(w):
+    for suf in ("ies", "es", "s"):
+        if w.endswith(suf) and len(w) - len(suf) >= 4:
+            return w[: -len(suf)] + ("y" if suf == "ies" else "")
+    return w
+
+
 def _guide_hits(q):
-    words = [w for w in re.findall(r"\w+", q.lower()) if len(w) > 2]
+    words = [_stem(w) for w in re.findall(r"\w+", q.lower()) if len(w) > 2 and w not in _STOP]
     hits = []
     for s_ in _guide_sections():
         score = sum(s_["text"].lower().count(w) + 3 * s_["title"].lower().count(w) for w in words)

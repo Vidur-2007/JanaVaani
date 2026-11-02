@@ -23,8 +23,15 @@
 - Tests `tests/test_p2_pipeline.py`: routing vote, priority formula + floor, hash chain tamper detection, classifier load/predict, chat → confirm → grievance with both providers down, emergency → continue → guest PIN, duplicates + support, analyze/create, upload EXIF strip. **P1+P2: 17 passed.**
 - `scripts/latency.py`: 10 submissions, offline mode p50 29 ms / p95 34 ms (no LLM calls; with Gemini/Groq keys expect provider latency on top).
 
+### P3 — Tracking, notifications, search, officer core
+- Citizen: #7 me/grievances (paged, status/q filters), #8 feedback (accept → closed citizen_verified; reject → reopened, escalation +1, `repeated_reopen` alert at ≥2), #9 reopen, #10 appeal, #11 citizen message (PII-masked), #14 tts (501 when not configured), #15 translate (same-language passthrough; 503 `translation_unavailable` when providers are down — never fakes a translation), #16 search (embedding similarity + keyword boost + guide sections; public scope strips text), #17 guide/ask (LLM grounded on service_guide.md; offline keyword retrieval with stemming + section citations), #18–#19 notifications (localized title/body, `all` marks all read).
+- Officer core: #28 inbox (dept/ward scoping, filters, sort: emergency → critical overdue → score → SLA), #29 review-queue (routing / emergency / disputed / appeal), #30 status (transition rules, first_response_at, localized delay_reason; reject/close supervisor-only), #31 internal notes, #32 reassign (+ routing_corrections, human vote), #33 route-decision, #34 emergency confirm (SLA 4 h, critical) / deny, #41 officers with open/overdue counts, #42 incidents + recurring detection (asset or ~100 m cell, ≥3 in 90 days).
+- RBAC (Spec B §10): officers see only their department/wards; masked text for officers, raw only for admins; anonymous grievances hide the citizen name from gov users; citizens see only their own (or with ticket PIN); internal events hidden from citizens.
+- live_events on create/update with `dept:<id>`, `user:<id>`, `role:admin`, `public` audiences.
+- Tests `tests/test_p3_officer.py` (9). **P1–P3: 26 passed.**
+
 ## In progress
-P3 — tracking, notifications, search, officer core.
+P4 — officer AI, resolution verification, escalation, admin analytics.
 
 ## Next
 P3 tracking/notifications/officer core → P4 officer AI/verification/escalation/analytics → P5 hardening.
@@ -39,6 +46,7 @@ P3 tracking/notifications/officer core → P4 officer AI/verification/escalation
 
 ## API URL / live endpoints
 - URL: _not deployed yet_ (local: `http://localhost:8000/api/v1`).
+- Live after P3: #7–#11, #14–#19, #28–#34, #41, #42.
 - Live after P2: #1–#6, #12, #13 (+ demo helper `POST /auth/demo-login` in DEMO_MODE).
 - Live after P1: #20 `/meta/departments`, #21 `/meta/wards`, #22 `/meta/wards.geojson`, #23 `/meta/emergency-contacts`, #24 `/meta/assets/{id}`, #57 `/health`.
 
