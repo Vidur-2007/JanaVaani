@@ -2,6 +2,25 @@
 
 Additive changes, assumptions and requests about the shared contract (master §8/§9). Newest first.
 
+## P5
+
+### Heads-up for C (shared design/lib changes on `feat/citizen`; all additive, nothing renamed or removed)
+- **Paper (light) theme colours are darker, to meet WCAG AA.** `--primary` `#e8620c` → `#a83c06`, `--accent` → `#0a736b`, `--success` → `#0d7038`, `--warning` → `#8a5a00`, `--danger` → `#b3122a`, `--ai` → `#4349d6`. The Ink theme `--ai` is now `#8a90ff`. Same token names, so gov screens in paper mode pick them up after H30. White on primary is now 6.3:1 (was 3.4).
+- **`errorMessage(e)`** (`@/lib/api/client`) now returns a friendly, translated message by HTTP status (`common:errors.{network,unauthorized,forbidden,not_found,conflict,too_large,rate_limited,invalid,server}`) instead of raw server text. Same signature. Add `errors.*` to `gov.json` only if you want different wording.
+- **`Slider`** (`@/design/ui/slider`) takes an optional `thumbProps` (e.g. `{ 'aria-label': … , 'aria-valuetext': … }`). The thumb is the focusable element, so put the name there. The thumb is now 20 px with a 44 px hit area.
+- **`LanguageSwitcher`:** icon-only below 390 px; its accessible name is now "Language: <native name>" (WCAG 2.5.3 label-in-name).
+- **`DepartmentBadge iconOnly`** has `role="img"` (an `aria-label` on a bare span is not allowed).
+- **Map zoom buttons** (Leaflet `.leaflet-bar a`) are 44 px in `MapView`.
+- **New:** `@/lib/pwa/install` → `useInstallPrompt()` / `promptInstall()`. `beforeinstallprompt` is captured in `main.tsx`.
+- **PWA:** the service worker precaches the shell. Runtime caching: `/api/v1/*` network-first (6 s), fonts/OSM tiles/images cache-first. Navigations to `/api/*` never fall back to `index.html`.
+
+### Mock additions (additive)
+- `POST /guide/ask` answers in `ui_lang`. Department questions in any language/script (via `classify`) return `department_id` plus a localized "handled by <dept> (<agency>)" answer. Topic questions (emergencies, appeals, privacy, verification) return localized answers. Emergency questions always get the call-112 answer first.
+
+### Requests to B
+- `POST /guide/ask` should return `answer.original` in `ui_lang` (with `answer.en`), and `department_id` when the question maps to a department; the "Report this issue" button depends on it.
+- `GET /public/nearby` has no coordinates, by design. The Nearby map draws dots from `GET /public/map` (public-safe points) within the radius, so keep `/public/map` returning open issues with `status`.
+
 ## P2
 
 ### Heads-up for C (and anyone drawing maps)
