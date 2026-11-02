@@ -2,6 +2,20 @@
 
 Additive changes, assumptions and requests about the shared contract (master §8/§9). Newest first.
 
+## P6 (integration QA against B's API, offline mode, run locally from `origin/feat/ai-engine`)
+
+### Frontend changes (additive, in `src/lib`; nothing renamed)
+- **Demo tokens without Supabase:** when `VITE_API_MODE` is `hybrid`/`live` and Supabase isn't configured, demo/password sign-in with a seeded `@janavaani.test` email calls `POST /auth/demo-login` and sends that token as `Authorization: Bearer`. It's stored in `localStorage` `jv.apiToken` and cleared on sign-out. Any failure leaves the session token-less (mock fallbacks still apply).
+- **Hybrid fallback:** a **401 on a request sent without a token** now also falls back to mocks. With a token, a 401 is still a real error.
+- **`mediaUrl(url)`** (new export, `@/lib/api/client`): resolves API-relative media URLs (`/api/v1/uploads/{id}`) against the API origin. C: use it for `<img src>` on media from B (photos, resolution proofs) until Storage signed URLs exist.
+
+### Requests to B (found running master §16 citizen steps against the API)
+1. **Quick-reply labels are English only** (`"Share my location"`, `"Continue filing complaint"`, `"Confirm"`, `"Edit"`) even with `ui_lang: te|hi|ur`. Please localize `label` to `ui_lang`. The citizen UI already replaces `share_location`, confirm/edit and continue with its own translated controls, but other replies show as sent.
+2. **`share_location` is a UI action, not an answer.** We now open the location sheet for it and send `location` on the next turn. Please keep that value stable (or tell us if it changes).
+3. **Duplicate miss on the headline demo (§16 step 3):** "Miyapur X roads lo pedda gunta undi" at Miyapur X Roads (GPS 17.4969, 78.3548), on `confirm`, returned no `duplicate_check` against the seeded 32-supporter pothole incident with lexical embeddings. It matched only a complaint filed seconds earlier with the same words. With the real e5 model this should match, but please verify on the deployed Space. If not, a same-category + ≤300 m + open-incident rule should surface the incident regardless of text similarity.
+4. **Offline mode doesn't translate officer messages** (`/officer/grievances/{id}/message` returns `lang: en`). That's expected without keys. The demo needs Gemini so Lakshmi receives Telugu (§16 step 4).
+5. A guest without a token gets 401 on `GET /notifications` and `GET /me/grievances`. That's fine (we fall back to mocks). A guest who files via chat without a token can track only by ticket + PIN.
+
 ## P5
 
 ### Heads-up for C (shared design/lib changes on `feat/citizen`; all additive, nothing renamed or removed)
