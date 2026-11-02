@@ -1,5 +1,5 @@
 // ConfirmationCard (Spec A §5.4, features 20, 21, 53, 45, 48, 70). Shared by the chat and the quick report.
-import { lazy, Suspense, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Info, Loader2, MapPin, Pencil, X } from 'lucide-react';
 import type { DeepLang, GrievanceDraft, Location, Media } from '@contracts/types';
@@ -60,6 +60,7 @@ export function ConfirmationCard({
   onEdit,
   onCancel,
   onAddLocation,
+  editSignal = 0,
 }: {
   draft: GrievanceDraft;
   location?: Location;
@@ -70,6 +71,8 @@ export function ConfirmationCard({
   onEdit?: (text: string) => void;
   onCancel?: () => void;
   onAddLocation?: () => void;
+  /** Incrementing this opens the inline editor (e.g. after saying "no" in voice mode). */
+  editSignal?: number;
 }) {
   const { t } = useTranslation('citizen');
   const { t: tc } = useTranslation('common');
@@ -80,6 +83,9 @@ export function ConfirmationCard({
   const [priv, setPriv] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(draft.cleaned_original);
+  useEffect(() => {
+    if (editSignal > 0) setEditing(true);
+  }, [editSignal]);
 
   const loc = location ?? draft.location;
   const routing = draft.routing_preview;

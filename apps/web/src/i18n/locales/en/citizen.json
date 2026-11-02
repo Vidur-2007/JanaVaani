@@ -360,5 +360,36 @@
     "title": "Continue your unfinished complaint?",
     "continue": "Continue",
     "start_new": "Start new"
+  },
+  "voice": {
+    "open": "Speak instead of typing",
+    "title": "Voice mode",
+    "type_instead": "Type instead",
+    "close": "Close voice mode",
+    "language": "Voice language",
+    "auto": "Auto-detect",
+    "tap_speak": "Tap to speak",
+    "tap_stop": "Tap when you are done",
+    "tap_skip": "Tap to skip and answer",
+    "status": {
+      "consent": "",
+      "ready": "Tap the circle and speak",
+      "listening": "Listening…",
+      "thinking": "Understanding…",
+      "speaking": "Speaking…",
+      "denied": "",
+      "unsupported": ""
+    },
+    "say_yes": "Say “yes”, “avunu” or “haan” to submit. Say “no” to change it.",
+    "edit": "Change the complaint",
+    "consent_title": "Use your microphone?",
+    "consent_body": "JanaVaani listens only while the circle is glowing, to turn your words into a complaint. You can stop any time and type instead.",
+    "consent_allow": "Allow microphone",
+    "denied_title": "Microphone is blocked",
+    "denied_body": "Allow the microphone for this site in your browser settings, or type your complaint instead.",
+    "unsupported_title": "Voice is not supported here",
+    "unsupported_body": "This browser cannot record audio. Please type your complaint instead.",
+    "no_voice": "Voice not available on this device for {{lang}}. The reply is shown as text.",
+    "got_it": "Got it"
   }
 }

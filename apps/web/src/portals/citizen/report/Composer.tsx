@@ -58,9 +58,11 @@ export interface ComposerProps {
   placeholder?: string;
   /** Pending photos: allows sending with an empty text box. */
   hasAttachments?: boolean;
+  /** When set, the mic opens full voice mode instead of simple dictation. */
+  onVoice?: () => void;
 }
 
-export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder, hasAttachments }: ComposerProps) {
+export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder, hasAttachments, onVoice }: ComposerProps) {
   const { t } = useTranslation('citizen');
   const [text, setText] = useState('');
   const [viaVoice, setViaVoice] = useState(false);
@@ -117,7 +119,11 @@ export function Composer({ onSend, disabled, lang, tools, autoFocus, placeholder
         className="placeholder:text-muted-foreground max-h-40 min-h-11 flex-1 resize-none bg-transparent px-2 py-2.5 text-base outline-none"
         data-testid="composer-input"
       />
-      {dictation.supported && (
+      {onVoice ? (
+        <Button type="button" variant="ghost" size="icon" className="touch-target shrink-0 rounded-full" onClick={onVoice} aria-label={t('voice.open')} data-testid="voice-open">
+          <Mic className="size-5" aria-hidden />
+        </Button>
+      ) : dictation.supported && (
         <Button
           type="button"
           variant={dictation.listening ? 'destructive' : 'ghost'}

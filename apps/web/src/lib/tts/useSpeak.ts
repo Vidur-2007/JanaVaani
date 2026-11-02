@@ -37,6 +37,57 @@ export async function hasBrowserVoice(lang: Lang) {
   return pickVoice(await loadVoices(), lang) !== null;
 }
 
+export type SpeakResult = 'done' | 'unavailable' | 'cancelled';
+
+let currentAudio: HTMLAudioElement | null = null;
+
+/** Stop anything `speakText` is playing. */
+export function cancelSpeech() {
+  synth?.cancel();
+  currentAudio?.pause();
+  currentAudio = null;
+}
+
+/**
+ * Speak and resolve when finished (voice mode's turn-taking needs the end of speech).
+ * Browser voice → server /speech/tts → 'unavailable' (no voice for this language on this device).
+ */
+export async function speakText(text: string, lang: Lang, rate = usePrefs.getState().tts_rate): Promise<SpeakResult> {
+  cancelSpeech();
+  if (!text.trim()) return 'done';
+  const voice = pickVoice(await loadVoices(), lang);
+  if (synth && voice) {
+    return new Promise<SpeakResult>((resolve) => {
+      const u = new SpeechSynthesisUtterance(text);
+      u.voice = voice;
+      u.lang = voice.lang;
+      u.rate = rate;
+      u.onend = () => resolve('done');
+      u.onerror = (e) => resolve(e.error === 'interrupted' || e.error === 'canceled' ? 'cancelled' : 'unavailable');
+      synth.speak(u);
+    });
+  }
+  try {
+    const blob = await api.tts({ text, lang });
+    if (!blob.type.startsWith('audio')) return 'unavailable';
+    const url = URL.createObjectURL(blob);
+    const a = new Audio(url);
+    a.playbackRate = rate;
+    currentAudio = a;
+    return await new Promise<SpeakResult>((resolve) => {
+      a.onended = () => {
+        URL.revokeObjectURL(url);
+        resolve('done');
+      };
+      a.onpause = () => resolve('cancelled');
+      a.onerror = () => resolve('unavailable');
+      a.play().catch(() => resolve('unavailable'));
+    });
+  } catch {
+    return 'unavailable';
+  }
+}
+
 export function useSpeak() {
   const rate = usePrefs((s) => s.tts_rate);
   const [status, setStatus] = useState<SpeakStatus>('idle');

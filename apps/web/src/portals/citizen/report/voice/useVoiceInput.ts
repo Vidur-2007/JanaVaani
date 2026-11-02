@@ -1,7 +1,9 @@
 // Microphone input for voice mode (Spec A §5.5):
 // - getUserMedia → AnalyserNode → RMS level (drives the orb and silence detection);
 // - known language + Web Speech → SpeechRecognition with live captions;
-// - Auto-detect, no Web Speech, or a recognition error → MediaRecorder → POST /speech/transcribe.
+// - Auto-detect, no Web Speech, or a recognition failure → MediaRecorder → POST /speech/transcribe.
+// The recorder always runs alongside Web Speech, so a stalled or failing recognizer never loses the turn:
+// after the turn ends we wait up to RESOLVE_MS for a Web Speech transcript, else transcribe the recording.
 // A turn ends after `silenceMs` of quiet following speech, on stop() (tap), or after `maxMs`.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DeepLang, Lang } from '@contracts/types';
@@ -22,6 +24,21 @@ export interface VoiceInputOptions {
 
 const SPEAK_LEVEL = 0.09; // level that counts as speech
 const QUIET_LEVEL = 0.05; // level that counts as silence
+const RESOLVE_MS = 1500; // how long to wait for Web Speech after the turn ends
+
+interface Turn {
+  id: number;
+  active: boolean;
+  spoke: boolean;
+  quietSince: number;
+  startedAt: number;
+  finalText: string;
+  interim: string;
+  recDone: boolean;
+  blob: Blob | null;
+  delivered: boolean;
+  timer: number;
+}
 
 export function useVoiceInput({ lang, onFinal, silenceMs = 1500, maxMs = 20_000 }: VoiceInputOptions) {
   const [status, setStatus] = useState<InputStatus>('idle');
@@ -33,16 +50,19 @@ export function useVoiceInput({ lang, onFinal, silenceMs = 1500, maxMs = 20_000 
   const audio = useRef<{ ctx: AudioContext; analyser: AnalyserNode; data: Float32Array<ArrayBuffer> } | null>(null);
   const rec = useRef<Recognition | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
-  const chunks = useRef<Blob[]>([]);
   const raf = useRef(0);
-  const turn = useRef({ active: false, spoke: false, quietSince: 0, startedAt: 0, finalText: '', interim: '' });
+  const turnSeq = useRef(0);
+  const turn = useRef<Turn>({ id: 0, active: false, spoke: false, quietSince: 0, startedAt: 0, finalText: '', interim: '', recDone: true, blob: null, delivered: true, timer: 0 });
   const webSpeechBroken = useRef(false);
   const onFinalRef = useRef(onFinal);
   onFinalRef.current = onFinal;
+  const langRef = useRef(lang);
+  langRef.current = lang;
 
   const ensureStream = useCallback(async () => {
     if (stream.current) return stream.current;
-    if (!navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error('unsupported'), { name: 'NotSupportedError' });
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined')
+      throw Object.assign(new Error('unsupported'), { name: 'NotSupportedError' });
     const s = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     stream.current = s;
     const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -59,15 +79,49 @@ export function useVoiceInput({ lang, onFinal, silenceMs = 1500, maxMs = 20_000 
     levelRef.current = 0;
   };
 
-  /** End the current turn: stop the engine; the transcript is delivered by the engine's end handler. */
+  /** Decide the transcript for a finished turn (Web Speech text if any, else server transcription). */
+  const resolveTurn = useCallback(async (t: Turn, force = false) => {
+    if (t.delivered || t.active) return;
+    const text = (t.finalText || t.interim).trim();
+    const webDone = t.recDone || force;
+    if (text && webDone) {
+      t.delivered = true;
+      window.clearTimeout(t.timer);
+      setStatus('idle');
+      onFinalRef.current(text, langRef.current === 'auto' ? undefined : langRef.current, 'webspeech');
+      return;
+    }
+    if (!webDone || !t.blob) return; // still waiting for Web Speech or the recording
+    t.delivered = true;
+    window.clearTimeout(t.timer);
+    if (!t.spoke && t.blob.size < 2000) {
+      setStatus('idle');
+      return;
+    }
+    setEngine('recorder');
+    setStatus('transcribing');
+    try {
+      const res = await api.transcribe(t.blob, langRef.current === 'auto' ? undefined : langRef.current);
+      if (turn.current.id !== t.id) return;
+      setCaption(res.text);
+      setStatus('idle');
+      if (res.text.trim()) onFinalRef.current(res.text.trim(), res.language, 'recorder');
+    } catch {
+      setStatus('error');
+    }
+  }, []);
+
+  /** End the current turn (silence, tap or time limit). */
   const finish = useCallback(() => {
     const t = turn.current;
     if (!t.active) return;
     t.active = false;
     stopMeter();
-    if (rec.current) rec.current.stop();
-    else if (recorder.current && recorder.current.state !== 'inactive') recorder.current.stop();
-  }, []);
+    rec.current?.stop();
+    if (recorder.current && recorder.current.state !== 'inactive') recorder.current.stop();
+    // Don't wait forever for a recognizer that never reports back.
+    t.timer = window.setTimeout(() => resolveTurn(t, true), RESOLVE_MS);
+  }, [resolveTurn]);
 
   const meter = useCallback(() => {
     const a = audio.current;
@@ -95,83 +149,6 @@ export function useVoiceInput({ lang, onFinal, silenceMs = 1500, maxMs = 20_000 
     raf.current = requestAnimationFrame(loop);
   }, [finish, silenceMs, maxMs]);
 
-  const startRecorder = useCallback(
-    (s: MediaStream) => {
-      setEngine('recorder');
-      const mime = pickRecorderMime();
-      const r = new MediaRecorder(s, mime ? { mimeType: mime } : undefined);
-      chunks.current = [];
-      r.ondataavailable = (e) => e.data.size && chunks.current.push(e.data);
-      r.onstop = async () => {
-        recorder.current = null;
-        const blob = new Blob(chunks.current, { type: r.mimeType || 'audio/webm' });
-        if (!turn.current.spoke && blob.size < 2000) {
-          setStatus('idle');
-          return;
-        }
-        setStatus('transcribing');
-        try {
-          const res = await api.transcribe(blob, lang === 'auto' ? undefined : lang);
-          setCaption(res.text);
-          setStatus('idle');
-          if (res.text.trim()) onFinalRef.current(res.text.trim(), res.language, 'recorder');
-        } catch {
-          setStatus('error');
-        }
-      };
-      recorder.current = r;
-      r.start(250);
-    },
-    [lang],
-  );
-
-  const startWebSpeech = useCallback(
-    (s: MediaStream) => {
-      setEngine('webspeech');
-      const r = new RecognitionCtor!();
-      r.lang = SPEECH_CODES[lang as DeepLang] ?? 'en-IN';
-      r.interimResults = true;
-      r.continuous = true;
-      r.onresult = (e) => {
-        let interim = '';
-        let final = '';
-        for (let i = 0; i < e.results.length; i++) {
-          const res = e.results[i];
-          if (res.isFinal) final += res[0].transcript + ' ';
-          else interim += res[0].transcript;
-        }
-        turn.current.finalText = final.trim();
-        turn.current.interim = interim.trim();
-        turn.current.spoke = true;
-        setCaption(`${final}${interim}`.trim());
-      };
-      r.onerror = (e) => {
-        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-          rec.current = null;
-          webSpeechBroken.current = true;
-          // The mic itself works (we have a stream); fall back to recording for this turn.
-          if (turn.current.active) startRecorder(s);
-        } else if (e.error === 'network' || e.error === 'language-not-supported') {
-          webSpeechBroken.current = true;
-          rec.current = null;
-          if (turn.current.active) startRecorder(s);
-        }
-      };
-      r.onend = () => {
-        if (rec.current !== r) return; // replaced by the recorder fallback
-        rec.current = null;
-        const text = (turn.current.finalText || turn.current.interim).trim();
-        turn.current.active = false;
-        stopMeter();
-        setStatus('idle');
-        if (text) onFinalRef.current(text, lang === 'auto' ? undefined : lang, 'webspeech');
-      };
-      rec.current = r;
-      r.start();
-    },
-    [lang, startRecorder],
-  );
-
   /** Start a listening turn (asks for the mic on first use). */
   const start = useCallback(async () => {
     if (turn.current.active) return;
@@ -186,16 +163,73 @@ export function useVoiceInput({ lang, onFinal, silenceMs = 1500, maxMs = 20_000 
       setStatus(name === 'NotAllowedError' || name === 'SecurityError' ? 'denied' : name === 'NotSupportedError' ? 'unsupported' : 'error');
       return;
     }
-    turn.current = { active: true, spoke: false, quietSince: 0, startedAt: performance.now(), finalText: '', interim: '' };
+    const useWeb = langRef.current !== 'auto' && !!RecognitionCtor && !webSpeechBroken.current;
+    const t: Turn = { id: ++turnSeq.current, active: true, spoke: false, quietSince: 0, startedAt: performance.now(), finalText: '', interim: '', recDone: !useWeb, blob: null, delivered: false, timer: 0 };
+    turn.current = t;
+
+    // Recorder: always on (fallback + Auto-detect path).
+    const mime = pickRecorderMime();
+    const r = new MediaRecorder(s, mime ? { mimeType: mime } : undefined);
+    const chunks: Blob[] = [];
+    r.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    r.onstop = () => {
+      if (recorder.current === r) recorder.current = null;
+      t.blob = new Blob(chunks, { type: r.mimeType || 'audio/webm' });
+      resolveTurn(t);
+    };
+    recorder.current = r;
+    r.start(250);
+
+    // Web Speech: live captions in the chosen language.
+    setEngine(useWeb ? 'webspeech' : 'recorder');
+    if (useWeb) {
+      const recog = new RecognitionCtor!();
+      recog.lang = SPEECH_CODES[langRef.current as DeepLang] ?? 'en-IN';
+      recog.interimResults = true;
+      recog.continuous = true;
+      recog.onresult = (e) => {
+        let interim = '';
+        let final = '';
+        for (let i = 0; i < e.results.length; i++) {
+          const res = e.results[i];
+          if (res.isFinal) final += res[0].transcript + ' ';
+          else interim += res[0].transcript;
+        }
+        t.finalText = final.trim();
+        t.interim = interim.trim();
+        setCaption(`${final}${interim}`.trim());
+      };
+      recog.onerror = (e) => {
+        // Network/permission/unsupported-language failures: stop using Web Speech; the recording covers this turn.
+        if (['network', 'not-allowed', 'service-not-allowed', 'language-not-supported'].includes(e.error)) webSpeechBroken.current = true;
+      };
+      recog.onend = () => {
+        if (rec.current === recog) rec.current = null;
+        t.recDone = true;
+        if (t.active) {
+          // The recognizer stopped on its own (it does after a pause): end the turn too.
+          finish();
+        } else resolveTurn(t);
+      };
+      rec.current = recog;
+      try {
+        recog.start();
+      } catch {
+        t.recDone = true;
+        rec.current = null;
+      }
+    }
+
     setStatus('listening');
     meter();
-    if (lang !== 'auto' && RecognitionCtor && !webSpeechBroken.current) startWebSpeech(s);
-    else startRecorder(s);
-  }, [ensureStream, lang, meter, startRecorder, startWebSpeech]);
+  }, [ensureStream, finish, meter, resolveTurn]);
 
   /** Abort without delivering a transcript. */
   const cancel = useCallback(() => {
-    turn.current.active = false;
+    const t = turn.current;
+    t.active = false;
+    t.delivered = true;
+    window.clearTimeout(t.timer);
     stopMeter();
     if (rec.current) {
       const r = rec.current;
@@ -205,8 +239,8 @@ export function useVoiceInput({ lang, onFinal, silenceMs = 1500, maxMs = 20_000 
     if (recorder.current && recorder.current.state !== 'inactive') {
       recorder.current.onstop = null;
       recorder.current.stop();
-      recorder.current = null;
     }
+    recorder.current = null;
     setStatus('idle');
   }, []);
 

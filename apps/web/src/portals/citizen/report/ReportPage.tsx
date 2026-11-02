@@ -1,5 +1,5 @@
 // Report assistant (Spec A §5.4) — the hero feature. Driven entirely by POST /chat/turn; the UI follows response.stage.
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +22,7 @@ import { PhotoButton, PhotoTray, usePhotoUpload } from './PhotoAttach';
 import { isActionValue, useChatSession } from './useChatSession';
 import { clearDraft, loadDraft, saveDraft, userText, type SavedDraft } from './drafts';
 import { queueOutbox } from './outbox';
+import { VoiceMode } from './voice/VoiceMode';
 
 export default function ReportPage() {
   const { t } = useTranslation('citizen');
@@ -39,6 +40,15 @@ export default function ReportPage() {
   useEffect(() => setAsset(assetId), [assetId, setAsset]);
 
   const photo = usePhotoUpload(chat.attachMedia, chat.snap.location);
+
+  // Voice mode: mic button or ?mode=voice; voice-first users get it by default (?mode=text overrides).
+  const [voiceOpen, setVoiceOpen] = useState(() => params.get('mode') === 'voice' || (prefs.voice_first && params.get('mode') !== 'text'));
+  const [editSignal, setEditSignal] = useState(0);
+  const closeVoice = useCallback(() => setVoiceOpen(false), []);
+  const voiceEdit = useCallback(() => {
+    setVoiceOpen(false);
+    setEditSignal((n) => n + 1);
+  }, []);
 
   // ---- Drafts: offer to resume an unfinished conversation; save after every turn.
   const online = useOnline();
@@ -170,6 +180,7 @@ export default function ReportPage() {
         onEdit={(text) => send({ action: 'edit', action_payload: { text }, display: text })}
         onCancel={() => send({ action: 'cancel', display: tc('actions.cancel') })}
         onAddLocation={() => setLocOpen(true)}
+        editSignal={editSignal}
       />
     );
   const lang = (res?.detected_language ?? uiLang) as Lang;
@@ -202,6 +213,8 @@ export default function ReportPage() {
           <span className="truncate">{locationLabel(chat.snap.location)}</span>
         </button>
       )}
+
+      {voiceOpen && <VoiceMode chat={chat} uiLang={uiLang} onClose={closeVoice} onEdit={voiceEdit} />}
 
       {stage === 'emergency' && res?.emergency && (
         <EmergencyTakeover
@@ -279,7 +292,8 @@ export default function ReportPage() {
             disabled={pending || photo.busy}
             hasAttachments={chat.snap.media.length > 0}
             onSend={(text, mode) => send({ text: text || undefined, input_mode: mode })}
-            autoFocus={params.get('mode') !== 'voice'}
+            autoFocus={!voiceOpen}
+            onVoice={() => setVoiceOpen(true)}
             tools={
               <>
                 <PhotoButton onClick={photo.open} busy={photo.busy} />
