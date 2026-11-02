@@ -232,7 +232,7 @@ export function CitizenLayout() {
             </>
           )}
         </nav>
-        <main id="main" className="min-w-0 flex-1 px-4 pt-4 pb-28 md:px-8 md:pt-8 md:pb-12">
+        <main id="main" className="min-w-0 flex-1 px-4 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-8 md:pt-8 md:pb-12">
           <Suspense fallback={<RouteFallback />}>
             <AnimatedOutlet />
           </Suspense>

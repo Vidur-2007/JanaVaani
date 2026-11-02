@@ -30,7 +30,7 @@ export function EmergencyTakeover({ info, uiLang, onContinue, busy }: { info: Em
       aria-modal="true"
       aria-labelledby="em-title"
       aria-describedby="em-message"
-      className="fixed inset-0 z-[100] overflow-y-auto bg-[#2a0408] text-white"
+      className="fixed inset-0 z-[100] overflow-y-auto bg-[#2a0408] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white"
       data-testid="emergency-takeover"
     >
       {animate && !reduced && (

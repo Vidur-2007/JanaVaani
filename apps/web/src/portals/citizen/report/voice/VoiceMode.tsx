@@ -139,7 +139,7 @@ export function VoiceMode({ chat, uiLang, onClose, onEdit }: { chat: ChatSession
       role="dialog"
       aria-modal="true"
       aria-label={t('voice.title')}
-      className="fixed inset-0 z-[90] flex flex-col overflow-y-auto bg-[radial-gradient(80%_60%_at_50%_35%,#131a2c,#070a12)] text-white"
+      className="fixed inset-0 z-[90] flex flex-col overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[radial-gradient(80%_60%_at_50%_35%,#131a2c,#070a12)] text-white"
       data-testid="voice-mode"
     >
       <header className="flex items-center justify-between gap-2 p-4">

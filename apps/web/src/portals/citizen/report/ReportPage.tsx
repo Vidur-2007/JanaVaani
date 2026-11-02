@@ -362,7 +362,7 @@ export default function ReportPage() {
         )}
       </div>
 
-      <div className="bg-bg/95 sticky bottom-16 z-10 -mx-4 space-y-2 px-4 pt-2 pb-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">
+      <div className="bg-bg/95 sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 -mx-4 space-y-2 px-4 pt-2 pb-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">
         <QuickReplies
           items={quickReplies}
           onPick={pick}

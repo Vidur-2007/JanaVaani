@@ -250,7 +250,7 @@ export default function Guide() {
 
       <form
         onSubmit={onSubmit}
-        className="bg-surface focus-within:ring-ring/60 sticky bottom-4 flex items-end gap-2 rounded-[var(--radius-xl)] border p-2 shadow-lg focus-within:ring-2"
+        className="bg-surface focus-within:ring-ring/60 sticky bottom-[max(1rem,env(safe-area-inset-bottom))] flex items-end gap-2 rounded-[var(--radius-xl)] border p-2 shadow-lg focus-within:ring-2"
       >
         <label htmlFor="guide-input" className="sr-only">
           {t('guide.placeholder')}
