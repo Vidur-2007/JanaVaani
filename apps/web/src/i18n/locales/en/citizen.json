@@ -5,7 +5,21 @@
     "subtitle": "What would you like to do today?",
     "active": "Your active complaints",
     "empty_title": "No complaints yet",
-    "empty_body": "When you report a problem, you can follow it here."
+    "empty_body": "When you report a problem, you can follow it here.",
+    "verify_title_one": "Is your problem fixed?",
+    "verify_title_other": "{{count}} complaints need your check",
+    "verify_body": "The office says the work is done. Tell us if it really is.",
+    "see_all": "See all",
+    "unread_one": "You have {{count}} new update",
+    "unread_other": "You have {{count}} new updates",
+    "open_map": "Map",
+    "nearby_empty": "No open issues near you right now.",
+    "distance": "{{distance}} away",
+    "reports_one": "{{count}} report",
+    "reports_other": "{{count}} reports",
+    "me_too": "Me too",
+    "supported": "Thanks, your support was added.",
+    "supported_short": "Added"
   },
   "tiles": {
     "voice": "Report by voice",
