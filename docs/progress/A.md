@@ -1,13 +1,61 @@
 # Progress — Laptop A (foundation, landing, citizen portal)
 
 ## Current phase
-**P3 — Voice + low-literacy: DONE (Steps 2 and 3).** **Step 1 (hybrid mode on B's API) is BLOCKED.** As of 2026-11-02, `feat/ai-engine` is still at the docs commit: no `docs/progress/B.md`, no deployed URL. Next: P4 (tracking, verification, appeals, notifications).
+**P4 — Tracking, verification, appeals, notifications: DONE (all 8 items, mock mode).** **Hybrid testing against B's API is still BLOCKED.** As of 2026-11-02, `origin/feat/ai-engine` is still at `79b9d33` (docs only): no `docs/progress/B.md`, no deployed URL. Use the P3 Step 1 checklist below as soon as B posts the URL, and also run the P4 flows live (tracker, feedback, reopen, appeal, messages, `/search`, `/translate`, notifications). Next: P5.
 
 ### P3 Step 1: do this as soon as B posts the API URL
 1. Read-only check: `git fetch origin && git show origin/feat/ai-engine:docs/progress/B.md` (and `docs/contract-notes/B.md`).
 2. `apps/web/.env.local` (gitignored): `VITE_API_MODE=hybrid` and `VITE_API_BASE_URL=<B's URL>/api/v1`.
 3. Run the report flow live: chat (Telugu, emergency, Miyapur duplicate), upload, analyze, create, track with PIN, `/speech/transcribe`.
 4. Fix our side (extra types go in `portals/citizen/types-ext.ts`). Log API-side mismatches in `docs/contract-notes/A.md`. The MOCK badge shows how many calls fell back to mocks.
+
+## Done (P4)
+- **Mocks** (additive):
+  - `/search?scope=mine` matches across languages through the department classifier, so Telugu "వీధి లైట్" finds an English streetlight complaint.
+  - Chat tracking intent ("what happened to my water complaint?", ఏమైంది, क्या हुआ, کیا ہوا…) → `stage: 'answered'` + `tracked[]` filtered by department.
+  - Supporters are recorded; resolving a complaint sends them a `community_update`. Lakshmi has one seeded.
+- **My complaints (`/app/complaints`):**
+  - Filter chips (all / open / needs my action / closed), synced to `?filter=`.
+  - Debounced cross-language search (`/search?scope=mine`).
+  - On-demand title translation (`/translate`, cached forever per text and language), with "Show original".
+- **Tracker (`/app/complaints/:id`):**
+  - Header: Listen (spoken summary), translate, priority "why" popover, closure label (citizen-verified / auto-closed / rejected).
+  - 7-step progress with animated checks: vertical on mobile, horizontal from `md`.
+  - Full activity history, including transfer reasons.
+  - Deadline panel: live countdown, ETA, delay reason, escalation level.
+  - Office card.
+  - Evidence with BeforeAfterSlider and the AI verification badge (verdict + reasons).
+  - Message thread with reply (shows the original or English).
+  - Receipt + full report downloads.
+  - Owner actions also work with the guest PIN.
+- **"Is it fixed?":**
+  - Yes → 1–5 stars + comment → closed (citizen-verified).
+  - No → reason chips + text/dictation + photo (`purpose: verification`) → reopened; the steps go back to "In progress".
+  - After closure: "Problem came back?" reopen, and appeal filing with its own status card (filed / under review / upheld / dismissed).
+- **"I'm affected too":**
+  - Nearby rows link to the complaint and also have an inline support button.
+  - A non-owner gets a 403 → public-safe card (no private details) with support → celebration.
+- **Full status report PDF** (`/print/report/:id`): adds closure type + rating, priority factors, AI verification, appeal, and the message log to the receipt.
+- **Guest `/track`:** ticket + PIN shows the full tracker. A wrong PIN shows an inline alert.
+- **Notifications (`/app/notifications`):**
+  - Grouped by day (Asia/Kolkata), with type icons and unread dots.
+  - Tapping an item marks it read and deep-links to its tracker; mark all read.
+  - Community updates ("The issue you supported is fixed").
+  - Realtime toasts with a "View" deep link come from the shell's `useLiveEvent`.
+- **Chat tracking:** the "answered" stage shows mini tracker cards (status, department, deadline, 7-segment step bar, office), plus "See all my complaints".
+- **i18n:** all 120 new P4 strings in te/hi/ur; key parity is 0 missing across common/landing/citizen.
+- **Quality:**
+  - Build, lint (0/0) and `test:mocks` (59/59 handlers) pass.
+  - **Playwright 111/111** on chromium/msedge/mobile-chrome.
+  - New `e2e/citizen/tracker.spec.ts`: tracker → reject closure → reopen; accept with stars → appeal; message reply; guest PIN (wrong + right, then reopen with PIN); Nearby → affected too; filter chips + Telugu search; notifications (community update, mark all read, deep link); chat tracking for Imran's water complaint.
+
+## Human checks for P4 (to do)
+- [ ] As Lakshmi, open `GRV-2026-000119` (streetlight). The AI badge says "suspicious". Drag the before/after slider. Tap Listen in Telugu.
+- [ ] "No, not fixed" with a real photo from the phone camera → reopened; the steps go back.
+- [ ] Download the full report PDF from a closed complaint and check that the Telugu/Urdu text renders.
+- [ ] Guest: `/track` with `GRV-2026-000119` + PIN `936329` on a phone.
+- [ ] In the chat, ask "నా నీటి ఫిర్యాదు ఏమైంది?" (as Lakshmi) and "What happened to my water complaint?" (as Imran) → mini tracker cards.
+- [ ] Leave the app open for 20+ s → a toast for new notifications (mock poll) and the unread count updates.
 
 ## Done (P3)
 - **Voice Orb:** an R3F icosphere displaced by simplex noise that follows the live mic level, with colors per state (listening / thinking / speaking). Lazy three.js chunk; CSS orb under reduced motion or without WebGL.
@@ -125,15 +173,15 @@ Scaffold on `main`, tag `v0-scaffold`: workspaces + all deps, contracts (§8/§9
 - [ ] Lighthouse mobile on `/` (target ≥ 85 performance). Run it against `npm run build && npm run preview`, not the dev server.
 - [ ] OS "reduce motion" on → the static hero shows (no 3D), and the scroll story is stacked, not pinned.
 
-## Next (P4, H19–H25)
-- Complaint tracker (Spec A §5.10): verify fixed / not fixed, reopen, appeal, messages; guest tracking polish; notifications center; My complaints filters + cross-language search (§5.8, §5.11, §5.12).
+## Next (P5)
+- Per `docs/prompts/PROMPTS-A.md` P5. Before that, run the P3 Step 1 hybrid checklist and the P4 live checks once B's URL exists.
 
 ## Blockers
-- None. Supabase keys are not needed in mock mode.
+- Hybrid/live testing needs B's deployed API (`origin/feat/ai-engine` still has no app code). Everything else works in mock mode.
 
 ## Notes for the team
 - **Breakpoints follow master §11:** `sm` = 390 px, `md` = 768, `lg` = 1024 (not Tailwind's default 640 for `sm`). Use `md:` for "desktop".
-- Branch state: C must run `git merge v0-scaffold` once. `feat/ai-engine` is untouched.
+- Branch state: C has merged the scaffold and is pushing gov P1 work. `feat/ai-engine` is untouched (docs commit only).
 
 ## Contract notes
 See `docs/contract-notes/A.md`. Requested from B: `GET /me`, `app_metadata.role` on demo users, ward/asset id formats.
@@ -143,6 +191,6 @@ See `docs/contract-notes/A.md`. Requested from B: `GET /me`, `app_metadata.role`
 - Suspicious-closure streetlight (Ameerpet): `GRV-2026-000119`, PIN `936329`.
 
 ## Known issues / follow-ups
-- The error state offers "Try again" on 403s from the tracker; refine in P4.
+- Fixed in P4: a 403 on the tracker now shows the "I'm affected too" card instead of an error.
 - On the landing page at 360 px, the icon-only demo role switcher sits near the hero's "Track" button (demo mode only).
 - The City Pulse chunk is large (~244 KB gz) because R3F pulls in all of three.js. It is lazy and idle-loaded, but trim it in P6 if Lighthouse complains.
