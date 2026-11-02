@@ -273,5 +273,13 @@
     "private_hint": "Your complaint will not appear on public maps or nearby lists.",
     "voice_hint": "Say “avunu”, “haan” or “yes” to confirm",
     "submit": "Confirm & submit"
+  },
+  "split": {
+    "title_one": "We found {{count}} problem",
+    "title_other": "We found {{count}} separate problems",
+    "subtitle": "Each one goes to the right department with its own ticket. Untick any you don't want to register.",
+    "goes_to": "Goes to {{officer}}",
+    "submit_one": "Register {{count}} complaint",
+    "submit_other": "Register {{count}} complaints"
   }
 }

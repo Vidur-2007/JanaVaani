@@ -10,6 +10,7 @@ import { api, qk } from '@/lib/api/endpoints';
 import { replyLang, usePrefs } from '@/lib/prefs/store';
 import { Composer } from './Composer';
 import { ConfirmationCard, type ConfirmOptions } from './ConfirmationCard';
+import { SplitDrafts } from './SplitDrafts';
 import { LanguageChip, ProgressDots, QuickReplies, type QuickReply } from './ChatChrome';
 import { MessageList } from './MessageList';
 import { LocationButton, LocationSheet, locationLabel } from './LocationSheet';
@@ -58,6 +59,15 @@ export default function ReportPage() {
   const confirm = (o: ConfirmOptions) => send({ action: 'confirm', submit_options: o, display: t('confirm.submit') });
 
   let footer: ReactNode = null;
+  if (stage === 'confirming' && res?.drafts && res.drafts.length > 1 && !pending)
+    footer = (
+      <SplitDrafts
+        drafts={res.drafts}
+        busy={pending}
+        onConfirm={(draft_ids, o) => send({ action: 'split_confirm', action_payload: { draft_ids }, submit_options: o, display: t('split.submit', { count: draft_ids.length }) })}
+        onCancel={() => send({ action: 'cancel', display: tc('actions.cancel') })}
+      />
+    );
   if (stage === 'confirming' && res?.draft && !pending)
     footer = (
       <ConfirmationCard
