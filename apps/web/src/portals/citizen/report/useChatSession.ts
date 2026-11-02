@@ -48,6 +48,8 @@ export interface SendOptions {
   submit_options?: ChatTurnRequest['submit_options'];
   /** Don't echo a user bubble (used when resuming a draft). */
   silent?: boolean;
+  /** Location chosen together with this turn (also becomes the session location). */
+  location?: Location;
 }
 
 export function useChatSession(opts: { uiLang: DeepLang; initial?: SessionSnapshot; greeting: string }) {
@@ -76,7 +78,11 @@ export function useChatSession(opts: { uiLang: DeepLang; initial?: SessionSnapsh
               return { id: mid(), role: 'user', text: shown ?? '', lang: s.lang, dir: s.rtl ? 'rtl' : 'ltr', media: cur.media.length ? cur.media : undefined };
             })()
           : null;
-      setSnap((p) => ({ ...p, messages: userMsg ? [...p.messages.filter((m) => !m.error), userMsg] : p.messages.filter((m) => !m.error) }));
+      setSnap((p) => ({
+        ...p,
+        location: o.location ?? p.location,
+        messages: userMsg ? [...p.messages.filter((m) => !m.error), userMsg] : p.messages.filter((m) => !m.error),
+      }));
       setPending(true);
       try {
         const res = await api.chatTurn({
@@ -86,7 +92,7 @@ export function useChatSession(opts: { uiLang: DeepLang; initial?: SessionSnapsh
           ui_lang: opts.uiLang,
           lang_hint: o.text ? (detectScript(o.text).lang as Lang) : undefined,
           media_ids: cur.media.length ? cur.media.map((m) => m.id) : undefined,
-          location: cur.location,
+          location: o.location ?? cur.location,
           asset_id: cur.asset_id,
           action: o.action,
           action_payload: o.action_payload,
@@ -107,9 +113,9 @@ export function useChatSession(opts: { uiLang: DeepLang; initial?: SessionSnapsh
           ...p,
           session_id: res.session_id,
           response: res,
-          // Attachments and location travel with the turn they were sent in.
+          // Attachments travel with the turn they were sent in. The location is only what the citizen chose;
+          // an AI-extracted place (draft.location.source === 'text') stays a suggestion until accepted.
           media: [],
-          location: res.draft?.location ?? p.location,
           messages: [...p.messages, botMsg],
         }));
         return res;

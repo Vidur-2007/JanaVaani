@@ -206,5 +206,26 @@
     },
     "photo_retake_hint": "This photo may be hard for the officer to see. Want to take a clearer one?",
     "photo_retake": "Retake"
+  },
+  "location": {
+    "title": "Where is the problem?",
+    "subtitle": "An exact spot helps the right team reach it faster.",
+    "tab_gps": "My location",
+    "tab_map": "Pick on map",
+    "tab_text": "Landmark",
+    "gps_hint": "Use your phone's location if you are standing at the problem.",
+    "use_gps": "Use my location",
+    "locating": "Finding you…",
+    "denied": "Location is blocked. Pick on the map or type a landmark instead.",
+    "gps_error": "Could not get your location. Try the map instead.",
+    "accuracy": "Accurate to about {{m}} m",
+    "in_ward": "{{ward}} · {{zone}} zone",
+    "outside": "Outside the demo wards",
+    "drag_hint": "Drag the pin or tap the map to move it.",
+    "landmark": "Nearby landmark or address",
+    "landmark_placeholder": "e.g. opposite the temple, Miyapur X Roads",
+    "confirm": "Use this location",
+    "did_you_mean": "Did you mean: {{place}}?",
+    "use_this": "Use"
   }
 }
