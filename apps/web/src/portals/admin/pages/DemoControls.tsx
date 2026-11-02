@@ -20,6 +20,7 @@ import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { cn } from '@/lib/utils';
 import { Panel } from '@/portals/gov-shared/components/Panel';
 import type { ClockResult } from '@/portals/gov-shared/types-ext';
+import { DemoMoments } from '../components/DemoMoments';
 
 const JUMPS = [6, 24, 48];
 const HEALTHY = ['ok', 'loaded', 'mock', 'available', 'semantic'];
@@ -64,6 +65,7 @@ export default function DemoControls() {
     <PageTransition className="space-y-3">
       <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.demo')}</h1>
       <div className="grid gap-3 lg:grid-cols-2">
+        <DemoMoments />
         <Panel title={t('demo.clock')}>
           {clock.isPending ? (
             <TextSkeleton lines={1} />
@@ -143,7 +145,7 @@ export default function DemoControls() {
               {tc('actions.cancel')}
             </Button>
             <Button variant="destructive" className="min-h-11" disabled={reset.isPending} onClick={() => reset.mutate()} data-testid="reset-confirm">
-              {t('demo.reset')}
+              {reset.isPending ? t('demo.resetting') : t('demo.reset')}
             </Button>
           </DialogFooter>
         </DialogContent>
