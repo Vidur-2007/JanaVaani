@@ -197,7 +197,27 @@
   },
   "asset": {
     "title": "Report a problem with this asset",
-    "report": "Report a problem here"
+    "report": "Report a problem here",
+    "scanned": "You scanned a JanaVaani QR code",
+    "not_found": "We could not find this QR code",
+    "not_found_hint": "The code {{id}} is not in our records. You can still report the problem from the report page.",
+    "types": {
+      "streetlight": "Streetlight",
+      "drain": "Drain",
+      "water_pipe": "Water pipe",
+      "bin": "Garbage bin",
+      "road_segment": "Road",
+      "signal": "Traffic signal"
+    },
+    "map_label": "Map showing where {{label}} is",
+    "open_issues": "Open issues here",
+    "past_issues": "Past complaints",
+    "last_fixed": "Last fixed {{when}}",
+    "already": "Already reported — add your support",
+    "already_hint": "Someone has already reported a problem here. If it is the same problem, add your support instead of a new complaint: it raises the priority and you will be told when it is fixed.",
+    "report_type": "Report a problem with this {{type}}",
+    "report_different": "It is a different problem — report it",
+    "prefill_note": "The place and asset are filled in for you."
   },
   "shell": {
     "new_update": "New update on your complaint",

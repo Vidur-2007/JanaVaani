@@ -35,14 +35,34 @@ export default function ReportPage() {
   const { response: res, stage, pending, send } = chat;
 
   // QR entry (/r/:assetId → /app/report?asset=…): the asset travels with every turn.
-  const asset = useQuery({ queryKey: qk.meta.asset(assetId ?? ''), queryFn: ({ signal }) => api.asset(assetId!, signal), enabled: !!assetId });
+  const asset = useQuery({
+    queryKey: qk.meta.asset(assetId ?? ''),
+    queryFn: ({ signal }) => api.asset(assetId!, signal),
+    enabled: !!assetId,
+  });
   const { setAsset } = chat;
   useEffect(() => setAsset(assetId), [assetId, setAsset]);
+  // …and its location is prefilled (the citizen can still move the pin).
+  const { setLocation } = chat;
+  const hasLocation = !!chat.snap.location;
+  useEffect(() => {
+    const a = asset.data;
+    if (a && !hasLocation)
+      setLocation({
+        lat: a.location.lat,
+        lng: a.location.lng,
+        ward_id: a.ward_id,
+        landmark: a.label_en,
+        source: 'qr',
+      });
+  }, [asset.data, hasLocation, setLocation]);
 
   const photo = usePhotoUpload(chat.attachMedia, chat.snap.location);
 
   // Voice mode: mic button or ?mode=voice; voice-first users get it by default (?mode=text overrides).
-  const [voiceOpen, setVoiceOpen] = useState(() => params.get('mode') === 'voice' || (prefs.voice_first && params.get('mode') !== 'text'));
+  const [voiceOpen, setVoiceOpen] = useState(
+    () => params.get('mode') === 'voice' || (prefs.voice_first && params.get('mode') !== 'text'),
+  );
   const [editSignal, setEditSignal] = useState(0);
   const closeVoice = useCallback(() => setVoiceOpen(false), []);
   const voiceEdit = useCallback(() => {
@@ -64,7 +84,8 @@ export default function ReportPage() {
   }, [assetId]);
   const hasUserTurn = chat.snap.messages.some((m) => m.role === 'user');
   useEffect(() => {
-    if (stage === 'submitted' || queued || (stage === 'answered' && res?.intent === 'smalltalk')) clearDraft();
+    if (stage === 'submitted' || queued || (stage === 'answered' && res?.intent === 'smalltalk'))
+      clearDraft();
     else if (hasUserTurn && !pending) saveDraft(chat.snap);
   }, [chat.snap, stage, pending, queued, hasUserTurn, res]);
   const continueDraft = (d: SavedDraft) => {
@@ -125,7 +146,11 @@ export default function ReportPage() {
   let footer: ReactNode = null;
   if (queued)
     footer = (
-      <div className="bg-surface mx-auto w-full max-w-xl space-y-2 rounded-[var(--radius-xl)] border p-5 text-center" role="status" data-testid="queued-notice">
+      <div
+        className="bg-surface mx-auto w-full max-w-xl space-y-2 rounded-[var(--radius-xl)] border p-5 text-center"
+        role="status"
+        data-testid="queued-notice"
+      >
         <CloudOff className="text-warning mx-auto size-8" aria-hidden />
         <p className="font-display text-lg font-semibold">{t('outbox.queued_title')}</p>
         <p className="text-muted-foreground text-sm">{t('outbox.queued_body')}</p>
@@ -163,7 +188,14 @@ export default function ReportPage() {
       <SplitDrafts
         drafts={res.drafts}
         busy={pending}
-        onConfirm={(draft_ids, o) => send({ action: 'split_confirm', action_payload: { draft_ids }, submit_options: o, display: t('split.submit', { count: draft_ids.length }) })}
+        onConfirm={(draft_ids, o) =>
+          send({
+            action: 'split_confirm',
+            action_payload: { draft_ids },
+            submit_options: o,
+            display: t('split.submit', { count: draft_ids.length }),
+          })
+        }
         onCancel={() => send({ action: 'cancel', display: tc('actions.cancel') })}
       />
     );
@@ -190,7 +222,9 @@ export default function ReportPage() {
       <header className="bg-bg/90 sticky top-14 z-10 -mx-4 flex flex-wrap items-center justify-between gap-2 px-4 py-2 backdrop-blur md:static md:mx-0 md:px-0">
         <h1 className="font-display text-xl font-semibold md:text-2xl">{t('report.title')}</h1>
         <div className="flex items-center gap-3">
-          {stage === 'collecting' && <ProgressDots total={chat.maxMissing} remaining={res?.missing_fields.length ?? chat.maxMissing} />}
+          {stage === 'collecting' && (
+            <ProgressDots total={chat.maxMissing} remaining={res?.missing_fields.length ?? chat.maxMissing} />
+          )}
           {res && <LanguageChip lang={lang} mixed={res.is_code_mixed} />}
         </div>
       </header>
@@ -233,23 +267,42 @@ export default function ReportPage() {
           busy={pending}
           onSupport={(m) => {
             setSupported({ count: m.support_count + 2 });
-            send({ action: 'support_existing', action_payload: { grievance_id: m.grievance_id, incident_id: m.incident_id }, display: t('dup.support') });
+            send({
+              action: 'support_existing',
+              action_payload: { grievance_id: m.grievance_id, incident_id: m.incident_id },
+              display: t('dup.support'),
+            });
           }}
           onFileNew={() => send({ action: 'file_new_anyway', display: t('dup.file_new') })}
         />
       )}
 
-      <LocationSheet open={locOpen} onOpenChange={setLocOpen} onSelect={onLocation} suggestion={suggestion} current={chat.snap.location} />
+      <LocationSheet
+        open={locOpen}
+        onOpenChange={setLocOpen}
+        onSelect={onLocation}
+        suggestion={suggestion}
+        current={chat.snap.location}
+      />
 
       {!online && (
-        <p className="bg-warning/15 mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-sm" role="status" data-testid="offline-banner">
+        <p
+          className="bg-warning/15 mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-sm"
+          role="status"
+          data-testid="offline-banner"
+        >
           <CloudOff className="size-4 shrink-0" aria-hidden />
           {t('outbox.offline_banner')}
         </p>
       )}
 
       {resume && (
-        <div className="bg-surface mb-3 flex flex-wrap items-center gap-3 rounded-[var(--radius-lg)] border p-4" role="region" aria-label={t('drafts.title')} data-testid="resume-prompt">
+        <div
+          className="bg-surface mb-3 flex flex-wrap items-center gap-3 rounded-[var(--radius-lg)] border p-4"
+          role="region"
+          aria-label={t('drafts.title')}
+          data-testid="resume-prompt"
+        >
           <History className="text-primary size-5 shrink-0" aria-hidden />
           <p className="min-w-0 flex-1 font-medium">{t('drafts.title')}</p>
           <div className="flex gap-2">
@@ -272,7 +325,14 @@ export default function ReportPage() {
       )}
 
       <div className="flex-1 py-2">
-        <MessageList messages={chat.snap.messages} pending={pending} onSettled={chat.settle} onRetry={chat.retry} footer={footer} muted={voiceOpen} />
+        <MessageList
+          messages={chat.snap.messages}
+          pending={pending}
+          onSettled={chat.settle}
+          onRetry={chat.retry}
+          footer={footer}
+          muted={voiceOpen}
+        />
         {prefs.low_literacy && !hasUserTurn && !resume && (
           <div className="mt-6">
             <CategoryTiles disabled={pending} onPick={(text, label) => send({ text, display: label })} />
@@ -281,7 +341,12 @@ export default function ReportPage() {
       </div>
 
       <div className="bg-bg/95 sticky bottom-16 z-10 -mx-4 space-y-2 px-4 pt-2 pb-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">
-        <QuickReplies items={quickReplies} onPick={pick} disabled={pending} onLocation={askingLocation ? () => setLocOpen(true) : undefined} />
+        <QuickReplies
+          items={quickReplies}
+          onPick={pick}
+          disabled={pending}
+          onLocation={askingLocation ? () => setLocOpen(true) : undefined}
+        />
         <PhotoTray
           media={chat.snap.media}
           onRemove={chat.removeMedia}
