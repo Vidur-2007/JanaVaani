@@ -1,4 +1,4 @@
-// Guest tracking by ticket ID + PIN, no login (Spec A §5.11).
+// Guest tracking by ticket ID + PIN, no login (Spec A §5.11): the full tracker in PIN mode.
 import { useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,7 @@ import { Label } from '@/design/ui/label';
 import { ErrorState, PageSkeleton, PageTransition } from '@/design/components';
 import { ApiRequestError } from '@/lib/api/client';
 import { api, qk } from '@/lib/api/endpoints';
-import { GrievanceSummary } from '../components/GrievanceSummary';
+import { Tracker } from '../tracker/Tracker';
 
 export default function Track() {
   const { t, i18n } = useTranslation('citizen');
@@ -79,7 +79,8 @@ export default function Track() {
             onRetry={notFound ? undefined : () => q.refetch()}
           />
         ) : (
-          <GrievanceSummary g={q.data} />
+          // Ticket + PIN unlock the same tracker, with verification actions enabled (Spec A §5.11).
+          <Tracker g={q.data} pin={pin} isOwner />
         ))}
     </PageTransition>
   );
