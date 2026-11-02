@@ -277,6 +277,10 @@ def seed_stories(db, rng, rows, people, nid):
         lat, lng = plat + rng.uniform(-0.0006, 0.0006), plng + rng.uniform(-0.0006, 0.0006)
         members.append(make_grievance(db, nid(), r, now - timedelta(days=rng.uniform(1, 9)), "assigned", rng, w=mi, lat=lat, lng=lng))
     parent = max(members, key=lambda x: x.created_at)
+    # Merged members are not duplicate candidates, so the parent must describe the story itself for new reports to find it.
+    story_en = "Big pothole on the road at Miyapur X Roads; bikes are falling."
+    parent.description_en, parent.summary_en, parent.embedding = story_en, story_en, embeddings.embed(story_en)
+    parent.title = {**parent.title, "en": "Big pothole at Miyapur X Roads"}
     inc = Incident(id=f"INC-{now.year}-MYP001", title_en="Pothole cluster at Miyapur X Roads", category="roads", ward_id=mi["id"],
                    lat=plat, lng=plng, status="assigned", created_at=min(m.created_at for m in members))
     db.add(inc)
