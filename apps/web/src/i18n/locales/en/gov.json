@@ -137,7 +137,8 @@
     "view_cases_one": "View {{count}} case",
     "view_cases_other": "View {{count}} cases",
     "acknowledge": "Acknowledge",
-    "acknowledged": "Acknowledged"
+    "acknowledged": "Acknowledged",
+    "open_queue": "Open review queue"
   },
   "inbox": {
     "views": "Inbox views",
@@ -578,7 +579,8 @@
     "pipeline_ms": "Average pipeline",
     "fallback": "Fallback rate",
     "calls": "AI calls, 24 hours",
-    "versions": "Versions"
+    "versions": "Versions",
+    "no_change": "No change in accuracy against the previous version"
   },
   "demo": {
     "clock": "Virtual clock",

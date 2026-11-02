@@ -24,6 +24,7 @@ import { ErrorState, KPIStat, PageSkeleton, PageTransition } from '@/design/comp
 import { errorMessage } from '@/lib/api/client';
 import { api, qk } from '@/lib/api/endpoints';
 import { LANGUAGE_NAMES } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { ChartCard } from '@/portals/gov-shared/components/ChartCard';
 import { ConfusionMatrix } from '@/portals/gov-shared/components/ConfusionMatrix';
@@ -41,7 +42,7 @@ export default function AIModel() {
   const retrain = useMutation({
     mutationFn: () => api.retrain(),
     onSuccess: (next: AIMetrics) => {
-      setGain(q.data ? pct(next.accuracy) - pct(q.data.accuracy) : null);
+      setGain(q.data ? +(pct(next.accuracy) - pct(q.data.accuracy)).toFixed(1) : null);
       qc.setQueryData(qk.admin.aiMetrics, next);
       toast.success(t('ai.retrained', { version: next.model_version }));
     },
@@ -89,8 +90,14 @@ export default function AIModel() {
       </header>
       {retrain.isPending && <Progress value={null} aria-label={t('ai.retraining')} className="h-1.5 animate-pulse" />}
       {gain != null && !retrain.isPending && (
-        <p className="text-success text-sm font-medium" aria-live="polite" data-testid="retrain-gain">
-          {t('ai.gain', { value: `${gain >= 0 ? '+' : ''}${fmt.number(+gain.toFixed(1))}` })}
+        <p
+          className={cn('text-sm font-medium', gain > 0 ? 'text-success' : 'text-muted-foreground')}
+          aria-live="polite"
+          data-testid="retrain-gain"
+        >
+          {gain === 0
+            ? t('ai.no_change')
+            : t('ai.gain', { value: `${gain > 0 ? '+' : ''}${fmt.number(+gain.toFixed(1))}` })}
         </p>
       )}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

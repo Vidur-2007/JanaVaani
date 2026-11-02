@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink, PartyPopper, Timer } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, PartyPopper, Timer } from 'lucide-react';
 import { toast } from 'sonner';
 import type { DepartmentId, Grievance } from '@contracts/types';
 import { Button } from '@/design/ui/button';
@@ -254,6 +254,7 @@ export default function SupervisorQueues() {
   const [params, setParams] = useSearchParams();
   const param = params.get('kind') as ReviewKind | null;
   const kind = param && KINDS.includes(param) ? param : 'routing';
+  const page = Math.max(1, Number(params.get('page')) || 1);
   const counts = useQueries({
     queries: KINDS.map((k) => ({
       queryKey: qk.officer.reviewQueue(k),
@@ -261,9 +262,15 @@ export default function SupervisorQueues() {
     })),
   });
   const q = useQuery({
-    queryKey: qk.officer.reviewQueue(kind),
-    queryFn: ({ signal }) => api.reviewQueue({ kind }, signal),
+    queryKey: qk.officer.reviewQueue(kind, page),
+    queryFn: ({ signal }) => api.reviewQueue({ kind, page }, signal),
   });
+  const lastPage = q.data ? Math.max(1, Math.ceil(q.data.total / q.data.page_size)) : 1;
+  // Deciding the last card on a page empties it, so step back rather than strand the supervisor.
+  useEffect(() => {
+    if (q.data && page > lastPage) setParams({ kind, page: String(lastPage) }, { replace: true });
+  }, [q.data, page, lastPage, kind, setParams]);
+  const goTo = (p: number) => setParams({ kind, ...(p > 1 ? { page: String(p) } : {}) }, { replace: true });
   const Item = ITEM[kind];
   return (
     <PageTransition className="space-y-3">
@@ -299,6 +306,33 @@ export default function SupervisorQueues() {
                   {q.data.items.map((g) => (
                     <Item key={g.id} g={g} />
                   ))}
+                  {lastPage > 1 && (
+                    <nav aria-label={t('table.pagination')} className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"
+                        disabled={page <= 1}
+                        aria-label={t('table.previous')}
+                        onClick={() => goTo(page - 1)}
+                      >
+                        <ChevronLeft className="rtl-flip size-4" aria-hidden />
+                      </Button>
+                      <span className="tabular text-sm" data-testid="queue-page">
+                        {t('table.page', { page, total: lastPage })}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"
+                        disabled={page >= lastPage}
+                        aria-label={t('table.next')}
+                        onClick={() => goTo(page + 1)}
+                      >
+                        <ChevronRight className="rtl-flip size-4" aria-hidden />
+                      </Button>
+                    </nav>
+                  )}
                 </div>
               ))}
           </TabsContent>

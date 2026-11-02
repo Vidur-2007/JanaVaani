@@ -137,7 +137,8 @@
     "view_cases_one": "{{count}} मामला देखें",
     "view_cases_other": "{{count}} मामले देखें",
     "acknowledge": "स्वीकार करें",
-    "acknowledged": "स्वीकार किया गया"
+    "acknowledged": "स्वीकार किया गया",
+    "open_queue": "समीक्षा कतार खोलें"
   },
   "inbox": {
     "views": "इनबॉक्स दृश्य",
@@ -578,7 +579,8 @@
     "pipeline_ms": "औसत पाइपलाइन",
     "fallback": "फ़ॉलबैक दर",
     "calls": "AI कॉल, 24 घंटे",
-    "versions": "संस्करण"
+    "versions": "संस्करण",
+    "no_change": "पिछले संस्करण की तुलना में सटीकता में कोई बदलाव नहीं"
   },
   "demo": {
     "clock": "आभासी घड़ी",

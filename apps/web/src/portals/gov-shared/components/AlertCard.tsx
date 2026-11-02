@@ -41,8 +41,10 @@ const ICON_TONE: Record<Alert['severity'], string> = {
   critical: 'bg-danger/12 text-danger',
 };
 
-/** One case opens directly; several open as a filtered inbox. */
+/** Decisions go to their review queue; one case opens directly; several open as a filtered inbox. */
 export function alertTarget(alert: Alert): string {
+  if (alert.kind === 'routing_review_backlog') return '/supervisor?kind=routing';
+  if (alert.kind === 'emergency_unconfirmed') return '/supervisor?kind=emergency';
   if (alert.grievance_ids.length === 1) return `/officer/case/${alert.grievance_ids[0]}`;
   const p = new URLSearchParams();
   if (alert.category) p.set('category', alert.category);
@@ -107,7 +109,7 @@ export function AlertCard({
               to={alertTarget(alert)}
               className="text-signal inline-flex min-h-11 min-w-11 items-center gap-0.5 text-xs font-medium hover:underline md:min-h-6 md:min-w-0"
             >
-              {t('alert.view_cases', { count: alert.grievance_ids.length })}
+              {alert.grievance_ids.length ? t('alert.view_cases', { count: alert.grievance_ids.length }) : t('alert.open_queue')}
               <ChevronRight className="rtl-flip size-3.5" aria-hidden />
             </Link>
             {onAcknowledge && (
