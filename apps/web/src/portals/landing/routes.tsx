@@ -1,13 +1,9 @@
-// Landing portal (Laptop A). Mounted at "/".
+// Landing portal (Laptop A). Mounted as the index route "/".
+// P6: no nested <Routes> here — an index route has no trailing "*", so React Router warned on every visit.
 import { lazy } from 'react';
-import { Route, Routes } from 'react-router';
 
 const Landing = lazy(() => import('./Landing'));
 
 export default function LandingRoutes() {
-  return (
-    <Routes>
-      <Route index element={<Landing />} />
-    </Routes>
-  );
+  return <Landing />;
 }
