@@ -267,6 +267,7 @@
     },
     "photo_retake_hint": "This photo may be hard for the officer to see. Want to take a clearer one?",
     "photo_retake": "Retake",
+    "photo_not_image": "That file is not a photo. Please choose an image.",
     "fields": {
       "location_detail": "Exact spot",
       "size": "Size",

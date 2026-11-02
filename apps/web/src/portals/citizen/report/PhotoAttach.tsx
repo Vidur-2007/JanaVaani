@@ -8,6 +8,7 @@ import type { GeoPoint, Media } from '@contracts/types';
 import { Button } from '@/design/ui/button';
 import { errorMessage } from '@/lib/api/client';
 import { api } from '@/lib/api/endpoints';
+import { i18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { mediaUrl } from '@/lib/api/client';
 
@@ -36,13 +37,21 @@ export async function compressImage(file: File): Promise<File> {
   }
 }
 
-/** Hook: pick → compress → upload. `pickRef` opens the hidden file input (camera on mobile). */
+/**
+ * Hook: pick → compress → upload. `open()` opens the hidden file input. P6: no `capture` attribute — on Android
+ * it forced the camera and hid the gallery; without it Chrome/Edge offer a Camera / Files chooser.
+ */
 export function usePhotoUpload(onUploaded: (m: Media) => void, where?: GeoPoint, purpose: Media['purpose'] = 'evidence') {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const handle = async (file: File | undefined) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) return;
+    // P6: some Android pickers (Files, WhatsApp media) hand over an empty MIME type — fall back to the extension.
+    const isImage = file.type ? file.type.startsWith('image/') : /\.(jpe?g|png|webp|gif|heic|heif|bmp)$/i.test(file.name);
+    if (!isImage) {
+      toast.error(i18n.t('report.photo_not_image', { ns: 'citizen' }));
+      return;
+    }
     setBusy(true);
     try {
       const small = await compressImage(file);
@@ -60,7 +69,6 @@ export function usePhotoUpload(onUploaded: (m: Media) => void, where?: GeoPoint,
       ref={input}
       type="file"
       accept="image/*"
-      capture="environment"
       className="sr-only"
       tabIndex={-1}
       aria-hidden
