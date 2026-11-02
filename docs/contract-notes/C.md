@@ -28,6 +28,8 @@ Full list with workarounds: `docs/progress/C.md` section 6.
 - #25 `recent_resolved` has no `before_url` or `after_url` in the seed (0 of 6), so the public before/after slider, one of the demo moments, cannot show. Seed proof photos for these cases.
 - Alert titles use ward ids (`W-CHR-02`); use ward names. Seeded disputed cases say "Seeded history" and mostly show Verified.
 - For demo step 4, seed Ravi with a critical case and some cases inside SLA.
+- The suspicious "Ameerpet" case is titled "Streetlights burning in daytime in Lingampally". Match the title to the story.
+- Stretch: Surge Mode and the root-cause graph need endpoints before C can build them.
 - The seed has no pending appeals (`kind=appeal` returns 0), so the demo Appeals tab will be empty.
 
 Resolved: supervisors can already call #43–#48, #49 and #50.

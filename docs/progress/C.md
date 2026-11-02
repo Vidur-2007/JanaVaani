@@ -4,15 +4,33 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 ## Status
 
-- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P4: alerts, audit explorer and block chain, AI model page, demo controls, CSV/Excel/PDF exports, report builder, `e2e/gov/p4-trust.spec.ts`. P5: public portal, realtime highlights, gov.json (en/te/hi complete; Urdu for the public portal, nav and charts), accessibility pass, `e2e/gov/p5-public.spec.ts`. P6 (except the merge and deployed API): §16 run on B's local API, bug fixes, `e2e/gov/p6-suite.spec.ts`, chart memoization, KPI tween, error-state gaps. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
+- **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P4: alerts, audit explorer and block chain, AI model page, demo controls, CSV/Excel/PDF exports, report builder, `e2e/gov/p4-trust.spec.ts`. P5: public portal, realtime highlights, gov.json (en/te/hi complete; Urdu for the public portal, nav and charts), accessibility pass, `e2e/gov/p5-public.spec.ts`. P6 (except the merge and deployed API): §16 run on B's local API, bug fixes, `e2e/gov/p6-suite.spec.ts`, chart memoization, KPI tween, error-state gaps. P7: polish (alert cascade, staggered map pulses, audit walk timing, palette legend, skyline empty states), demo shortcuts, `e2e/gov/p7-demo.spec.ts`. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
 - **In progress:** P3 Step 1 is unfinished: B has no deployed URL, so `.env.local` is not set and the UI has not run in hybrid mode.
-- **Next:** open the gov PR, because the H30 merge cannot include C without it. After the merge run `git merge origin/main` once, then rerun the suite. Run §16 again when B posts a URL.
+- **Next:** open the gov PR for H30. Then `git merge origin/main` once and rerun everything. Open "Final: gov portals" at H42. Run §16 again when B posts a URL.
 - **Blockers:**
   - **The H30 merge has not happened.** `origin/main` is still the scaffold, PRs #1 (B) and #2 (A) are open, and there is no gov PR. `git merge origin/main` was a no-op, so this branch still has `v0-scaffold` shared code.
   - **B's API is not deployed** (needs Supabase project, keys and HF Space, per B's handover).
   - After the merge, two tests in A's `e2e/citizen/smoke.spec.ts` fail because they expect P0 placeholder test ids (`gov-placeholder`, `inbox-stub`). Fix at H30: assert the real pages instead.
   - Items B2 and B3 below need B's human. B1 is resolved: B allows supervisors on the admin GETs.
 - **Contract notes:** see section 6 and `docs/contract-notes/C.md`.
+
+### P7 rehearsal
+
+UI in `live` mode on B's latest code, run locally with no AI keys. Times are one run on this laptop, and the deployed Space will be slower.
+
+| Moment | Time |
+|---|---|
+| Suspicious case from the demo shortcut | 0.6 s |
+| Spike alert | 1.0 s |
+| Verify chain | 1.0 s |
+| Command Center with heatmap | 1.5 s |
+| Time travel +48 h | 2.9 s |
+| Retrain | 3.5 s |
+| Reset | 9.8 s |
+
+- **Do not reset on stage.** Reset before the demo.
+- **Retrain moves with corrections, but can go down.** 20 deliberately wrong corrections took synthetic accuracy from 77.8% to 69.4% and human-set accuracy from 75.0% to 79.2%. Step 7 needs genuine corrections, and the outcome of one real correction is untested. Rehearse the exact correction, or do not promise a rise.
+- Stretch (Surge Mode, root-cause graph) was not built. B has no endpoints for them, and client-only versions would show invented data.
 
 ### Known issues (P6)
 
@@ -23,7 +41,6 @@ Found by driving the real UI in `live` mode against B's latest code running loca
 - **B: seeded disputed cases show the placeholder reason "Seeded history"** with a Verified badge. Only 1 of 17 is suspicious.
 - **B: Ravi's inbox has 0 critical and 18 of 18 overdue**, which weakens demo step 4. The first case is English, not the Telugu case the script describes.
 - **B: resolve returns `unclear`** with no vision provider, so the live "verified" path is unseen until keys exist.
-- **Retrain showed no accuracy change** on B's local data, where no routing was actually corrected. Step 7 of the demo should make a real correction first, and that still needs checking. The page now says "no change" plainly.
 - **Virtualization:** tables are server-paged (25–100 rows) and use `content-visibility`. No virtual-scroll library was added, to avoid a dependency change.
 - **Bundle:** xlsx, jspdf, html2canvas, Recharts and Leaflet plugins load on demand. Largest always-needed chunks are about 97 KB gzipped.
 
