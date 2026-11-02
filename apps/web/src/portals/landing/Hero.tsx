@@ -24,12 +24,33 @@ function hasWebGL() {
 export const isMobileViewport = () =>
   typeof window !== 'undefined' && window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
 
-/** True once the page has painted and the browser is idle — the 3D scene never competes with LCP. */
-function useAfterFirstPaint(enabled: boolean) {
+/**
+ * True once the page has painted and the browser is idle — the 3D scene never competes with LCP.
+ * P6: on phones (`lazyUntilInteraction`) the ~235 KB three.js chunk waits for the first touch/scroll/key (or
+ * 8 s), so it never competes with first load on a mid-range Android; the static poster shows meanwhile.
+ */
+function useAfterFirstPaint(enabled: boolean, lazyUntilInteraction = false) {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
+    if (lazyUntilInteraction) {
+      const events = ['pointerdown', 'touchstart', 'scroll', 'keydown', 'wheel'] as const;
+      const fire = () => {
+        cleanup();
+        if (!cancelled) setReady(true);
+      };
+      const timer = window.setTimeout(fire, 8000);
+      const cleanup = () => {
+        window.clearTimeout(timer);
+        events.forEach((e) => window.removeEventListener(e, fire));
+      };
+      events.forEach((e) => window.addEventListener(e, fire, { once: true, passive: true }));
+      return () => {
+        cancelled = true;
+        cleanup();
+      };
+    }
     const go = () => {
       const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
       if (idle) idle(() => !cancelled && setReady(true), { timeout: 2000 });
@@ -41,7 +62,7 @@ function useAfterFirstPaint(enabled: boolean) {
       cancelled = true;
       window.removeEventListener('load', go);
     };
-  }, [enabled]);
+  }, [enabled, lazyUntilInteraction]);
   return ready;
 }
 
@@ -51,8 +72,16 @@ function CyclingHeadline() {
   const reduced = useReducedMotion();
   const [i, setI] = useState(0);
   useEffect(() => {
-    const id = window.setInterval(() => setI((x) => (x + 1) % greetings.length), 3200);
-    return () => window.clearInterval(id);
+    // P6: hold the first greeting a little longer while the page settles (it's also the boot shell's line).
+    let id = 0;
+    const first = window.setTimeout(() => {
+      setI((x) => (x + 1) % greetings.length);
+      id = window.setInterval(() => setI((x) => (x + 1) % greetings.length), 3200);
+    }, 5000);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(id);
+    };
   }, [greetings.length]);
   return (
     <h1 className="font-display relative text-4xl leading-[1.15] font-semibold tracking-tight sm:text-6xl md:text-7xl">
@@ -82,7 +111,7 @@ export function Hero() {
   const reduced = useReducedMotion();
   const [webgl] = useState(() => typeof document !== 'undefined' && hasWebGL());
   const [mobile] = useState(isMobileViewport);
-  const ready = useAfterFirstPaint(!reduced && webgl);
+  const ready = useAfterFirstPaint(!reduced && webgl, mobile);
   const wards = useQuery({ queryKey: qk.meta.wards, queryFn: ({ signal }) => api.wards(signal), staleTime: Infinity, enabled: ready });
   const map = useQuery({ queryKey: qk.public.map({ days: 90 }), queryFn: ({ signal }) => api.publicMap({ days: 90 }, signal), enabled: ready });
   const show3d = ready && wards.data && map.data;

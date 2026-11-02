@@ -1,5 +1,5 @@
 // Landing (Spec A §5.1): hero (City Pulse), how it works, live stats, languages showcase, trust, portals, footer.
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Mic } from 'lucide-react';
@@ -109,6 +109,14 @@ function StickyCta() {
   );
 }
 
+/**
+ * P6: below-the-fold sections skip style/layout/paint until they near the viewport (`content-visibility`),
+ * which roughly halves landing main-thread work on phones. Not used for the pinned scroll story (sticky).
+ */
+function Deferred({ children, size = 760 }: { children: ReactNode; size?: number }) {
+  return <div style={{ contentVisibility: 'auto', containIntrinsicSize: `auto ${size}px` }}>{children}</div>;
+}
+
 export default function Landing() {
   useSurfaceTheme('ink');
   const reduced = useReducedMotion();
@@ -120,12 +128,22 @@ export default function Landing() {
         <main id="main">
           <Hero />
           <HowItWorks pinned={!mobile && !reduced} />
-          <LiveStats />
-          <LanguagesShowcase />
-          <Trust />
-          <Portals />
+          <Deferred>
+            <LiveStats />
+          </Deferred>
+          <Deferred>
+            <LanguagesShowcase />
+          </Deferred>
+          <Deferred>
+            <Trust />
+          </Deferred>
+          <Deferred>
+            <Portals />
+          </Deferred>
         </main>
-        <Footer />
+        <Deferred size={320}>
+          <Footer />
+        </Deferred>
       </PageTransition>
       {/* Outside PageTransition: its filter/transform would turn `fixed` into page-relative positioning. */}
       <StickyCta />
