@@ -1,0 +1,71 @@
+{
+  "home": {
+    "greeting": "Namaste, {{name}}",
+    "greeting_guest": "Namaste",
+    "subtitle": "What would you like to do today?",
+    "active": "Your active complaints",
+    "empty_title": "No complaints yet",
+    "empty_body": "When you report a problem, you can follow it here."
+  },
+  "tiles": {
+    "voice": "Report by voice",
+    "photo": "Report with photo",
+    "type": "Type a complaint",
+    "track": "Track"
+  },
+  "complaints": {
+    "title": "My complaints"
+  },
+  "track": {
+    "title": "Track a complaint",
+    "subtitle": "Enter your ticket ID and 6-digit PIN. No login needed.",
+    "ticket": "Ticket ID",
+    "pin": "PIN",
+    "submit": "Track",
+    "not_found": "We could not find a complaint with that ticket and PIN."
+  },
+  "login": {
+    "title": "Sign in to JanaVaani",
+    "tab_citizen": "Citizen",
+    "tab_gov": "Government",
+    "email": "Email",
+    "password": "Password",
+    "magic_link": "Send me a sign-in link",
+    "magic_sent": "Check your email for the sign-in link.",
+    "sign_in": "Sign in",
+    "or": "or",
+    "demo_title": "Demo accounts",
+    "demo_hint": "One click, no password needed."
+  },
+  "onboarding": {
+    "title": "Choose your language",
+    "subtitle": "You can change this any time in Settings.",
+    "start": "Start"
+  },
+  "settings": {
+    "language": "Language",
+    "appearance": "Appearance",
+    "high_contrast": "High contrast",
+    "large_text": "Large text",
+    "reduced_motion": "Reduce motion",
+    "simple_mode": "Simple mode"
+  },
+  "notifications": {
+    "empty_title": "No notifications",
+    "empty_body": "Updates about your complaints will appear here.",
+    "mark_all": "Mark all as read"
+  },
+  "detail": {
+    "officer": "Assigned officer",
+    "timeline": "Progress",
+    "proof": "Before and after",
+    "support": "{{count}} people reported this"
+  },
+  "nearby": {
+    "title": "Issues near you"
+  },
+  "asset": {
+    "title": "Report a problem with this asset",
+    "report": "Report a problem here"
+  }
+}

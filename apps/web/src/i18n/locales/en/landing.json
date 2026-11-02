@@ -1,0 +1,30 @@
+{
+  "hero": {
+    "eyebrow": "Hyderabad · Telangana",
+    "greetings": ["Speak your problem.", "మీ సమస్యను చెప్పండి.", "अपनी शिकायत बताइए।", "اپنی شکایت بتائیں۔"],
+    "subhead": "Report a civic problem by voice, photo or text in Telugu, Hindi, Urdu or English. AI routes it to the right office, and you track it until it is really fixed.",
+    "cta_voice": "Report by voice",
+    "cta_track": "Track a complaint"
+  },
+  "stats": {
+    "title": "Live city stats",
+    "total": "Complaints registered",
+    "resolved": "Resolved",
+    "avg_hours": "Average resolution time"
+  },
+  "portals": {
+    "title": "Four portals, one platform",
+    "citizen": "Citizen",
+    "citizen_desc": "Report, track and verify fixes",
+    "officer": "Department",
+    "officer_desc": "Inbox, AI briefs, replies, proof",
+    "admin": "Government admin",
+    "admin_desc": "KPIs, maps, alerts, audit",
+    "public": "Public dashboard",
+    "public_desc": "Open, anonymized city data"
+  },
+  "footer": {
+    "stack": "Built with free & open tech",
+    "disclaimer": "Demo data only. Ward boundaries are approximate."
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "brand": {
+    "name": "జనవాణి",
+    "tagline": "ప్రతి ఫిర్యాదు, ప్రతి భాషలో."
+  },
+  "nav": {
+    "home": "హోమ్",
+    "report": "ఫిర్యాదు",
+    "complaints": "ఫిర్యాదులు",
+    "alerts": "హెచ్చరికలు",
+    "notifications": "నోటిఫికేషన్లు",
+    "settings": "సెట్టింగ్‌లు",
+    "nearby": "దగ్గరలో",
+    "guide": "గైడ్",
+    "track": "ట్రాక్",
+    "login": "సైన్ ఇన్",
+    "officer": "విభాగం పోర్టల్",
+    "supervisor": "సూపర్‌వైజర్",
+    "admin": "అడ్మిన్",
+    "public": "పబ్లిక్ డ్యాష్‌బోర్డ్",
+    "main_menu": "ప్రధాన మెనూ",
+    "skip_to_content": "విషయానికి వెళ్లండి"
+  },
+  "actions": {
+    "retry": "మళ్లీ ప్రయత్నించండి",
+    "submit": "సమర్పించండి",
+    "cancel": "రద్దు చేయండి",
+    "confirm": "నిర్ధారించండి",
+    "edit": "మార్చండి",
+    "save": "సేవ్ చేయండి",
+    "continue": "కొనసాగించండి",
+    "back": "వెనుకకు",
+    "close": "మూసివేయండి",
+    "next": "తదుపరి",
+    "search": "వెతకండి",
+    "upload": "అప్‌లోడ్",
+    "share": "షేర్ చేయండి",
+    "download": "డౌన్‌లోడ్",
+    "print": "ప్రింట్",
+    "track": "ట్రాక్ చేయండి",
+    "report": "సమస్యను నివేదించండి",
+    "support": "నాకూ ఇదే సమస్య",
+    "view": "చూడండి",
+    "go_home": "హోమ్‌కు వెళ్లండి",
+    "reload": "మళ్లీ లోడ్ చేయండి",
+    "show_original": "అసలు వచనం చూపించు",
+    "show_translation": "అనువాదం చూపించు",
+    "translate": "అనువదించండి",
+    "copy": "కాపీ",
+    "copied": "కాపీ అయింది"
+  },
+  "status": {
+    "registered": "నమోదైంది",
+    "needs_review": "పరిశీలనలో ఉంది",
+    "assigned": "అధికారికి అప్పగించారు",
+    "in_progress": "పని జరుగుతోంది",
+    "resolved_pending_verification": "మీ నిర్ధారణ కోసం",
+    "closed": "ముగిసింది",
+    "reopened": "మళ్లీ తెరిచారు",
+    "rejected": "తిరస్కరించారు",
+    "merged": "విలీనం చేశారు"
+  },
+  "priority": {
+    "critical": "అత్యవసరం",
+    "high": "ఎక్కువ",
+    "medium": "మధ్యస్థం",
+    "low": "తక్కువ"
+  },
+  "departments": {
+    "roads": "రోడ్లు",
+    "sanitation": "పారిశుధ్యం",
+    "water": "నీటి సరఫరా",
+    "streetlights": "వీధి దీపాలు",
+    "power": "విద్యుత్",
+    "drainage": "డ్రైనేజీ",
+    "traffic": "ట్రాఫిక్",
+    "health": "ప్రజారోగ్యం",
+    "education": "పాఠశాలలు",
+    "town_planning": "పట్టణ ప్రణాళిక",
+    "other": "ఇతరాలు"
+  },
+  "roles": {
+    "citizen": "పౌరుడు",
+    "guest": "అతిథి",
+    "officer": "అధికారి",
+    "supervisor": "సూపర్‌వైజర్",
+    "admin": "అడ్మిన్"
+  },
+  "auth": {
+    "sign_in": "సైన్ ఇన్",
+    "sign_out": "సైన్ అవుట్",
+    "continue_as_guest": "అతిథిగా కొనసాగండి"
+  },
+  "demo": {
+    "switch_role": "డెమో ఖాతా మార్చండి",
+    "accounts": "డెమో ఖాతాలు",
+    "signed_out": "సైన్ అవుట్ అయ్యారు"
+  },
+  "errors": {
+    "generic_title": "ఏదో పొరపాటు జరిగింది",
+    "network": "సర్వర్‌ను చేరుకోలేకపోయాం. మీ కనెక్షన్ తనిఖీ చేయండి.",
+    "not_found_title": "పేజీ కనబడలేదు",
+    "not_found_body": "మీరు వెతుకుతున్న పేజీ లేదు లేదా మారింది.",
+    "boundary_title": "ఈ స్క్రీన్‌లో సమస్య వచ్చింది",
+    "boundary_body": "మళ్లీ ప్రయత్నించడానికి పేజీని రీలోడ్ చేయండి. మీ డ్రాఫ్ట్‌లు ఈ పరికరంలో సేవ్ అయ్యాయి."
+  },
+  "lang": {
+    "choose": "భాష",
+    "code_mixed": "మిశ్రమం",
+    "detected": "గుర్తించిన భాష: {{lang}}"
+  },
+  "ai": {
+    "suggested": "AI సూచన",
+    "approved": "AI సూచన · అధికారి ఆమోదం",
+    "generated": "AI రూపొందించింది"
+  },
+  "live": {
+    "live": "లైవ్",
+    "polling": "ఆటో-రిఫ్రెష్",
+    "connecting": "కనెక్ట్ అవుతోంది…",
+    "offline": "ఆఫ్‌లైన్"
+  },
+  "sla": {
+    "due_in": "{{time}}లో గడువు",
+    "overdue_by": "{{time}} ఆలస్యం",
+    "stopped": "పూర్తయింది"
+  },
+  "tts": {
+    "listen": "వినండి",
+    "stop": "ఆపండి",
+    "unavailable": "ఈ పరికరంలో ఈ భాషకు వాయిస్ అందుబాటులో లేదు",
+    "unavailable_short": "వాయిస్ లేదు"
+  },
+  "theme": {
+    "switch_to_ink": "డార్క్ థీమ్‌కు మార్చండి",
+    "switch_to_paper": "లైట్ థీమ్‌కు మార్చండి"
+  },
+  "timeline": {
+    "label": "ఫిర్యాదు టైమ్‌లైన్",
+    "internal": "అంతర్గతం",
+    "types": {
+      "registered": "నమోదైంది",
+      "classified": "AI వర్గీకరించింది",
+      "routing_review": "విభాగం నిర్ధారణకు పంపారు",
+      "assigned": "అప్పగించారు",
+      "reassigned": "మళ్లీ అప్పగించారు",
+      "status_changed": "స్థితి మారింది",
+      "note": "అధికారి గమనిక",
+      "message": "సందేశం",
+      "evidence_added": "ఆధారం జోడించారు",
+      "priority_changed": "ప్రాధాన్యత మారింది",
+      "escalated": "పై అధికారులకు పంపారు",
+      "emergency_flagged": "అత్యవసరంగా గుర్తించారు",
+      "emergency_confirmed": "అత్యవసరం నిర్ధారించారు",
+      "resolution_submitted": "పరిష్కారం సమర్పించారు",
+      "ai_verification": "AI ఆధారాన్ని పరిశీలించింది",
+      "citizen_verified": "మీరు పరిష్కారాన్ని నిర్ధారించారు",
+      "citizen_rejected": "పరిష్కారం కాలేదని తెలిపారు",
+      "reopened": "మళ్లీ తెరిచారు",
+      "appeal_filed": "అప్పీల్ దాఖలైంది",
+      "appeal_decided": "అప్పీల్‌పై నిర్ణయం",
+      "merged": "ఉమ్మడి సమస్యకు జోడించారు",
+      "support_added": "ఎవరో మద్దతు తెలిపారు",
+      "closed": "ముగిసింది"
+    }
+  },
+  "before_after": {
+    "before": "ముందు",
+    "after": "తర్వాత",
+    "label": "ముందు మరియు తర్వాత పోల్చడానికి లాగండి"
+  },
+  "map": {
+    "label": "మ్యాప్",
+    "approximate_boundaries": "సుమారు డెమో సరిహద్దులు"
+  },
+  "placeholder": {
+    "coming_soon": "ఈ స్క్రీన్ తయారవుతోంది.",
+    "owner": "బాధ్యత: ల్యాప్‌టాప్ {{owner}}"
+  },
+  "loading": "లోడ్ అవుతోంది…"
+}

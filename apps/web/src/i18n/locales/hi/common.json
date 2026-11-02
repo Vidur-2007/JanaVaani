@@ -1,0 +1,181 @@
+{
+  "brand": {
+    "name": "जनवाणी",
+    "tagline": "हर शिकायत, हर भाषा में।"
+  },
+  "nav": {
+    "home": "होम",
+    "report": "शिकायत",
+    "complaints": "शिकायतें",
+    "alerts": "सूचनाएँ",
+    "notifications": "सूचनाएँ",
+    "settings": "सेटिंग्स",
+    "nearby": "आस-पास",
+    "guide": "गाइड",
+    "track": "ट्रैक",
+    "login": "साइन इन",
+    "officer": "विभाग पोर्टल",
+    "supervisor": "सुपरवाइज़र",
+    "admin": "एडमिन",
+    "public": "सार्वजनिक डैशबोर्ड",
+    "main_menu": "मुख्य मेनू",
+    "skip_to_content": "सामग्री पर जाएँ"
+  },
+  "actions": {
+    "retry": "फिर से कोशिश करें",
+    "submit": "जमा करें",
+    "cancel": "रद्द करें",
+    "confirm": "पुष्टि करें",
+    "edit": "बदलें",
+    "save": "सहेजें",
+    "continue": "जारी रखें",
+    "back": "वापस",
+    "close": "बंद करें",
+    "next": "आगे",
+    "search": "खोजें",
+    "upload": "अपलोड",
+    "share": "शेयर करें",
+    "download": "डाउनलोड",
+    "print": "प्रिंट",
+    "track": "ट्रैक करें",
+    "report": "समस्या दर्ज करें",
+    "support": "मेरी भी यही समस्या",
+    "view": "देखें",
+    "go_home": "होम पर जाएँ",
+    "reload": "फिर से लोड करें",
+    "show_original": "मूल पाठ दिखाएँ",
+    "show_translation": "अनुवाद दिखाएँ",
+    "translate": "अनुवाद करें",
+    "copy": "कॉपी",
+    "copied": "कॉपी हो गया"
+  },
+  "status": {
+    "registered": "दर्ज",
+    "needs_review": "समीक्षा में",
+    "assigned": "अधिकारी को सौंपा गया",
+    "in_progress": "काम जारी",
+    "resolved_pending_verification": "आपकी पुष्टि बाकी",
+    "closed": "बंद",
+    "reopened": "फिर से खोली गई",
+    "rejected": "अस्वीकृत",
+    "merged": "जोड़ी गई"
+  },
+  "priority": {
+    "critical": "अति आवश्यक",
+    "high": "उच्च",
+    "medium": "मध्यम",
+    "low": "कम"
+  },
+  "departments": {
+    "roads": "सड़कें",
+    "sanitation": "स्वच्छता",
+    "water": "जल आपूर्ति",
+    "streetlights": "स्ट्रीट लाइट",
+    "power": "बिजली",
+    "drainage": "जल निकासी",
+    "traffic": "यातायात",
+    "health": "जन स्वास्थ्य",
+    "education": "स्कूल",
+    "town_planning": "नगर नियोजन",
+    "other": "अन्य"
+  },
+  "roles": {
+    "citizen": "नागरिक",
+    "guest": "अतिथि",
+    "officer": "अधिकारी",
+    "supervisor": "सुपरवाइज़र",
+    "admin": "एडमिन"
+  },
+  "auth": {
+    "sign_in": "साइन इन",
+    "sign_out": "साइन आउट",
+    "continue_as_guest": "अतिथि के रूप में जारी रखें"
+  },
+  "demo": {
+    "switch_role": "डेमो खाता बदलें",
+    "accounts": "डेमो खाते",
+    "signed_out": "साइन आउट"
+  },
+  "errors": {
+    "generic_title": "कुछ गड़बड़ हो गई",
+    "network": "सर्वर से संपर्क नहीं हो सका। अपना कनेक्शन जाँचें।",
+    "not_found_title": "पेज नहीं मिला",
+    "not_found_body": "आप जो पेज ढूँढ रहे हैं वह मौजूद नहीं है या हट गया है।",
+    "boundary_title": "इस स्क्रीन में समस्या आई",
+    "boundary_body": "फिर से कोशिश करने के लिए पेज रीलोड करें। आपके ड्राफ्ट इस डिवाइस पर सहेजे गए हैं।"
+  },
+  "lang": {
+    "choose": "भाषा",
+    "code_mixed": "मिश्रित",
+    "detected": "पहचानी गई भाषा: {{lang}}"
+  },
+  "ai": {
+    "suggested": "AI सुझाव",
+    "approved": "AI सुझाव · अधिकारी द्वारा स्वीकृत",
+    "generated": "AI द्वारा बनाया गया"
+  },
+  "live": {
+    "live": "लाइव",
+    "polling": "ऑटो-रिफ्रेश",
+    "connecting": "कनेक्ट हो रहा है…",
+    "offline": "ऑफ़लाइन"
+  },
+  "sla": {
+    "due_in": "{{time}} में समय-सीमा",
+    "overdue_by": "{{time}} की देरी",
+    "stopped": "पूरा हुआ"
+  },
+  "tts": {
+    "listen": "सुनें",
+    "stop": "रोकें",
+    "unavailable": "इस डिवाइस पर इस भाषा की आवाज़ उपलब्ध नहीं है",
+    "unavailable_short": "आवाज़ नहीं"
+  },
+  "theme": {
+    "switch_to_ink": "डार्क थीम पर जाएँ",
+    "switch_to_paper": "लाइट थीम पर जाएँ"
+  },
+  "timeline": {
+    "label": "शिकायत टाइमलाइन",
+    "internal": "आंतरिक",
+    "types": {
+      "registered": "दर्ज की गई",
+      "classified": "AI ने वर्गीकृत किया",
+      "routing_review": "विभाग तय करने के लिए समीक्षा में",
+      "assigned": "सौंपी गई",
+      "reassigned": "फिर से सौंपी गई",
+      "status_changed": "स्थिति बदली",
+      "note": "अधिकारी की टिप्पणी",
+      "message": "संदेश",
+      "evidence_added": "सबूत जोड़ा गया",
+      "priority_changed": "प्राथमिकता बदली",
+      "escalated": "ऊपर भेजी गई",
+      "emergency_flagged": "आपात स्थिति चिह्नित",
+      "emergency_confirmed": "आपात स्थिति की पुष्टि",
+      "resolution_submitted": "समाधान जमा किया गया",
+      "ai_verification": "AI ने सबूत जाँचा",
+      "citizen_verified": "आपने समाधान की पुष्टि की",
+      "citizen_rejected": "ठीक नहीं होने की सूचना",
+      "reopened": "फिर से खोली गई",
+      "appeal_filed": "अपील दर्ज",
+      "appeal_decided": "अपील पर निर्णय",
+      "merged": "साझा समस्या से जोड़ी गई",
+      "support_added": "किसी ने समर्थन किया",
+      "closed": "बंद"
+    }
+  },
+  "before_after": {
+    "before": "पहले",
+    "after": "बाद में",
+    "label": "पहले और बाद की तुलना के लिए खींचें"
+  },
+  "map": {
+    "label": "नक्शा",
+    "approximate_boundaries": "अनुमानित डेमो सीमाएँ"
+  },
+  "placeholder": {
+    "coming_soon": "यह स्क्रीन बन रही है।",
+    "owner": "ज़िम्मेदार: लैपटॉप {{owner}}"
+  },
+  "loading": "लोड हो रहा है…"
+}

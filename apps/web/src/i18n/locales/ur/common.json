@@ -1,0 +1,181 @@
+{
+  "brand": {
+    "name": "جن وانی",
+    "tagline": "ہر شکایت، ہر زبان میں۔"
+  },
+  "nav": {
+    "home": "ہوم",
+    "report": "شکایت",
+    "complaints": "شکایات",
+    "alerts": "اطلاعات",
+    "notifications": "اطلاعات",
+    "settings": "ترتیبات",
+    "nearby": "قریب",
+    "guide": "رہنما",
+    "track": "ٹریک",
+    "login": "سائن ان",
+    "officer": "محکمہ پورٹل",
+    "supervisor": "سپروائزر",
+    "admin": "ایڈمن",
+    "public": "عوامی ڈیش بورڈ",
+    "main_menu": "مرکزی مینو",
+    "skip_to_content": "مواد پر جائیں"
+  },
+  "actions": {
+    "retry": "دوبارہ کوشش کریں",
+    "submit": "جمع کریں",
+    "cancel": "منسوخ کریں",
+    "confirm": "تصدیق کریں",
+    "edit": "ترمیم کریں",
+    "save": "محفوظ کریں",
+    "continue": "جاری رکھیں",
+    "back": "واپس",
+    "close": "بند کریں",
+    "next": "آگے",
+    "search": "تلاش کریں",
+    "upload": "اپ لوڈ",
+    "share": "شیئر کریں",
+    "download": "ڈاؤن لوڈ",
+    "print": "پرنٹ",
+    "track": "ٹریک کریں",
+    "report": "مسئلہ درج کریں",
+    "support": "میرا بھی یہی مسئلہ",
+    "view": "دیکھیں",
+    "go_home": "ہوم پر جائیں",
+    "reload": "دوبارہ لوڈ کریں",
+    "show_original": "اصل متن دکھائیں",
+    "show_translation": "ترجمہ دکھائیں",
+    "translate": "ترجمہ کریں",
+    "copy": "کاپی",
+    "copied": "کاپی ہو گیا"
+  },
+  "status": {
+    "registered": "درج",
+    "needs_review": "جائزے میں",
+    "assigned": "افسر کے سپرد",
+    "in_progress": "کام جاری",
+    "resolved_pending_verification": "آپ کی تصدیق باقی",
+    "closed": "بند",
+    "reopened": "دوبارہ کھولی گئی",
+    "rejected": "مسترد",
+    "merged": "شامل کر دی گئی"
+  },
+  "priority": {
+    "critical": "انتہائی ضروری",
+    "high": "زیادہ",
+    "medium": "درمیانہ",
+    "low": "کم"
+  },
+  "departments": {
+    "roads": "سڑکیں",
+    "sanitation": "صفائی",
+    "water": "پانی کی فراہمی",
+    "streetlights": "اسٹریٹ لائٹس",
+    "power": "بجلی",
+    "drainage": "نکاسی آب",
+    "traffic": "ٹریفک",
+    "health": "صحت عامہ",
+    "education": "اسکول",
+    "town_planning": "ٹاؤن پلاننگ",
+    "other": "دیگر"
+  },
+  "roles": {
+    "citizen": "شہری",
+    "guest": "مہمان",
+    "officer": "افسر",
+    "supervisor": "سپروائزر",
+    "admin": "ایڈمن"
+  },
+  "auth": {
+    "sign_in": "سائن ان",
+    "sign_out": "سائن آؤٹ",
+    "continue_as_guest": "مہمان کے طور پر جاری رکھیں"
+  },
+  "demo": {
+    "switch_role": "ڈیمو اکاؤنٹ بدلیں",
+    "accounts": "ڈیمو اکاؤنٹس",
+    "signed_out": "سائن آؤٹ"
+  },
+  "errors": {
+    "generic_title": "کچھ غلط ہو گیا",
+    "network": "سرور سے رابطہ نہیں ہو سکا۔ اپنا کنکشن چیک کریں۔",
+    "not_found_title": "صفحہ نہیں ملا",
+    "not_found_body": "آپ جو صفحہ تلاش کر رہے ہیں وہ موجود نہیں یا منتقل ہو گیا ہے۔",
+    "boundary_title": "اس اسکرین میں مسئلہ آیا",
+    "boundary_body": "دوبارہ کوشش کے لیے صفحہ ری لوڈ کریں۔ آپ کے ڈرافٹ اس ڈیوائس پر محفوظ ہیں۔"
+  },
+  "lang": {
+    "choose": "زبان",
+    "code_mixed": "مخلوط",
+    "detected": "شناخت شدہ زبان: {{lang}}"
+  },
+  "ai": {
+    "suggested": "AI تجویز",
+    "approved": "AI تجویز · افسر کی منظوری",
+    "generated": "AI سے تیار کردہ"
+  },
+  "live": {
+    "live": "لائیو",
+    "polling": "خودکار ریفریش",
+    "connecting": "کنکٹ ہو رہا ہے…",
+    "offline": "آف لائن"
+  },
+  "sla": {
+    "due_in": "{{time}} میں مدت",
+    "overdue_by": "{{time}} کی تاخیر",
+    "stopped": "مکمل"
+  },
+  "tts": {
+    "listen": "سنیں",
+    "stop": "روکیں",
+    "unavailable": "اس ڈیوائس پر اس زبان کی آواز دستیاب نہیں",
+    "unavailable_short": "آواز نہیں"
+  },
+  "theme": {
+    "switch_to_ink": "ڈارک تھیم پر جائیں",
+    "switch_to_paper": "لائٹ تھیم پر جائیں"
+  },
+  "timeline": {
+    "label": "شکایت کی ٹائم لائن",
+    "internal": "اندرونی",
+    "types": {
+      "registered": "درج کی گئی",
+      "classified": "AI نے درجہ بندی کی",
+      "routing_review": "محکمہ طے کرنے کے لیے جائزے میں",
+      "assigned": "سپرد کی گئی",
+      "reassigned": "دوبارہ سپرد کی گئی",
+      "status_changed": "حالت بدلی",
+      "note": "افسر کا نوٹ",
+      "message": "پیغام",
+      "evidence_added": "ثبوت شامل کیا گیا",
+      "priority_changed": "ترجیح بدلی",
+      "escalated": "اوپر بھیجی گئی",
+      "emergency_flagged": "ہنگامی حالت کا نشان",
+      "emergency_confirmed": "ہنگامی حالت کی تصدیق",
+      "resolution_submitted": "حل جمع کیا گیا",
+      "ai_verification": "AI نے ثبوت جانچا",
+      "citizen_verified": "آپ نے حل کی تصدیق کی",
+      "citizen_rejected": "ٹھیک نہ ہونے کی اطلاع",
+      "reopened": "دوبارہ کھولی گئی",
+      "appeal_filed": "اپیل دائر",
+      "appeal_decided": "اپیل پر فیصلہ",
+      "merged": "مشترکہ مسئلے سے جوڑی گئی",
+      "support_added": "کسی نے حمایت کی",
+      "closed": "بند"
+    }
+  },
+  "before_after": {
+    "before": "پہلے",
+    "after": "بعد میں",
+    "label": "پہلے اور بعد کا موازنہ کرنے کے لیے کھینچیں"
+  },
+  "map": {
+    "label": "نقشہ",
+    "approximate_boundaries": "تخمینی ڈیمو حدود"
+  },
+  "placeholder": {
+    "coming_soon": "یہ اسکرین تیار ہو رہی ہے۔",
+    "owner": "ذمہ دار: لیپ ٹاپ {{owner}}"
+  },
+  "loading": "لوڈ ہو رہا ہے…"
+}

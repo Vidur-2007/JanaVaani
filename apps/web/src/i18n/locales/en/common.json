@@ -1,0 +1,181 @@
+{
+  "brand": {
+    "name": "JanaVaani",
+    "tagline": "Every complaint, in every language."
+  },
+  "nav": {
+    "home": "Home",
+    "report": "Report",
+    "complaints": "Complaints",
+    "alerts": "Alerts",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "nearby": "Nearby",
+    "guide": "Guide",
+    "track": "Track",
+    "login": "Sign in",
+    "officer": "Department portal",
+    "supervisor": "Supervisor",
+    "admin": "Admin",
+    "public": "Public dashboard",
+    "main_menu": "Main menu",
+    "skip_to_content": "Skip to content"
+  },
+  "actions": {
+    "retry": "Try again",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "save": "Save",
+    "continue": "Continue",
+    "back": "Back",
+    "close": "Close",
+    "next": "Next",
+    "search": "Search",
+    "upload": "Upload",
+    "share": "Share",
+    "download": "Download",
+    "print": "Print",
+    "track": "Track",
+    "report": "Report a problem",
+    "support": "Me too",
+    "view": "View",
+    "go_home": "Go home",
+    "reload": "Reload",
+    "show_original": "Show original",
+    "show_translation": "Show translation",
+    "translate": "Translate",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "status": {
+    "registered": "Registered",
+    "needs_review": "Under review",
+    "assigned": "Assigned",
+    "in_progress": "In progress",
+    "resolved_pending_verification": "Awaiting your check",
+    "closed": "Closed",
+    "reopened": "Reopened",
+    "rejected": "Rejected",
+    "merged": "Merged"
+  },
+  "priority": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "departments": {
+    "roads": "Roads",
+    "sanitation": "Sanitation",
+    "water": "Water Supply",
+    "streetlights": "Streetlights",
+    "power": "Power",
+    "drainage": "Drainage",
+    "traffic": "Traffic",
+    "health": "Public Health",
+    "education": "Schools",
+    "town_planning": "Town Planning",
+    "other": "Other"
+  },
+  "roles": {
+    "citizen": "Citizen",
+    "guest": "Guest",
+    "officer": "Officer",
+    "supervisor": "Supervisor",
+    "admin": "Admin"
+  },
+  "auth": {
+    "sign_in": "Sign in",
+    "sign_out": "Sign out",
+    "continue_as_guest": "Continue as guest"
+  },
+  "demo": {
+    "switch_role": "Switch demo account",
+    "accounts": "Demo accounts",
+    "signed_out": "Signed out"
+  },
+  "errors": {
+    "generic_title": "Something went wrong",
+    "network": "Could not reach the server. Check your connection.",
+    "not_found_title": "Page not found",
+    "not_found_body": "The page you are looking for does not exist or has moved.",
+    "boundary_title": "This screen hit a problem",
+    "boundary_body": "Reload the page to try again. Your drafts are saved on this device."
+  },
+  "lang": {
+    "choose": "Language",
+    "code_mixed": "mixed",
+    "detected": "Detected: {{lang}}"
+  },
+  "ai": {
+    "suggested": "AI-suggested",
+    "approved": "AI-suggested · human-approved",
+    "generated": "AI-generated"
+  },
+  "live": {
+    "live": "Live",
+    "polling": "Auto-refresh",
+    "connecting": "Connecting…",
+    "offline": "Offline"
+  },
+  "sla": {
+    "due_in": "Due in {{time}}",
+    "overdue_by": "Overdue by {{time}}",
+    "stopped": "Completed"
+  },
+  "tts": {
+    "listen": "Listen",
+    "stop": "Stop",
+    "unavailable": "No voice available for this language on this device",
+    "unavailable_short": "No voice"
+  },
+  "theme": {
+    "switch_to_ink": "Switch to dark theme",
+    "switch_to_paper": "Switch to light theme"
+  },
+  "timeline": {
+    "label": "Complaint timeline",
+    "internal": "Internal",
+    "types": {
+      "registered": "Registered",
+      "classified": "Classified by AI",
+      "routing_review": "Sent for routing review",
+      "assigned": "Assigned",
+      "reassigned": "Reassigned",
+      "status_changed": "Status updated",
+      "note": "Officer note",
+      "message": "Message",
+      "evidence_added": "Evidence added",
+      "priority_changed": "Priority changed",
+      "escalated": "Escalated",
+      "emergency_flagged": "Emergency flagged",
+      "emergency_confirmed": "Emergency confirmed",
+      "resolution_submitted": "Resolution submitted",
+      "ai_verification": "AI checked the proof",
+      "citizen_verified": "You confirmed the fix",
+      "citizen_rejected": "Marked not fixed",
+      "reopened": "Reopened",
+      "appeal_filed": "Appeal filed",
+      "appeal_decided": "Appeal decided",
+      "merged": "Linked to a shared issue",
+      "support_added": "Someone added support",
+      "closed": "Closed"
+    }
+  },
+  "before_after": {
+    "before": "Before",
+    "after": "After",
+    "label": "Drag to compare before and after"
+  },
+  "map": {
+    "label": "Map",
+    "approximate_boundaries": "Approximate demo boundaries"
+  },
+  "placeholder": {
+    "coming_soon": "This screen is being built.",
+    "owner": "Owner: Laptop {{owner}}"
+  },
+  "loading": "Loading…"
+}
