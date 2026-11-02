@@ -175,5 +175,24 @@
     "view": "View",
     "unread_one": "{{count}} unread",
     "unread_other": "{{count}} unread"
+  },
+  "report": {
+    "title": "Report a problem",
+    "greet": "Tell me what the problem is. You can type or speak in any language: Telugu, Hindi, Urdu, English or a mix.",
+    "placeholder": "Describe the problem…",
+    "send": "Send",
+    "mic_start": "Speak instead of typing",
+    "mic_stop": "Stop listening",
+    "typing": "JanaVaani is typing…",
+    "conversation": "Conversation with JanaVaani",
+    "detected": "{{lang}} · detected",
+    "progress": "{{done}} of {{total}} details given",
+    "quick_replies": "Suggested replies",
+    "share_location": "Share location",
+    "error_send": "That did not go through. Please try again.",
+    "retry": "Try again",
+    "show_english": "Show in English",
+    "show_original": "Show original",
+    "asset": "Reporting about: {{label}}"
   }
 }

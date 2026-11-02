@@ -16,7 +16,7 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Nearby = lazy(() => import('./pages/Nearby'));
 const AssetEntry = lazy(() => import('./pages/AssetEntry'));
-const Report = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.Report })));
+const Report = lazy(() => import('./report/ReportPage'));
 const QuickReport = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.QuickReport })));
 const Guide = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.Guide })));
 const PrintReceipt = lazy(() => import('./pages/Placeholders').then((m) => ({ default: m.PrintReceipt })));
