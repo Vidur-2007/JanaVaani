@@ -169,3 +169,27 @@ test('receipt page renders with a QR code to the tracker', async ({ page }) => {
   await expect(page.getByTestId('receipt-qr')).toBeVisible();
   await expect(page.getByTestId('download-pdf')).toBeEnabled();
 });
+
+test.describe('demo helpers (VITE_DEMO_MODE)', () => {
+  test('chat chips pre-fill the rehearsed phrase without sending', async ({ page }) => {
+    await signIn(page, LAKSHMI);
+    await page.goto('/app/report?mode=text');
+    await page.getByTestId('demo-live_wire').click();
+    await expect(page.getByTestId('composer-input')).toHaveValue(/కరెంట్ తీగ/);
+    await expect(page.locator('[data-role="user"]')).toHaveCount(0);
+    await page.getByTestId('composer-input').press('Enter');
+    await expect(page.getByTestId('call-112')).toBeVisible();
+  });
+
+  test('quick report: demo photo + Miyapur X Roads + Tenglish line → duplicate sheet', async ({ page }) => {
+    await signIn(page, LAKSHMI, { ui_lang: 'en' });
+    await page.goto('/app/report/quick');
+    await page.getByTestId('demo-photo').click();
+    await expect(page.getByTestId('photo-ok')).toBeVisible();
+    await expect(page.getByTestId('quick-location')).toContainText('Miyapur');
+    await expect(page.getByTestId('quick-text')).toHaveValue('Miyapur X roads lo pedda gunta undi');
+    await page.getByTestId('quick-continue').click();
+    await page.getByTestId('confirm-submit').click();
+    await expect(page.getByTestId('duplicate-sheet')).toBeVisible();
+  });
+});

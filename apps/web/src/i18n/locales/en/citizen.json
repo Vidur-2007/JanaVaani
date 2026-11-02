@@ -619,5 +619,15 @@
     "ios": "On iPhone: tap Share, then “Add to Home Screen”.",
     "unavailable": "Your browser does not offer installing. Try Chrome or Edge, or use it here in the browser.",
     "dismiss": "Hide this"
+  },
+  "demo": {
+    "inputs": "Demo inputs",
+    "live_wire": "Demo: live wire (Telugu)",
+    "pothole": "Demo: pothole (Tenglish)",
+    "water": "Demo: dirty water (Urdu)",
+    "photo": "Use demo photo",
+    "place": "Miyapur X Roads",
+    "voice_phrase": "Say the demo phrase",
+    "case": "Demo: suspicious streetlight case"
   }
 }

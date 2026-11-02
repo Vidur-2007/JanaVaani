@@ -20,6 +20,7 @@ import {
   ListSkeleton,
   PageTransition,
   StatusChip,
+  MapChunkBoundary,
 } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { pickLocalized } from '@/lib/localized';
@@ -159,16 +160,18 @@ export default function Nearby() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
         <div className="space-y-3 lg:sticky lg:top-20">
           {center ? (
-            <Suspense fallback={<Skeleton className="h-80 w-full rounded-[var(--radius-lg)]" />}>
-              <NearbyMap
-                center={center}
-                radius={shownRadius}
-                points={points}
-                me={here}
-                onMove={setMoved}
-                ariaLabel={t('nearby.map_label')}
-              />
-            </Suspense>
+            <MapChunkBoundary height={320}>
+              <Suspense fallback={<Skeleton className="h-80 w-full rounded-[var(--radius-lg)]" />}>
+                <NearbyMap
+                  center={center}
+                  radius={shownRadius}
+                  points={points}
+                  me={here}
+                  onMove={setMoved}
+                  ariaLabel={t('nearby.map_label')}
+                />
+              </Suspense>
+            </MapChunkBoundary>
           ) : (
             <Skeleton className="h-80 w-full rounded-[var(--radius-lg)]" />
           )}

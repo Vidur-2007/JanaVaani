@@ -7,7 +7,7 @@ import { Button } from '@/design/ui/button';
 import { Label } from '@/design/ui/label';
 import { Switch } from '@/design/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/design/ui/tooltip';
-import { AIBadge, DepartmentBadge, PriorityChip, Skeleton } from '@/design/components';
+import { AIBadge, DepartmentBadge, PriorityChip, Skeleton, MapChunkBoundary } from '@/design/components';
 import { useDepartmentMap } from '@/lib/api/hooks';
 import { isRtl } from '@/lib/i18n';
 import { pickRecord } from '@/lib/localized';
@@ -291,9 +291,11 @@ export function ConfirmationCard({
                 {loc.ward_name && loc.ward_name !== locationLabel(loc) ? ` · ${loc.ward_name}` : ''}
               </span>
             </p>
-            <Suspense fallback={<Skeleton className="h-36 w-full rounded-[var(--radius-lg)]" />}>
-              <LocationMap pin={loc} height={144} />
-            </Suspense>
+            <MapChunkBoundary height={144}>
+              <Suspense fallback={<Skeleton className="h-36 w-full rounded-[var(--radius-lg)]" />}>
+                <LocationMap pin={loc} height={144} />
+              </Suspense>
+            </MapChunkBoundary>
           </>
         ) : (
           <div className="bg-warning/12 flex items-center justify-between gap-2 rounded-lg p-3 text-sm">

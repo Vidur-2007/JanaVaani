@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, ImagePlus, Loader2, MapPin, Sparkles } from 'lucide-react';
+import { Camera, ImagePlus, Loader2, MapPin, Sparkles, Clapperboard } from 'lucide-react';
 import { toast } from 'sonner';
 import type { DuplicateMatch, GrievanceDraft, Location, Media } from '@contracts/types';
 import { Button } from '@/design/ui/button';
@@ -22,6 +22,7 @@ import { LocationSheet, locationLabel } from './LocationSheet';
 import { queueOutbox } from './outbox';
 import { PhotoTray, usePhotoUpload } from './PhotoAttach';
 import { SubmittedScreen, type SubmittedItem } from './SubmittedScreen';
+import { DEMO_MIYAPUR, DEMO_PHRASES, demoEnabled, loadDemoPhoto } from '../demo/demoKit';
 
 type Phase = 'capture' | 'confirm' | 'done' | 'supported' | 'queued';
 
@@ -30,7 +31,12 @@ function useAutoLocation(enabled: boolean, onFix: (l: Location) => void) {
     if (!enabled || !('geolocation' in navigator)) return;
     navigator.geolocation.getCurrentPosition(
       (p) =>
-        onFix({ lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), accuracy_m: Math.round(p.coords.accuracy), source: 'gps' }),
+        onFix({
+          lat: +p.coords.latitude.toFixed(6),
+          lng: +p.coords.longitude.toFixed(6),
+          accuracy_m: Math.round(p.coords.accuracy),
+          source: 'gps',
+        }),
       () => undefined,
       { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
     );
@@ -47,11 +53,23 @@ export default function QuickReport() {
   const [media, setMedia] = useState<Media[]>([]);
   const [rawLocation, setLocation] = useState<Location | undefined>();
   // A GPS fix gets its ward (and a readable label) from the ward polygons.
-  const wards = useQuery({ queryKey: qk.meta.wardsGeoJSON, queryFn: ({ signal }) => api.wardsGeoJSON(signal), staleTime: Infinity });
+  const wards = useQuery({
+    queryKey: qk.meta.wardsGeoJSON,
+    queryFn: ({ signal }) => api.wardsGeoJSON(signal),
+    staleTime: Infinity,
+  });
   const location = useMemo<Location | undefined>(() => {
     if (!rawLocation || rawLocation.ward_id) return rawLocation;
     const w = wardAt(wards.data, rawLocation.lat, rawLocation.lng);
-    return w ? { ...rawLocation, ward_id: w.id, ward_name: w.name, zone: w.zone, address: rawLocation.address ?? `${w.name}, Hyderabad` } : rawLocation;
+    return w
+      ? {
+          ...rawLocation,
+          ward_id: w.id,
+          ward_name: w.name,
+          zone: w.zone,
+          address: rawLocation.address ?? `${w.name}, Hyderabad`,
+        }
+      : rawLocation;
   }, [rawLocation, wards.data]);
   const [text, setText] = useState('');
   const [draft, setDraft] = useState<GrievanceDraft | null>(null);
@@ -102,7 +120,11 @@ export default function QuickReport() {
     const where = location ?? draft.location;
     if (where && dups.length === 0 && !pendingSubmit) {
       try {
-        const matches = await api.checkDuplicates({ text: draft.cleaned_original, location: where, category: draft.category });
+        const matches = await api.checkDuplicates({
+          text: draft.cleaned_original,
+          location: where,
+          category: draft.category,
+        });
         if (matches.length) {
           setDups(matches);
           setPendingSubmit(o);
@@ -152,7 +174,13 @@ export default function QuickReport() {
         <>
           <ol className="flex gap-2" aria-label={t('quick.steps')}>
             {steps.map((s, i) => (
-              <li key={i} className={cn('flex-1 rounded-full px-3 py-1.5 text-center text-xs font-medium', s.done ? 'bg-success/15 text-success' : 'bg-surface-2 text-muted-foreground')}>
+              <li
+                key={i}
+                className={cn(
+                  'flex-1 rounded-full px-3 py-1.5 text-center text-xs font-medium',
+                  s.done ? 'bg-success/15 text-success' : 'bg-surface-2 text-muted-foreground',
+                )}
+              >
                 {i + 1}. {s.label}
               </li>
             ))}
@@ -167,12 +195,23 @@ export default function QuickReport() {
               className="bg-primary text-primary-foreground shadow-glow-primary flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-[var(--radius-xl)] text-lg font-semibold"
               data-testid="quick-photo"
             >
-              {photo.busy ? <Loader2 className="size-12 animate-spin" aria-hidden /> : <Camera className="size-14" aria-hidden />}
+              {photo.busy ? (
+                <Loader2 className="size-12 animate-spin" aria-hidden />
+              ) : (
+                <Camera className="size-14" aria-hidden />
+              )}
               {t('quick.take_photo')}
             </button>
           ) : (
             <div className="space-y-2">
-              <PhotoTray media={media} onRemove={(id) => setMedia((m) => m.filter((x) => x.id !== id))} onRetake={() => { setMedia((m) => m.filter((x) => x.quality?.ok !== false)); photo.open(); }} />
+              <PhotoTray
+                media={media}
+                onRemove={(id) => setMedia((m) => m.filter((x) => x.id !== id))}
+                onRetake={() => {
+                  setMedia((m) => m.filter((x) => x.quality?.ok !== false));
+                  photo.open();
+                }}
+              />
               <Button variant="ghost" size="sm" onClick={photo.open} disabled={photo.busy}>
                 <ImagePlus className="size-4" aria-hidden />
                 {t('quick.add_another')}
@@ -180,15 +219,51 @@ export default function QuickReport() {
             </div>
           )}
 
-          <button type="button" onClick={() => setLocOpen(true)} className="bg-surface flex w-full items-center gap-3 rounded-[var(--radius-lg)] border p-4 text-start" data-testid="quick-location">
-            <MapPin className={cn('size-5 shrink-0', location ? 'text-primary' : 'text-muted-foreground')} aria-hidden />
+          {demoEnabled() && media.length === 0 && (
+            <button
+              type="button"
+              disabled={photo.busy}
+              onClick={async () => {
+                // P7 demo (master §16 step 3): synthetic pothole photo + Miyapur X Roads + the Tenglish line.
+                setLocation(DEMO_MIYAPUR);
+                setText(DEMO_PHRASES.pothole.text);
+                await photo.handle(await loadDemoPhoto());
+              }}
+              className="jv-press text-muted-foreground hover:text-text inline-flex min-h-9 items-center gap-2 rounded-full border border-dashed px-3 text-xs font-medium"
+              data-testid="demo-photo"
+            >
+              <Clapperboard className="size-4" aria-hidden />
+              {t('demo.photo')}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setLocOpen(true)}
+            className="bg-surface flex w-full items-center gap-3 rounded-[var(--radius-lg)] border p-4 text-start"
+            data-testid="quick-location"
+          >
+            <MapPin
+              className={cn('size-5 shrink-0', location ? 'text-primary' : 'text-muted-foreground')}
+              aria-hidden
+            />
             <span className="flex-1">{location ? locationLabel(location) : t('quick.add_location')}</span>
-            <span className="text-primary text-sm font-medium">{location ? t('quick.change') : t('quick.add')}</span>
+            <span className="text-primary text-sm font-medium">
+              {location ? t('quick.change') : t('quick.add')}
+            </span>
           </button>
 
           <div className="space-y-1.5">
             <Label htmlFor="quick-text">{t('quick.one_line')}</Label>
-            <Input id="quick-text" value={text} onChange={(e) => setText(e.target.value)} placeholder={t('quick.one_line_placeholder')} className="h-12" dir="auto" data-testid="quick-text" />
+            <Input
+              id="quick-text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={t('quick.one_line_placeholder')}
+              className="h-12"
+              dir="auto"
+              data-testid="quick-text"
+            />
           </div>
 
           <Button
@@ -197,7 +272,11 @@ export default function QuickReport() {
             onClick={() => analyze.mutate({ txt: text.trim() || t('quick.photo_only'), loc: location })}
             data-testid="quick-continue"
           >
-            {analyze.isPending ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Sparkles className="size-5" aria-hidden />}
+            {analyze.isPending ? (
+              <Loader2 className="size-5 animate-spin" aria-hidden />
+            ) : (
+              <Sparkles className="size-5" aria-hidden />
+            )}
             {t('quick.continue')}
           </Button>
         </>
@@ -227,7 +306,11 @@ export default function QuickReport() {
         </div>
       )}
       {phase === 'queued' && (
-        <div className="bg-surface space-y-3 rounded-[var(--radius-xl)] border p-6 text-center" role="status" data-testid="queued-notice">
+        <div
+          className="bg-surface space-y-3 rounded-[var(--radius-xl)] border p-6 text-center"
+          role="status"
+          data-testid="queued-notice"
+        >
           <p className="font-display text-lg font-semibold">{t('outbox.queued_title')}</p>
           <p className="text-muted-foreground text-sm">{t('outbox.queued_body')}</p>
           <Button variant="ghost" onClick={restart}>

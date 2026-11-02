@@ -6,7 +6,7 @@ export type { KPIStatProps, TimelineProps, SLACountdownProps, BeforeAfterSliderP
 export { EmptyState, ErrorState, LiveIndicator } from './states';
 export type { EmptyStateProps, ErrorStateProps } from './states';
 export { Skeleton, TextSkeleton, CardSkeleton, ListSkeleton, StatSkeleton, PageSkeleton, RouteFallback } from './Skeletons';
-export { MapView, HYDERABAD } from './MapView';
+export { MapView, MapChunkBoundary, HYDERABAD } from './MapView';
 export type { MapViewProps } from './MapView';
 export {
   ListenButton,

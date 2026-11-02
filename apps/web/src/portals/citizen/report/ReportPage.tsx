@@ -30,7 +30,7 @@ import { isActionValue, useChatSession } from './useChatSession';
 import { clearDraft, loadDraft, saveDraft, userText, type SavedDraft } from './drafts';
 import { queueOutbox } from './outbox';
 import { VoiceMode } from './voice/VoiceMode';
-
+import { DEMO_KUKATPALLY, DEMO_MIYAPUR, DEMO_PHRASES, DemoChips, type DemoPhraseKey } from '../demo/demoKit';
 
 /** Quick-reply values that mean "share my location" (B's API sends `share_location`). */
 const LOCATION_VALUES = new Set(['share_location', 'location', 'use_location']);
@@ -107,6 +107,16 @@ export default function ReportPage() {
     chat.setSnap({ ...d.snap, session_id: undefined, response: undefined, media: [] });
     const text = userText(d.snap);
     if (text) send({ text, silent: true, location: d.snap.location });
+  };
+
+  // P7 demo mode: a chip pre-fills the rehearsed phrase (and its place) — the presenter still presses Send.
+  const [demoText, setDemoText] = useState<string>();
+  const [composerKey, setComposerKey] = useState(0);
+  const pickDemo = (k: DemoPhraseKey) => {
+    setDemoText(DEMO_PHRASES[k].text);
+    setComposerKey((n) => n + 1);
+    if (k === 'pothole') chat.setLocation(DEMO_MIYAPUR);
+    if (k === 'live_wire') chat.setLocation(DEMO_KUKATPALLY);
   };
 
   const pick = (q: QuickReply) => {
@@ -378,15 +388,19 @@ export default function ReportPage() {
           }}
         />
         {photo.inputEl}
+        {stage !== 'submitted' && !queued && !hasUserTurn && (
+          <DemoChips keys={['live_wire', 'pothole', 'water']} onPick={pickDemo} className="pb-1" />
+        )}
         {stage !== 'submitted' && !queued && (
           <Composer
+            key={composerKey}
             lang={uiLang}
             disabled={pending || photo.busy}
             hasAttachments={chat.snap.media.length > 0}
             onSend={(text, mode) => send({ text: text || undefined, input_mode: mode })}
             autoFocus={!voiceOpen}
             onVoice={() => setVoiceOpen(true)}
-            initialText={deptHint && !hasUserTurn ? t(`ll.tiles.${deptHint}`) : undefined}
+            initialText={demoText ?? (deptHint && !hasUserTurn ? t(`ll.tiles.${deptHint}`) : undefined)}
             tools={
               <>
                 <PhotoButton onClick={photo.open} busy={photo.busy} />

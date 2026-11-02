@@ -15,7 +15,7 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { RouteFallback } from '@/design/components/Skeletons';
 import { MockFallbackBadge } from '@/lib/api/MockFallbackBadge';
-import { AfterIdle } from './AfterIdle';
+import { IdleImport } from './AfterIdle';
 import { ErrorBoundary } from './ErrorBoundary';
 
 const LandingRoutes = lazy(() => import('@/portals/landing/routes'));
@@ -25,9 +25,7 @@ const SupervisorRoutes = lazy(() =>
   import('@/portals/officer/routes').then((m) => ({ default: m.SupervisorRoutes })),
 );
 // P6: demo-only chrome, loaded after idle (keeps Radix menu + floating-ui off every page's critical path).
-const DemoRoleSwitcher = lazy(() =>
-  import('@/lib/auth/DemoRoleSwitcher').then((m) => ({ default: m.DemoRoleSwitcher })),
-);
+const loadDemoSwitcher = () => import('@/lib/auth/DemoRoleSwitcher').then((m) => m.DemoRoleSwitcher);
 const AdminRoutes = lazy(() => import('@/portals/admin/routes'));
 const PublicRoutes = lazy(() => import('@/portals/public/routes'));
 
@@ -98,11 +96,7 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <AppRoutes />
-      <AfterIdle>
-        <Suspense fallback={null}>
-          <DemoRoleSwitcher />
-        </Suspense>
-      </AfterIdle>
+      <IdleImport loader={loadDemoSwitcher} props={{}} />
       <MockFallbackBadge />
     </BrowserRouter>
   );

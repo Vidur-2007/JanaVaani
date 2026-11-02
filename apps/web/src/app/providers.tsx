@@ -1,5 +1,5 @@
 // App-wide providers: QueryClient, prefs → <html>, i18n, Auth, live events, toasts, tooltips.
-import { lazy, Suspense, useEffect, type ReactNode } from 'react';
+import { Suspense, useEffect, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MotionConfig } from 'motion/react';
 import { I18nextProvider } from 'react-i18next';
@@ -9,7 +9,7 @@ import { ApiRequestError } from '@/lib/api/client';
 import { AuthProvider } from '@/lib/auth/AuthProvider';
 import { i18n } from '@/lib/i18n';
 import { useLiveEvents } from '@/lib/live/useLiveEvents';
-import { AfterIdle } from './AfterIdle';
+import { IdleImport } from './AfterIdle';
 import { usePrefsToDocument, useReducedMotion, useTheme } from '@/lib/prefs/store';
 
 export const queryClient = new QueryClient({
@@ -35,16 +35,16 @@ function LiveEventsMount() {
 }
 
 // P6: sonner loads after idle (off the critical path). Toasts are only raised by user actions and live events.
-const Toaster = lazy(() => import('sonner').then((m) => ({ default: m.Toaster })));
+const loadToaster = () => import('sonner').then((m) => m.Toaster);
 
 function ThemedToaster() {
   const theme = useTheme();
   return (
-    <AfterIdle timeout={1500}>
-      <Suspense fallback={null}>
-        <Toaster theme={theme === 'ink' ? 'dark' : 'light'} position="top-center" richColors closeButton />
-      </Suspense>
-    </AfterIdle>
+    <IdleImport
+      loader={loadToaster}
+      timeout={1500}
+      props={{ theme: theme === 'ink' ? 'dark' : 'light', position: 'top-center', richColors: true, closeButton: true }}
+    />
   );
 }
 

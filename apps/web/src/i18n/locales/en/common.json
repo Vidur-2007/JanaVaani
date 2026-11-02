@@ -185,5 +185,6 @@
     "coming_soon": "This screen is being built.",
     "owner": "Owner: Laptop {{owner}}"
   },
-  "loading": "Loading…"
+  "loading": "Loading…",
+  "map_unavailable": "Map not available right now (offline?). Your location is still saved."
 }

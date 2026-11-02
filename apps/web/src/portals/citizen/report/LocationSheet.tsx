@@ -10,14 +10,15 @@ import { Input } from '@/design/ui/input';
 import { Label } from '@/design/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/design/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/design/ui/tabs';
-import { HYDERABAD, Skeleton } from '@/design/components';
+import { HYDERABAD, Skeleton, MapChunkBoundary } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { usePrefs } from '@/lib/prefs/store';
 import { wardAt } from './geo';
 
 const LocationMap = lazy(() => import('./LocationMap'));
 
-export const locationLabel = (l: Location) => l.landmark ?? l.address ?? l.ward_name ?? `${l.lat.toFixed(4)}, ${l.lng.toFixed(4)}`;
+export const locationLabel = (l: Location) =>
+  l.landmark ?? l.address ?? l.ward_name ?? `${l.lat.toFixed(4)}, ${l.lng.toFixed(4)}`;
 
 type GpsState = { status: 'idle' | 'locating' | 'error' | 'denied'; fix?: GeoPoint & { accuracy: number } };
 
@@ -36,7 +37,12 @@ export function LocationSheet({
 }) {
   const { t } = useTranslation('citizen');
   const setPrefs = usePrefs((s) => s.set);
-  const wards = useQuery({ queryKey: qk.meta.wardsGeoJSON, queryFn: ({ signal }) => api.wardsGeoJSON(signal), staleTime: Infinity, enabled: open });
+  const wards = useQuery({
+    queryKey: qk.meta.wardsGeoJSON,
+    queryFn: ({ signal }) => api.wardsGeoJSON(signal),
+    staleTime: Infinity,
+    enabled: open,
+  });
   const [tab, setTab] = useState<'gps' | 'map' | 'text'>('gps');
   const [gps, setGps] = useState<GpsState>({ status: 'idle' });
   const [pin, setPin] = useState<GeoPoint>(current ?? suggestion ?? HYDERABAD);
@@ -51,7 +57,11 @@ export function LocationSheet({
     setGps({ status: 'locating' });
     navigator.geolocation.getCurrentPosition(
       (p) => {
-        const fix = { lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), accuracy: Math.round(p.coords.accuracy) };
+        const fix = {
+          lat: +p.coords.latitude.toFixed(6),
+          lng: +p.coords.longitude.toFixed(6),
+          accuracy: Math.round(p.coords.accuracy),
+        };
         setGps({ status: 'idle', fix });
         setPin(fix);
         setPrefs({ consent_location: true });
@@ -68,13 +78,28 @@ export function LocationSheet({
   };
   const withWard = (p: GeoPoint, extra: Partial<Location>): Location => {
     const w = wardAt(wards.data, p.lat, p.lng);
-    return { lat: p.lat, lng: p.lng, ward_id: w?.id, ward_name: w?.name, zone: w?.zone, ...extra } as Location;
+    return {
+      lat: p.lat,
+      lng: p.lng,
+      ward_id: w?.id,
+      ward_name: w?.name,
+      zone: w?.zone,
+      ...extra,
+    } as Location;
   };
 
   const mapBox = (accuracy?: number, draggable = true) => (
-    <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-[var(--radius-lg)]" />}>
-      <LocationMap pin={pin} onPinChange={draggable ? setPin : undefined} accuracy={accuracy} wards={wards.data} activeWardId={ward?.id} />
-    </Suspense>
+    <MapChunkBoundary height={280}>
+      <Suspense fallback={<Skeleton className="h-[280px] w-full rounded-[var(--radius-lg)]" />}>
+        <LocationMap
+          pin={pin}
+          onPinChange={draggable ? setPin : undefined}
+          accuracy={accuracy}
+          wards={wards.data}
+          activeWardId={ward?.id}
+        />
+      </Suspense>
+    </MapChunkBoundary>
   );
   const wardLine = (
     <p className="text-sm" aria-live="polite" data-testid="ward-name">
@@ -85,7 +110,10 @@ export function LocationSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="mx-auto max-h-[92dvh] max-w-2xl overflow-y-auto rounded-t-[var(--radius-xl)]">
+      <SheetContent
+        side="bottom"
+        className="mx-auto max-h-[92dvh] max-w-2xl overflow-y-auto rounded-t-[var(--radius-xl)]"
+      >
         <SheetHeader>
           <SheetTitle>{t('location.title')}</SheetTitle>
           <SheetDescription>{t('location.subtitle')}</SheetDescription>
@@ -99,7 +127,9 @@ export function LocationSheet({
               data-testid="location-suggestion"
             >
               <Sparkles className="text-ai size-5 shrink-0" aria-hidden />
-              <span className="flex-1">{t('location.did_you_mean', { place: locationLabel(suggestion) })}</span>
+              <span className="flex-1">
+                {t('location.did_you_mean', { place: locationLabel(suggestion) })}
+              </span>
               <span className="text-ai text-sm font-medium">{t('location.use_this')}</span>
             </button>
           )}
@@ -114,8 +144,17 @@ export function LocationSheet({
               {!gps.fix ? (
                 <div className="space-y-3 text-center">
                   <p className="text-muted-foreground text-sm">{t('location.gps_hint')}</p>
-                  <Button className="touch-target h-12 w-full" onClick={locate} disabled={gps.status === 'locating'} data-testid="gps-locate">
-                    {gps.status === 'locating' ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Crosshair className="size-5" aria-hidden />}
+                  <Button
+                    className="touch-target h-12 w-full"
+                    onClick={locate}
+                    disabled={gps.status === 'locating'}
+                    data-testid="gps-locate"
+                  >
+                    {gps.status === 'locating' ? (
+                      <Loader2 className="size-5 animate-spin" aria-hidden />
+                    ) : (
+                      <Crosshair className="size-5" aria-hidden />
+                    )}
                     {gps.status === 'locating' ? t('location.locating') : t('location.use_gps')}
                   </Button>
                   {gps.status === 'denied' && <p className="text-danger text-sm">{t('location.denied')}</p>}
@@ -125,10 +164,20 @@ export function LocationSheet({
                 <>
                   {mapBox(gps.fix.accuracy, false)}
                   {wardLine}
-                  <p className="text-muted-foreground text-xs">{t('location.accuracy', { m: gps.fix.accuracy })}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t('location.accuracy', { m: gps.fix.accuracy })}
+                  </p>
                   <Button
                     className="touch-target h-12 w-full"
-                    onClick={() => choose(withWard(gps.fix!, { source: 'gps', accuracy_m: gps.fix!.accuracy, address: ward ? `${ward.name}, Hyderabad` : undefined }))}
+                    onClick={() =>
+                      choose(
+                        withWard(gps.fix!, {
+                          source: 'gps',
+                          accuracy_m: gps.fix!.accuracy,
+                          address: ward ? `${ward.name}, Hyderabad` : undefined,
+                        }),
+                      )
+                    }
                     data-testid="location-confirm"
                   >
                     {t('location.confirm')}
@@ -141,7 +190,15 @@ export function LocationSheet({
               {mapBox()}
               {wardLine}
               <p className="text-muted-foreground text-xs">{t('location.drag_hint')}</p>
-              <Button className="touch-target h-12 w-full" onClick={() => choose(withWard(pin, { source: 'pin', address: ward ? `${ward.name}, Hyderabad` : undefined }))} data-testid="location-confirm-pin">
+              <Button
+                className="touch-target h-12 w-full"
+                onClick={() =>
+                  choose(
+                    withWard(pin, { source: 'pin', address: ward ? `${ward.name}, Hyderabad` : undefined }),
+                  )
+                }
+                data-testid="location-confirm-pin"
+              >
                 {t('location.confirm')}
               </Button>
             </TabsContent>
@@ -149,12 +206,22 @@ export function LocationSheet({
             <TabsContent value="text" className="space-y-3 pt-3">
               <div className="space-y-1.5">
                 <Label htmlFor="landmark">{t('location.landmark')}</Label>
-                <Input id="landmark" value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder={t('location.landmark_placeholder')} className="h-12" />
+                <Input
+                  id="landmark"
+                  value={landmark}
+                  onChange={(e) => setLandmark(e.target.value)}
+                  placeholder={t('location.landmark_placeholder')}
+                  className="h-12"
+                />
               </div>
               <Button
                 className="touch-target h-12 w-full"
                 disabled={landmark.trim().length < 3}
-                onClick={() => choose(withWard(pin, { source: 'text', landmark: landmark.trim(), address: landmark.trim() }))}
+                onClick={() =>
+                  choose(
+                    withWard(pin, { source: 'text', landmark: landmark.trim(), address: landmark.trim() }),
+                  )
+                }
                 data-testid="location-confirm-text"
               >
                 {t('location.confirm')}
