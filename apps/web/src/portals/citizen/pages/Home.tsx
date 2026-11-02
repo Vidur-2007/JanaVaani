@@ -10,7 +10,14 @@ import { api, qk } from '@/lib/api/endpoints';
 import { useAuth } from '@/lib/auth/useAuth';
 import { GrievanceCard } from '../components/GrievanceCard';
 
-const OPEN = ['registered', 'needs_review', 'assigned', 'in_progress', 'reopened', 'resolved_pending_verification'] as const;
+const OPEN = [
+  'registered',
+  'needs_review',
+  'assigned',
+  'in_progress',
+  'reopened',
+  'resolved_pending_verification',
+] as const;
 
 const TILES = [
   { key: 'voice', to: '/app/report?mode=voice', icon: Mic, tone: 'bg-primary text-primary-foreground' },
@@ -22,20 +29,34 @@ const TILES = [
 export default function Home() {
   const { t } = useTranslation('citizen');
   const { profile } = useAuth();
-  const q = useQuery({ queryKey: qk.grievances.mine({ status: [...OPEN] }), queryFn: ({ signal }) => api.myGrievances({ status: [...OPEN] }, signal) });
+  const q = useQuery({
+    queryKey: qk.grievances.mine({ status: [...OPEN] }),
+    queryFn: ({ signal }) => api.myGrievances({ status: [...OPEN] }, signal),
+  });
   return (
     <PageTransition className="space-y-8">
       <header>
         <h1 className="font-display text-2xl font-semibold md:text-3xl">
-          {profile?.role === 'guest' || !profile ? t('home.greeting_guest') : t('home.greeting', { name: profile.name.split(' ')[0] })}
+          {profile?.role === 'guest' || !profile
+            ? t('home.greeting_guest')
+            : t('home.greeting', { name: profile.name.split(' ')[0] })}
         </h1>
         <p className="text-muted-foreground">{t('home.subtitle')}</p>
       </header>
 
-      <motion.div variants={stagger()} initial="initial" animate="animate" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <motion.div
+        variants={stagger()}
+        initial="initial"
+        animate="animate"
+        className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+      >
         {TILES.map(({ key, to, icon: Icon, tone }, i) => (
           <motion.div key={key} custom={i} variants={listItem} {...pressable}>
-            <Link to={to} className={`flex min-h-32 flex-col justify-between rounded-[var(--radius-xl)] p-4 ${tone}`} data-testid={`tile-${key}`}>
+            <Link
+              to={to}
+              className={`flex min-h-32 flex-col justify-between rounded-[var(--radius-xl)] p-4 ${tone}`}
+              data-testid={`tile-${key}`}
+            >
               <Icon className="size-8" aria-hidden />
               <span className="font-display text-lg leading-tight font-semibold">{t(`tiles.${key}`)}</span>
             </Link>

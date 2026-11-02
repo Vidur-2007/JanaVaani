@@ -5,7 +5,10 @@ import { api, qk } from '@/lib/api/endpoints';
 import { GovPlaceholder } from '@/portals/gov-shared/components/GovPlaceholder';
 
 export default function CommandCenterStub() {
-  const q = useQuery({ queryKey: qk.admin.kpis(30), queryFn: ({ signal }) => api.adminKpis({ days: 30 }, signal) });
+  const q = useQuery({
+    queryKey: qk.admin.kpis(30),
+    queryFn: ({ signal }) => api.adminKpis({ days: 30 }, signal),
+  });
   return (
     <GovPlaceholder titleKey="nav.admin">
       {q.isPending ? (

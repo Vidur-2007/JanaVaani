@@ -43,7 +43,18 @@ export interface KPIStatProps {
   className?: string;
 }
 
-export function KPIStat({ label, value, format, decimals = 0, suffix, delta, upIsGood = true, icon: Icon, hint, className }: KPIStatProps) {
+export function KPIStat({
+  label,
+  value,
+  format,
+  decimals = 0,
+  suffix,
+  delta,
+  upIsGood = true,
+  icon: Icon,
+  hint,
+  className,
+}: KPIStatProps) {
   const fmt = useLangFormat();
   const reduced = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
@@ -69,13 +80,25 @@ export function KPIStat({ label, value, format, decimals = 0, suffix, delta, upI
         {Icon && <Icon className="size-4" aria-hidden />}
       </div>
       <div className="mt-1 flex items-baseline gap-2">
-        <span className="font-display tabular text-3xl font-semibold tracking-tight" aria-label={`${format ? format(value) : fmt.number(value)}${suffix ?? ''}`}>
+        <span
+          className="font-display tabular text-3xl font-semibold tracking-tight"
+          aria-label={`${format ? format(value) : fmt.number(value)}${suffix ?? ''}`}
+        >
           {text}
           {suffix}
         </span>
         {delta != null && delta !== 0 && (
-          <span className={cn('tabular inline-flex items-center text-xs font-medium', good ? 'text-success' : 'text-danger')}>
-            {delta > 0 ? <ArrowUpRight className="size-3.5" aria-hidden /> : <ArrowDownRight className="size-3.5" aria-hidden />}
+          <span
+            className={cn(
+              'tabular inline-flex items-center text-xs font-medium',
+              good ? 'text-success' : 'text-danger',
+            )}
+          >
+            {delta > 0 ? (
+              <ArrowUpRight className="size-3.5" aria-hidden />
+            ) : (
+              <ArrowDownRight className="size-3.5" aria-hidden />
+            )}
             {fmt.number(Math.abs(delta))}
           </span>
         )}
@@ -136,14 +159,27 @@ export function Timeline({ events, hideInternal = true, showChain, reverse, clas
   const list = (hideInternal ? events.filter((e) => !e.internal) : events).slice();
   if (reverse) list.reverse();
   return (
-    <motion.ol variants={stagger()} initial="initial" animate="animate" className={cn('relative space-y-4', className)} aria-label={t('timeline.label')}>
+    <motion.ol
+      variants={stagger()}
+      initial="initial"
+      animate="animate"
+      className={cn('relative space-y-4', className)}
+      aria-label={t('timeline.label')}
+    >
       {list.map((e, i) => {
         const Icon = EVENT_ICON[e.type] ?? CircleDot;
         const msg = e.message ? pickLocalized(e.message, i18n.language) : null;
         return (
           <motion.li key={e.id} custom={i} variants={listItem} className="relative flex gap-3">
-            {i < list.length - 1 && <span className="bg-border absolute start-4 top-9 -bottom-4 w-px" aria-hidden />}
-            <span className={cn('grid size-8 shrink-0 place-items-center rounded-full', EVENT_TONE[e.type] ?? 'bg-surface-2 text-muted-foreground')}>
+            {i < list.length - 1 && (
+              <span className="bg-border absolute start-4 top-9 -bottom-4 w-px" aria-hidden />
+            )}
+            <span
+              className={cn(
+                'grid size-8 shrink-0 place-items-center rounded-full',
+                EVENT_TONE[e.type] ?? 'bg-surface-2 text-muted-foreground',
+              )}
+            >
               <Icon className="size-4" aria-hidden />
             </span>
             <div className="min-w-0 flex-1 pt-1">
@@ -194,13 +230,33 @@ export function SLACountdown({ sla, stopped, compact, className }: SLACountdownP
     const id = window.setInterval(() => setNow(Date.now()), 30_000);
     return () => window.clearInterval(id);
   }, [stopped]);
-  const remaining = stopped ? sla.remaining_minutes : Math.round((Date.parse(sla.due_at) - now - offset) / 60_000);
+  const remaining = stopped
+    ? sla.remaining_minutes
+    : Math.round((Date.parse(sla.due_at) - now - offset) / 60_000);
   const breached = !stopped && (sla.breached || remaining < 0);
   const low = !breached && remaining < sla.hours * 60 * 0.25;
-  const tone = stopped ? 'text-muted-foreground' : breached ? 'text-danger' : low ? 'text-warning' : 'text-text';
-  const label = stopped ? t('sla.stopped') : breached ? t('sla.overdue_by', { time: fmt.duration(-remaining) }) : t('sla.due_in', { time: fmt.duration(remaining) });
+  const tone = stopped
+    ? 'text-muted-foreground'
+    : breached
+      ? 'text-danger'
+      : low
+        ? 'text-warning'
+        : 'text-text';
+  const label = stopped
+    ? t('sla.stopped')
+    : breached
+      ? t('sla.overdue_by', { time: fmt.duration(-remaining) })
+      : t('sla.due_in', { time: fmt.duration(remaining) });
   return (
-    <span className={cn('tabular inline-flex items-center gap-1.5 font-mono text-xs font-medium', tone, className)} data-breached={breached || undefined} title={fmt.dateTime(sla.due_at)}>
+    <span
+      className={cn(
+        'tabular inline-flex items-center gap-1.5 font-mono text-xs font-medium',
+        tone,
+        className,
+      )}
+      data-breached={breached || undefined}
+      title={fmt.dateTime(sla.due_at)}
+    >
       <Clock className="size-3.5" aria-hidden />
       {compact && !stopped ? (breached ? `-${fmt.duration(-remaining)}` : fmt.duration(remaining)) : label}
     </span>
@@ -232,7 +288,10 @@ export function BeforeAfterSlider({ before, after, beforeAlt, afterAlt, classNam
   return (
     <div
       ref={ref}
-      className={cn('relative aspect-[4/3] w-full touch-none overflow-hidden rounded-[var(--radius-lg)] border select-none', className)}
+      className={cn(
+        'relative aspect-[4/3] w-full touch-none overflow-hidden rounded-[var(--radius-lg)] border select-none',
+        className,
+      )}
       onPointerDown={(e) => {
         dragging.current = true;
         (e.target as Element).setPointerCapture?.(e.pointerId);
@@ -242,17 +301,35 @@ export function BeforeAfterSlider({ before, after, beforeAlt, afterAlt, classNam
       onPointerUp={() => (dragging.current = false)}
       dir="ltr"
     >
-      <img src={after} alt={afterAlt ?? t('before_after.after')} className="absolute inset-0 size-full object-cover" draggable={false} />
+      <img
+        src={after}
+        alt={afterAlt ?? t('before_after.after')}
+        className="absolute inset-0 size-full object-cover"
+        draggable={false}
+      />
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
-        <img src={before} alt={beforeAlt ?? t('before_after.before')} className="absolute inset-0 size-full object-cover" draggable={false} />
+        <img
+          src={before}
+          alt={beforeAlt ?? t('before_after.before')}
+          className="absolute inset-0 size-full object-cover"
+          draggable={false}
+        />
       </div>
-      <div className="absolute inset-y-0 w-0.5 bg-white shadow-[0_0_0_1px_rgb(0_0_0/0.3)]" style={{ left: `${pos}%` }} aria-hidden>
+      <div
+        className="absolute inset-y-0 w-0.5 bg-white shadow-[0_0_0_1px_rgb(0_0_0/0.3)]"
+        style={{ left: `${pos}%` }}
+        aria-hidden
+      >
         <span className="absolute top-1/2 left-1/2 grid size-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-xs font-bold text-black shadow-lg">
           ⇆
         </span>
       </div>
-      <span className="absolute start-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">{t('before_after.before')}</span>
-      <span className="absolute end-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">{t('before_after.after')}</span>
+      <span className="absolute start-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
+        {t('before_after.before')}
+      </span>
+      <span className="absolute end-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
+        {t('before_after.after')}
+      </span>
       <input
         type="range"
         min={0}

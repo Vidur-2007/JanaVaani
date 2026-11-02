@@ -7,7 +7,10 @@ import { GrievanceCard } from '../components/GrievanceCard';
 
 export default function Complaints() {
   const { t } = useTranslation('citizen');
-  const q = useQuery({ queryKey: qk.grievances.mine(), queryFn: ({ signal }) => api.myGrievances({}, signal) });
+  const q = useQuery({
+    queryKey: qk.grievances.mine(),
+    queryFn: ({ signal }) => api.myGrievances({}, signal),
+  });
   return (
     <PageTransition className="space-y-4">
       <h1 className="font-display text-2xl font-semibold">{t('complaints.title')}</h1>

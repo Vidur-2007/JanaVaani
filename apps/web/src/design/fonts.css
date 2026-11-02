@@ -18,8 +18,10 @@
 @import '@fontsource/noto-nastaliq-urdu/700.css';
 
 :root {
-  --font-body: 'Noto Sans', 'Noto Sans Telugu', 'Noto Sans Devanagari', 'Noto Naskh Arabic', system-ui, sans-serif;
-  --font-heading: 'Anek Latin Variable', 'Anek Telugu Variable', 'Anek Devanagari Variable', 'Noto Nastaliq Urdu',
+  --font-body:
+    'Noto Sans', 'Noto Sans Telugu', 'Noto Sans Devanagari', 'Noto Naskh Arabic', system-ui, sans-serif;
+  --font-heading:
+    'Anek Latin Variable', 'Anek Telugu Variable', 'Anek Devanagari Variable', 'Noto Nastaliq Urdu',
     'Noto Sans', system-ui, sans-serif;
   --font-code: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
 }

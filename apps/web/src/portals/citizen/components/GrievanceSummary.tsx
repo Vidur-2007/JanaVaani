@@ -44,17 +44,25 @@ export function GrievanceSummary({ g }: { g: GrievanceDetail }) {
           <ListenButton text={desc.text} lang={desc.lang as GrievanceDetail['language']} size="icon" />
         </div>
         <AIBadge variant="approved" />
-        {g.support_count > 0 && <p className="text-muted-foreground text-sm">{t('detail.support', { count: g.support_count })}</p>}
+        {g.support_count > 0 && (
+          <p className="text-muted-foreground text-sm">{t('detail.support', { count: g.support_count })}</p>
+        )}
         {g.assigned_officer && (
           <p className="text-muted-foreground text-sm">
-            {t('detail.officer')}: <span className="text-text">{g.assigned_officer.name}</span> · {g.assigned_officer.office_name}
+            {t('detail.officer')}: <span className="text-text">{g.assigned_officer.name}</span> ·{' '}
+            {g.assigned_officer.office_name}
           </p>
         )}
       </section>
       {before && after && (
         <section className="space-y-2">
           <h2 className="font-display text-lg font-semibold">{t('detail.proof')}</h2>
-          <BeforeAfterSlider before={before.url} after={after.url} beforeAlt={before.ai?.description_en} afterAlt={after.ai?.description_en} />
+          <BeforeAfterSlider
+            before={before.url}
+            after={after.url}
+            beforeAlt={before.ai?.description_en}
+            afterAlt={after.ai?.description_en}
+          />
         </section>
       )}
       <section className="space-y-3">

@@ -26,7 +26,16 @@ export const LANGUAGE_NAMES: Record<Lang, { native: string; en: string; deep: bo
 
 /** Web Speech / BCP-47 codes. */
 export const SPEECH_CODES: Record<Exclude<Lang, 'other'>, string> = {
-  en: 'en-IN', te: 'te-IN', hi: 'hi-IN', ur: 'ur-IN', ta: 'ta-IN', kn: 'kn-IN', ml: 'ml-IN', mr: 'mr-IN', bn: 'bn-IN', gu: 'gu-IN',
+  en: 'en-IN',
+  te: 'te-IN',
+  hi: 'hi-IN',
+  ur: 'ur-IN',
+  ta: 'ta-IN',
+  kn: 'kn-IN',
+  ml: 'ml-IN',
+  mr: 'mr-IN',
+  bn: 'bn-IN',
+  gu: 'gu-IN',
 };
 
 export const isRtl = (lang: string) => lang.startsWith('ur');

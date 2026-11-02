@@ -9,8 +9,19 @@ export function makeFormatters(lang: string) {
   const locale = localeFor(lang);
   const num = new Intl.NumberFormat(locale);
   const pct = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
-  const date = new Intl.DateTimeFormat(locale, { timeZone: TIME_ZONE, day: 'numeric', month: 'short', year: 'numeric' });
-  const dateTime = new Intl.DateTimeFormat(locale, { timeZone: TIME_ZONE, day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  const date = new Intl.DateTimeFormat(locale, {
+    timeZone: TIME_ZONE,
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  const dateTime = new Intl.DateTimeFormat(locale, {
+    timeZone: TIME_ZONE,
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
   const time = new Intl.DateTimeFormat(locale, { timeZone: TIME_ZONE, hour: 'numeric', minute: '2-digit' });
   const rel = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
 

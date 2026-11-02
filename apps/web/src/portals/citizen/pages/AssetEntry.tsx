@@ -10,7 +10,10 @@ import { api, qk } from '@/lib/api/endpoints';
 export default function AssetEntry() {
   const { assetId = '' } = useParams();
   const { t } = useTranslation('citizen');
-  const q = useQuery({ queryKey: qk.meta.asset(assetId), queryFn: ({ signal }) => api.asset(assetId, signal) });
+  const q = useQuery({
+    queryKey: qk.meta.asset(assetId),
+    queryFn: ({ signal }) => api.asset(assetId, signal),
+  });
   return (
     <PageTransition className="space-y-4">
       <h1 className="font-display text-2xl font-semibold">{t('asset.title')}</h1>

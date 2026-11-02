@@ -31,7 +31,10 @@ export const toProfile = (m: MockProfile): Profile => ({
 
 export function findDemoUser(roleOrEmail: Role | string): MockProfile | undefined {
   if (roleOrEmail === 'guest') return GUEST_PROFILE;
-  return DEMO_USERS.find((u) => u.email === roleOrEmail.toLowerCase()) ?? DEMO_USERS.find((u) => u.role === roleOrEmail);
+  return (
+    DEMO_USERS.find((u) => u.email === roleOrEmail.toLowerCase()) ??
+    DEMO_USERS.find((u) => u.role === roleOrEmail)
+  );
 }
 
 export function mockPasswordLogin(email: string, password: string): MockProfile {
@@ -45,8 +48,18 @@ export function mockMagicLink(email: string): MockProfile {
   const e = email.trim().toLowerCase();
   const demo = DEMO_USERS.find((x) => x.email === e);
   if (demo) return demo;
-  const name = e.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  return { id: `u-${e.replace(/[^a-z0-9]/g, '')}`, role: 'citizen', name, email: e, preferred_language: 'en', persona_en: 'Citizen' };
+  const name = e
+    .split('@')[0]
+    .replace(/[._-]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return {
+    id: `u-${e.replace(/[^a-z0-9]/g, '')}`,
+    role: 'citizen',
+    name,
+    email: e,
+    preferred_language: 'en',
+    persona_en: 'Citizen',
+  };
 }
 
 export function mockGuest(): MockProfile {

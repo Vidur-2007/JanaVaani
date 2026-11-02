@@ -32,14 +32,23 @@ export function GovLayout() {
           </Link>
           <ThemeToggle />
         </div>
-        {profile && <p className="text-muted-foreground px-1 text-xs">{profile.name} · {t(`roles.${profile.role}`)}</p>}
+        {profile && (
+          <p className="text-muted-foreground px-1 text-xs">
+            {profile.name} · {t(`roles.${profile.role}`)}
+          </p>
+        )}
         <nav className="flex gap-1 overflow-x-auto md:flex-col" aria-label={t('nav.main_menu')}>
           {NAV.filter((n) => profile && n.roles.includes(profile.role)).map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
               end={n.end}
-              className={({ isActive }) => cn('touch-target flex items-center rounded-lg px-3 text-sm whitespace-nowrap', isActive ? 'bg-primary/15 text-primary' : 'hover:bg-surface-2')}
+              className={({ isActive }) =>
+                cn(
+                  'touch-target flex items-center rounded-lg px-3 text-sm whitespace-nowrap',
+                  isActive ? 'bg-primary/15 text-primary' : 'hover:bg-surface-2',
+                )
+              }
             >
               {t(n.labelKey)}
             </NavLink>

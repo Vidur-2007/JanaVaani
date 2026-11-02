@@ -13,7 +13,11 @@ export interface PickedText {
 }
 
 /** Spec A §6: show `original` when its language matches the UI, else `en`. */
-export function pickLocalized(l: Localized | undefined | null, uiLang: string, preferOriginal = false): PickedText {
+export function pickLocalized(
+  l: Localized | undefined | null,
+  uiLang: string,
+  preferOriginal = false,
+): PickedText {
   if (!l) return { text: '', lang: uiLang, isOriginal: false, hasOther: false, dir: 'ltr' };
   const showOriginal = preferOriginal || l.lang === uiLang || !l.en;
   const lang = showOriginal ? l.lang : 'en';

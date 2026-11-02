@@ -53,7 +53,14 @@ export function PriorityChip({ priority, score, size = 'md', className }: Priori
   const { t } = useTranslation('common');
   return (
     <span className={cn(base, sizeCls[size], PRIO_CLS[priority], className)} data-priority={priority}>
-      <span className={cn('size-1.5 rounded-full', PRIO_DOT[priority], priority === 'critical' && 'animate-pulse')} aria-hidden />
+      <span
+        className={cn(
+          'size-1.5 rounded-full',
+          PRIO_DOT[priority],
+          priority === 'critical' && 'animate-pulse',
+        )}
+        aria-hidden
+      />
       {t(`priority.${priority}`)}
       {score != null && <span className="tabular font-mono opacity-80">{score}</span>}
     </span>
@@ -74,7 +81,15 @@ const STATUS_CLS: Record<Status, string> = {
   merged: 'bg-surface-2 text-muted-foreground border-border',
 };
 
-export function StatusChip({ status, size = 'md', className }: { status: Status; size?: Size; className?: string }) {
+export function StatusChip({
+  status,
+  size = 'md',
+  className,
+}: {
+  status: Status;
+  size?: Size;
+  className?: string;
+}) {
   const { t } = useTranslation('common');
   return (
     <span className={cn(base, sizeCls[size], STATUS_CLS[status], className)} data-status={status}>
@@ -114,7 +129,13 @@ export function DepartmentBadge({ department, size = 'md', iconOnly, className }
   const color = `var(--dept-${department})`;
   return (
     <span
-      className={cn(base, sizeCls[size], 'bg-surface text-text', iconOnly && 'aspect-square justify-center px-0', className)}
+      className={cn(
+        base,
+        sizeCls[size],
+        'bg-surface text-text',
+        iconOnly && 'aspect-square justify-center px-0',
+        className,
+      )}
       style={{ borderColor: `color-mix(in oklab, ${color} 55%, transparent)` }}
       title={iconOnly ? name : undefined}
       aria-label={iconOnly ? name : undefined}
@@ -128,11 +149,25 @@ export function DepartmentBadge({ department, size = 'md', iconOnly, className }
 
 // ---------------------------------------------------------------- LangBadge
 
-export function LangBadge({ lang, codeMixed, size = 'sm', className }: { lang: Lang; codeMixed?: boolean; size?: Size; className?: string }) {
+export function LangBadge({
+  lang,
+  codeMixed,
+  size = 'sm',
+  className,
+}: {
+  lang: Lang;
+  codeMixed?: boolean;
+  size?: Size;
+  className?: string;
+}) {
   const { t } = useTranslation('common');
   const name = LANGUAGE_NAMES[lang] ?? LANGUAGE_NAMES.other;
   return (
-    <span className={cn(base, sizeCls[size], 'bg-surface-2 text-text border-border', className)} title={name.en} data-lang={lang}>
+    <span
+      className={cn(base, sizeCls[size], 'bg-surface-2 text-text border-border', className)}
+      title={name.en}
+      data-lang={lang}
+    >
       <span lang={lang}>{name.native}</span>
       {codeMixed && <span className="text-muted-foreground">· {t('lang.code_mixed')}</span>}
     </span>

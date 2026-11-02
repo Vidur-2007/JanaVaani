@@ -52,25 +52,38 @@ export function CitizenLayout() {
   const unread = useUnread();
   return (
     <div className="min-h-dvh">
-      <a href="#main" className="bg-primary text-primary-foreground sr-only z-50 rounded px-3 py-2 focus:not-sr-only focus:fixed focus:start-2 focus:top-2">
+      <a
+        href="#main"
+        className="bg-primary text-primary-foreground sr-only z-50 rounded px-3 py-2 focus:not-sr-only focus:fixed focus:start-2 focus:top-2"
+      >
         {t('nav.skip_to_content')}
       </a>
       <TopBar />
       <div className="mx-auto flex max-w-6xl">
         {/* Side rail (desktop) */}
-        <nav className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-56 shrink-0 flex-col gap-1 border-e p-3 md:flex" aria-label={t('nav.main_menu')}>
+        <nav
+          className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-56 shrink-0 flex-col gap-1 border-e p-3 md:flex"
+          aria-label={t('nav.main_menu')}
+        >
           {NAV.map(({ to, key, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
-                cn('touch-target flex items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors', isActive ? 'bg-primary/12 text-primary' : 'hover:bg-surface-2')
+                cn(
+                  'touch-target flex items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors',
+                  isActive ? 'bg-primary/12 text-primary' : 'hover:bg-surface-2',
+                )
               }
             >
               <Icon className="size-5" aria-hidden />
               <span className="flex-1">{t(`nav.${key}`)}</span>
-              {key === 'alerts' && unread > 0 && <span className="bg-primary text-primary-foreground tabular rounded-full px-1.5 text-xs">{unread}</span>}
+              {key === 'alerts' && unread > 0 && (
+                <span className="bg-primary text-primary-foreground tabular rounded-full px-1.5 text-xs">
+                  {unread}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -81,18 +94,31 @@ export function CitizenLayout() {
         </main>
       </div>
       {/* Bottom nav (mobile) */}
-      <nav className="bg-surface/95 fixed inset-x-0 bottom-0 z-40 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden" aria-label={t('nav.main_menu')}>
+      <nav
+        className="bg-surface/95 fixed inset-x-0 bottom-0 z-40 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+        aria-label={t('nav.main_menu')}
+      >
         <ul className="grid grid-cols-5">
           {NAV.map(({ to, key, icon: Icon, end }) => (
             <li key={to}>
               <NavLink
                 to={to}
                 end={end}
-                className={({ isActive }) => cn('relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium', isActive ? 'text-primary' : 'text-muted-foreground')}
+                className={({ isActive }) =>
+                  cn(
+                    'relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium',
+                    isActive ? 'text-primary' : 'text-muted-foreground',
+                  )
+                }
               >
                 <Icon className="size-5" aria-hidden />
                 <span className="max-w-full truncate px-1">{t(`nav.${key}`)}</span>
-                {key === 'alerts' && unread > 0 && <span className="bg-primary absolute top-2 end-[calc(50%-18px)] size-2 rounded-full" aria-hidden />}
+                {key === 'alerts' && unread > 0 && (
+                  <span
+                    className="bg-primary absolute top-2 end-[calc(50%-18px)] size-2 rounded-full"
+                    aria-hidden
+                  />
+                )}
               </NavLink>
             </li>
           ))}

@@ -10,10 +10,30 @@ export default function Settings() {
   const { t: tc } = useTranslation('common');
   const p = usePrefs();
   const toggles = [
-    { id: 'contrast', label: t('settings.high_contrast'), checked: p.contrast === 'high', set: (v: boolean) => p.set({ contrast: v ? 'high' : 'normal' }) },
-    { id: 'font', label: t('settings.large_text'), checked: p.font === 'large', set: (v: boolean) => p.set({ font: v ? 'large' : 'normal' }) },
-    { id: 'motion', label: t('settings.reduced_motion'), checked: p.motion === 'reduced', set: (v: boolean) => p.set({ motion: v ? 'reduced' : 'system' }) },
-    { id: 'simple', label: t('settings.simple_mode'), checked: p.simple_mode, set: (v: boolean) => p.set({ simple_mode: v }) },
+    {
+      id: 'contrast',
+      label: t('settings.high_contrast'),
+      checked: p.contrast === 'high',
+      set: (v: boolean) => p.set({ contrast: v ? 'high' : 'normal' }),
+    },
+    {
+      id: 'font',
+      label: t('settings.large_text'),
+      checked: p.font === 'large',
+      set: (v: boolean) => p.set({ font: v ? 'large' : 'normal' }),
+    },
+    {
+      id: 'motion',
+      label: t('settings.reduced_motion'),
+      checked: p.motion === 'reduced',
+      set: (v: boolean) => p.set({ motion: v ? 'reduced' : 'system' }),
+    },
+    {
+      id: 'simple',
+      label: t('settings.simple_mode'),
+      checked: p.simple_mode,
+      set: (v: boolean) => p.set({ simple_mode: v }),
+    },
   ];
   return (
     <PageTransition className="space-y-6">

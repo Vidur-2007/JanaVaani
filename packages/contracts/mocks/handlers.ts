@@ -110,7 +110,8 @@ function requireUser(ctx: MockCtx) {
 }
 function requireRole(ctx: MockCtx, roles: string[]) {
   const u = requireUser(ctx);
-  if (!roles.includes(u.role)) throw new MockHttpError(403, 'forbidden', `Requires role: ${roles.join(', ')}`);
+  if (!roles.includes(u.role))
+    throw new MockHttpError(403, 'forbidden', `Requires role: ${roles.join(', ')}`);
   return u;
 }
 function getG(id: string) {
@@ -132,7 +133,12 @@ function requireOwner(ctx: MockCtx, id: string) {
 function paged<T>(items: T[], q: URLSearchParams): Paged<T> {
   const page = Math.max(1, Number(q.get('page') ?? 1));
   const page_size = Math.max(1, Math.min(100, Number(q.get('page_size') ?? 20)));
-  return { items: items.slice((page - 1) * page_size, page * page_size), total: items.length, page, page_size };
+  return {
+    items: items.slice((page - 1) * page_size, page * page_size),
+    total: items.length,
+    page,
+    page_size,
+  };
 }
 const strip = (g: GrievanceDetail): Grievance => {
   const { timeline: _t, messages: _m, ...rest } = g;
@@ -155,8 +161,12 @@ function scopeForOfficer(ctx: MockCtx, list: GrievanceDetail[]) {
   const oid = OFFICER_FOR_USER[u.id];
   const officer = oid ? officerById(oid) : undefined;
   if (!officer) return list.filter((g) => g.category === u.department_id);
-  const depts: DepartmentId[] = officer.department_id === 'streetlights' ? ['streetlights', 'power'] : [officer.department_id];
-  return list.filter((g) => depts.includes(g.category) && (!g.location.ward_id || officer.ward_ids.includes(g.location.ward_id)));
+  const depts: DepartmentId[] =
+    officer.department_id === 'streetlights' ? ['streetlights', 'power'] : [officer.department_id];
+  return list.filter(
+    (g) =>
+      depts.includes(g.category) && (!g.location.ward_id || officer.ward_ids.includes(g.location.ward_id)),
+  );
 }
 
 // ---------------------------------------------------------------- mock "AI"
@@ -171,12 +181,21 @@ const SCRIPT_RANGES: [Lang, RegExp][] = [
   ['bn', /[ঀ-৿]/],
   ['gu', /[઀-૿]/],
 ];
-const TENGLISH = /\b(lo|undi|ledu|raavatledu|chesaru|cheyyandi|gunta|neellu|maa|chala|ekkada|ga|avtundi|avtunnayi)\b/i;
+const TENGLISH =
+  /\b(lo|undi|ledu|raavatledu|chesaru|cheyyandi|gunta|neellu|maa|chala|ekkada|ga|avtundi|avtunnayi)\b/i;
 const HINGLISH = /\b(hai|nahi|kya|bahut|paani|karo|gaddha|raha|rahi|hain|mein|jaldi)\b/i;
 
-export function detectLang(text: string, hint?: Lang): { lang: Lang; script: 'native' | 'latin' | 'mixed'; mixed: boolean } {
+export function detectLang(
+  text: string,
+  hint?: Lang,
+): { lang: Lang; script: 'native' | 'latin' | 'mixed'; mixed: boolean } {
   for (const [lang, re] of SCRIPT_RANGES) {
-    if (re.test(text)) return { lang, script: /[A-Za-z]{3,}/.test(text) ? 'mixed' : 'native', mixed: /[A-Za-z]{3,}/.test(text) };
+    if (re.test(text))
+      return {
+        lang,
+        script: /[A-Za-z]{3,}/.test(text) ? 'mixed' : 'native',
+        mixed: /[A-Za-z]{3,}/.test(text),
+      };
   }
   if (TENGLISH.test(text)) return { lang: 'te', script: 'latin', mixed: true };
   if (HINGLISH.test(text)) return { lang: 'hi', script: 'latin', mixed: true };
@@ -207,17 +226,34 @@ function englishFor(text: string, dept: DepartmentId, lang: Lang): string {
 export function analyze(
   text: string,
   ui_lang: DeepLang,
-  opts: { location?: Location; media_ids?: string[]; fields?: Record<string, string>; asset_id?: string; draft_id?: string } = {},
+  opts: {
+    location?: Location;
+    media_ids?: string[];
+    fields?: Record<string, string>;
+    asset_id?: string;
+    draft_id?: string;
+  } = {},
 ): GrievanceDraft {
   const db = getDb();
   const asset = opts.asset_id ? db.assets.find((a) => a.id === opts.asset_id) : undefined;
-  const assetDept: Partial<Record<string, DepartmentId>> = { streetlight: 'streetlights', drain: 'drainage', water_pipe: 'water', bin: 'sanitation', road_segment: 'roads', signal: 'traffic' };
+  const assetDept: Partial<Record<string, DepartmentId>> = {
+    streetlight: 'streetlights',
+    drain: 'drainage',
+    water_pipe: 'water',
+    bin: 'sanitation',
+    road_segment: 'roads',
+    signal: 'traffic',
+  };
   const det = detectLang(text, ui_lang);
   const cls = asset ? { dept: assetDept[asset.type] ?? 'other', confidence: 0.95 } : classify(text);
   const dept = cls.dept;
   const em = scanEmergency(text);
   const hazards: Hazard[] = em.hazards;
-  const urgency: Priority = em.terms.length ? 'critical' : /urgent|danger|accident|sick|ప్రమాదం|खतरा|خطرہ/i.test(text) ? 'high' : 'medium';
+  const urgency: Priority = em.terms.length
+    ? 'critical'
+    : /urgent|danger|accident|sick|ప్రమాదం|खतरा|خطرہ/i.test(text)
+      ? 'high'
+      : 'medium';
   const en = englishFor(text, dept, det.lang);
   const fields = { ...(opts.fields ?? {}) };
   const location = opts.location ?? (asset ? { ...asset.location, source: 'qr' as const } : undefined);
@@ -225,10 +261,18 @@ export function analyze(
     const w = nearestWard(location.lat, location.lng);
     Object.assign(location, { ward_id: w.id, ward_name: w.name, zone: w.zone });
   }
-  if (location && !fields.location_detail) fields.location_detail = location.landmark ?? location.address ?? location.ward_name ?? 'Shared on map';
+  if (location && !fields.location_detail)
+    fields.location_detail = location.landmark ?? location.address ?? location.ward_name ?? 'Shared on map';
   const required = deptById(dept).required_fields.filter((f) => f.key !== 'pole_number');
   const missing = required.filter((f) => !fields[f.key]).map((f) => f.key);
-  const pr = computePriority({ urgency, hazards, emergency: em.terms.length > 0, distress: urgency === 'critical' ? 0.8 : 0.3, vulnerable: [], supporters: 0 });
+  const pr = computePriority({
+    urgency,
+    hazards,
+    emergency: em.terms.length > 0,
+    distress: urgency === 'critical' ? 0.8 : 0.3,
+    vulnerable: [],
+    supporters: 0,
+  });
   const ward = location?.ward_id ?? WARDS[0].id;
   const officer = pickOfficer(dept, ward);
   const confident = cls.confidence >= 0.6;
@@ -257,19 +301,30 @@ export function analyze(
         { source: 'gemini', department: dept, confidence: +Math.min(0.99, cls.confidence + 0.04).toFixed(2) },
         { source: 'rule', department: dept },
       ],
-      explanation_en: confident ? `Keywords and models point to ${deptById(dept).name.en}.` : 'Low confidence — a supervisor will confirm the department.',
+      explanation_en: confident
+        ? `Keywords and models point to ${deptById(dept).name.en}.`
+        : 'Low confidence — a supervisor will confirm the department.',
       needs_review: !confident,
       method: confident ? 'auto' : 'auto_flagged',
       officer_name: officer.name,
       office_name: officer.office_name,
     },
-    priority_preview: { score: pr.score, level: pr.level, factors: pr.factors, sla_hours: SLA_HOURS[pr.level] },
+    priority_preview: {
+      score: pr.score,
+      level: pr.level,
+      factors: pr.factors,
+      sla_hours: SLA_HOURS[pr.level],
+    },
   };
   db.drafts[draft.draft_id] = draft;
   return draft;
 }
 
-function duplicatesFor(text: string, location: Location | undefined, category: DepartmentId): DuplicateMatch[] {
+function duplicatesFor(
+  text: string,
+  location: Location | undefined,
+  category: DepartmentId,
+): DuplicateMatch[] {
   if (!location) return [];
   const db = getDb();
   const out: DuplicateMatch[] = [];
@@ -278,25 +333,54 @@ function duplicatesFor(text: string, location: Location | undefined, category: D
     const d = distanceM(location, inc.centroid);
     if (d <= 500) {
       const lead = findGrievance(inc.grievance_ids[0])!;
-      out.push({ incident_id: inc.id, grievance_id: lead.id, title: lead.title, similarity: 0.91, distance_m: d, support_count: inc.support_count, status: inc.status, created_at: inc.created_at, language: lead.language });
+      out.push({
+        incident_id: inc.id,
+        grievance_id: lead.id,
+        title: lead.title,
+        similarity: 0.91,
+        distance_m: d,
+        support_count: inc.support_count,
+        status: inc.status,
+        created_at: inc.created_at,
+        language: lead.language,
+      });
     }
   }
   for (const { g, d } of nearbyOpen(location, 300, category).slice(0, 3)) {
     if (g.incident_id && out.some((o) => o.incident_id === g.incident_id)) continue;
-    out.push({ grievance_id: g.id, title: g.title, similarity: +(0.7 + rng.next() * 0.2).toFixed(2), distance_m: d, support_count: g.support_count, status: g.status, created_at: g.created_at, language: g.language });
+    out.push({
+      grievance_id: g.id,
+      title: g.title,
+      similarity: +(0.7 + rng.next() * 0.2).toFixed(2),
+      distance_m: d,
+      support_count: g.support_count,
+      status: g.status,
+      created_at: g.created_at,
+      language: g.language,
+    });
   }
   void text;
   return out.slice(0, 3);
 }
 
 function emergencyInfo(terms: string[], ui: DeepLang): EmergencyInfo {
-  return { matched_terms: terms, contacts: EMERGENCY_CONTACTS, message: L(BOT.emergency[ui], ui, BOT.emergency.en) };
+  return {
+    matched_terms: terms,
+    contacts: EMERGENCY_CONTACTS,
+    message: L(BOT.emergency[ui], ui, BOT.emergency.en),
+  };
 }
 
 function createFromDraft(
   ctx: MockCtx,
   draft: GrievanceDraft,
-  opts: { location?: Location; media_ids?: string[]; asset_id?: string; is_anonymous?: boolean; is_private?: boolean },
+  opts: {
+    location?: Location;
+    media_ids?: string[];
+    asset_id?: string;
+    is_anonymous?: boolean;
+    is_private?: boolean;
+  },
 ): { grievance: GrievanceDetail; guest_pin?: string } {
   const db = getDb();
   const location: Location = opts.location ?? draft.location ?? { ...WARDS[0].centroid, source: 'text' };
@@ -305,7 +389,14 @@ function createFromDraft(
     Object.assign(location, { ward_id: w.id, ward_name: w.name, zone: w.zone });
   }
   const em = draft.hazards.length > 0 && draft.urgency === 'critical';
-  const pr = computePriority({ urgency: draft.urgency, hazards: draft.hazards, emergency: em, distress: 0.5, vulnerable: [], supporters: 0 });
+  const pr = computePriority({
+    urgency: draft.urgency,
+    hazards: draft.hazards,
+    emergency: em,
+    distress: 0.5,
+    vulnerable: [],
+    supporters: 0,
+  });
   const routing = draft.routing_preview!;
   const needsReview = routing.needs_review;
   const officer = pickOfficer(draft.category, location.ward_id!);
@@ -351,12 +442,32 @@ function createFromDraft(
     timeline: [],
     messages: [],
   };
-  pushEvent(g, 'registered', ctx.user?.role === 'guest' ? 'guest' : 'citizen', 'Complaint registered', { message: draft.title });
-  pushEvent(g, 'classified', 'ai', `Classified as ${deptById(g.category).name.en} · priority ${pr.level} (${pr.score})`);
-  if (em) pushEvent(g, 'emergency_flagged', 'system', 'Emergency keywords detected — awaiting supervisor confirmation');
-  if (needsReview) pushEvent(g, 'routing_review', 'system', 'Low routing confidence — sent to supervisor review');
-  else pushEvent(g, 'assigned', 'system', `Assigned to ${officer.name}, ${officer.designation}`, { payload: { officer_id: officer.id } });
-  addMessage(g, { sender: 'bot', text: L(BOT.submitted[uiOf(ctx)].replace('{id}', id), uiOf(ctx), BOT.submitted.en.replace('{id}', id)) });
+  pushEvent(g, 'registered', ctx.user?.role === 'guest' ? 'guest' : 'citizen', 'Complaint registered', {
+    message: draft.title,
+  });
+  pushEvent(
+    g,
+    'classified',
+    'ai',
+    `Classified as ${deptById(g.category).name.en} · priority ${pr.level} (${pr.score})`,
+  );
+  if (em)
+    pushEvent(
+      g,
+      'emergency_flagged',
+      'system',
+      'Emergency keywords detected — awaiting supervisor confirmation',
+    );
+  if (needsReview)
+    pushEvent(g, 'routing_review', 'system', 'Low routing confidence — sent to supervisor review');
+  else
+    pushEvent(g, 'assigned', 'system', `Assigned to ${officer.name}, ${officer.designation}`, {
+      payload: { officer_id: officer.id },
+    });
+  addMessage(g, {
+    sender: 'bot',
+    text: L(BOT.submitted[uiOf(ctx)].replace('{id}', id), uiOf(ctx), BOT.submitted.en.replace('{id}', id)),
+  });
   db.grievances.unshift(g);
   if (opts.asset_id) db.assets.find((a) => a.id === opts.asset_id)?.open_grievance_ids.push(id);
   let guest_pin: string | undefined;
@@ -365,7 +476,13 @@ function createFromDraft(
   pushLiveEvent('grievance_created', audienceForDept(g.category), id);
   pushLiveEvent('grievance_created', 'role:admin', id);
   pushLiveEvent('grievance_created', 'public', id);
-  if (ctx.user) notify(ctx.user.id, { grievance_id: id, type: 'status', title: g.title, body: L(BOT.submitted[uiOf(ctx)].replace('{id}', id), uiOf(ctx)) });
+  if (ctx.user)
+    notify(ctx.user.id, {
+      grievance_id: id,
+      type: 'status',
+      title: g.title,
+      body: L(BOT.submitted[uiOf(ctx)].replace('{id}', id), uiOf(ctx)),
+    });
   return { grievance: g, guest_pin };
 }
 
@@ -429,9 +546,24 @@ const BOT = {
 } satisfies Record<string, Record<DeepLang, string>>;
 
 const QUICK = {
-  confirm: { en: ['Confirm', 'Edit', 'Cancel'], te: ['నిర్ధారించు', 'మార్చు', 'రద్దు'], hi: ['पुष्टि करें', 'बदलें', 'रद्द करें'], ur: ['تصدیق کریں', 'ترمیم', 'منسوخ'] },
-  dup: { en: ['Add my support', 'File new anyway'], te: ['నా మద్దతు జోడించు', 'కొత్తది నమోదు చేయి'], hi: ['मेरा समर्थन जोड़ें', 'फिर भी नई दर्ज करें'], ur: ['میری حمایت شامل کریں', 'پھر بھی نئی درج کریں'] },
-  emergency: { en: ['Continue to register'], te: ['ఫిర్యాదు నమోదు కొనసాగించు'], hi: ['शिकायत दर्ज करना जारी रखें'], ur: ['شکایت درج کرنا جاری رکھیں'] },
+  confirm: {
+    en: ['Confirm', 'Edit', 'Cancel'],
+    te: ['నిర్ధారించు', 'మార్చు', 'రద్దు'],
+    hi: ['पुष्टि करें', 'बदलें', 'रद्द करें'],
+    ur: ['تصدیق کریں', 'ترمیم', 'منسوخ'],
+  },
+  dup: {
+    en: ['Add my support', 'File new anyway'],
+    te: ['నా మద్దతు జోడించు', 'కొత్తది నమోదు చేయి'],
+    hi: ['मेरा समर्थन जोड़ें', 'फिर भी नई दर्ज करें'],
+    ur: ['میری حمایت شامل کریں', 'پھر بھی نئی درج کریں'],
+  },
+  emergency: {
+    en: ['Continue to register'],
+    te: ['ఫిర్యాదు నమోదు కొనసాగించు'],
+    hi: ['शिकायत दर्ज करना जारी रखें'],
+    ur: ['شکایت درج کرنا جاری رکھیں'],
+  },
 };
 
 function chatTurn(ctx: MockCtx): ChatTurnResponse {
@@ -440,7 +572,19 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
   const ui = req.ui_lang ?? 'en';
   let s: ChatSession | undefined = req.session_id ? db.sessions[req.session_id] : undefined;
   if (!s) {
-    s = { id: `CS-${Object.keys(db.sessions).length + 1}-${rng.int(1000, 9999)}`, user_id: ctx.user?.id ?? 'anon', stage: 'collecting', lang: ui, ui_lang: ui, text: '', fields: {}, asked: [], emergency_acked: false, media_ids: [], duplicates_shown: false };
+    s = {
+      id: `CS-${Object.keys(db.sessions).length + 1}-${rng.int(1000, 9999)}`,
+      user_id: ctx.user?.id ?? 'anon',
+      stage: 'collecting',
+      lang: ui,
+      ui_lang: ui,
+      text: '',
+      fields: {},
+      asked: [],
+      emergency_acked: false,
+      media_ids: [],
+      duplicates_shown: false,
+    };
     db.sessions[s.id] = s;
   }
   s.ui_lang = ui;
@@ -462,12 +606,31 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
   const qr = (labels: string[], values: string[]) => labels.map((label, i) => ({ label, value: values[i] }));
   const confirmStage = () => {
     s!.stage = 'confirming';
-    return base({ stage: 'confirming', reply: L(BOT.confirm[ui], ui, BOT.confirm.en), quick_replies: qr(QUICK.confirm[ui], ['confirm', 'edit', 'cancel']), missing_fields: [] });
+    return base({
+      stage: 'confirming',
+      reply: L(BOT.confirm[ui], ui, BOT.confirm.en),
+      quick_replies: qr(QUICK.confirm[ui], ['confirm', 'edit', 'cancel']),
+      missing_fields: [],
+    });
   };
   const submit = () => {
-    const { grievance, guest_pin } = createFromDraft(ctx, s!.draft!, { location: s!.location, media_ids: s!.media_ids, asset_id: s!.asset_id, is_anonymous: req.submit_options?.is_anonymous, is_private: req.submit_options?.is_private });
+    const { grievance, guest_pin } = createFromDraft(ctx, s!.draft!, {
+      location: s!.location,
+      media_ids: s!.media_ids,
+      asset_id: s!.asset_id,
+      is_anonymous: req.submit_options?.is_anonymous,
+      is_private: req.submit_options?.is_private,
+    });
     s!.stage = 'submitted';
-    return base({ stage: 'submitted', reply: L(BOT.submitted[ui].replace('{id}', grievance.id), ui, BOT.submitted.en.replace('{id}', grievance.id)), submitted: [{ grievance_id: grievance.id, guest_pin }] });
+    return base({
+      stage: 'submitted',
+      reply: L(
+        BOT.submitted[ui].replace('{id}', grievance.id),
+        ui,
+        BOT.submitted.en.replace('{id}', grievance.id),
+      ),
+      submitted: [{ grievance_id: grievance.id, guest_pin }],
+    });
   };
 
   // ---- actions
@@ -475,24 +638,46 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
     case 'cancel':
       s.stage = 'answered';
       s.draft = undefined;
-      return base({ stage: 'answered', intent: 'smalltalk', reply: L(BOT.cancelled[ui], ui, BOT.cancelled.en), draft: undefined });
+      return base({
+        stage: 'answered',
+        intent: 'smalltalk',
+        reply: L(BOT.cancelled[ui], ui, BOT.cancelled.en),
+        draft: undefined,
+      });
     case 'edit': {
       const fields = (req.action_payload?.fields as Record<string, string>) ?? {};
       const text = (req.action_payload?.text as string) ?? s.text;
       s.text = text;
       s.fields = { ...s.fields, ...fields };
-      s.draft = analyze(s.text, ui, { location: s.location, media_ids: s.media_ids, fields: s.fields, asset_id: s.asset_id, draft_id: s.draft?.draft_id });
+      s.draft = analyze(s.text, ui, {
+        location: s.location,
+        media_ids: s.media_ids,
+        fields: s.fields,
+        asset_id: s.asset_id,
+        draft_id: s.draft?.draft_id,
+      });
       return confirmStage();
     }
     case 'continue_after_emergency':
       s.emergency_acked = true;
-      if (!s.draft) s.draft = analyze(s.text, ui, { location: s.location, media_ids: s.media_ids, fields: s.fields, asset_id: s.asset_id });
+      if (!s.draft)
+        s.draft = analyze(s.text, ui, {
+          location: s.location,
+          media_ids: s.media_ids,
+          fields: s.fields,
+          asset_id: s.asset_id,
+        });
       return confirmStage();
     case 'support_existing': {
-      const target = (req.action_payload?.grievance_id as string) ?? (req.action_payload?.incident_id as string);
+      const target =
+        (req.action_payload?.grievance_id as string) ?? (req.action_payload?.incident_id as string);
       const res = support(ctx, target);
       s.stage = 'submitted';
-      return base({ stage: 'submitted', reply: L(BOT.supported[ui], ui, BOT.supported.en), submitted: [{ grievance_id: res.grievance_id }] });
+      return base({
+        stage: 'submitted',
+        reply: L(BOT.supported[ui], ui, BOT.supported.en),
+        submitted: [{ grievance_id: res.grievance_id }],
+      });
     }
     case 'file_new_anyway':
       return submit();
@@ -504,7 +689,12 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
         const dups = duplicatesFor(s.text, s.location ?? s.draft.location, s.draft.category);
         if (dups.length) {
           s.stage = 'duplicate_check';
-          return base({ stage: 'duplicate_check', reply: L(BOT.duplicates[ui], ui, BOT.duplicates.en), duplicates: dups, quick_replies: qr(QUICK.dup[ui], ['support_existing', 'file_new_anyway']) });
+          return base({
+            stage: 'duplicate_check',
+            reply: L(BOT.duplicates[ui], ui, BOT.duplicates.en),
+            duplicates: dups,
+            quick_replies: qr(QUICK.dup[ui], ['support_existing', 'file_new_anyway']),
+          });
         }
       }
       return submit();
@@ -518,7 +708,12 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
   if (ticket) {
     const g = findGrievance(ticket[0].toUpperCase());
     s.stage = 'answered';
-    return base({ intent: 'track_status', stage: 'answered', reply: L(BOT.track[ui], ui, BOT.track.en), tracked: g ? [strip(refresh(g))] : [] });
+    return base({
+      intent: 'track_status',
+      stage: 'answered',
+      reply: L(BOT.track[ui], ui, BOT.track.en),
+      tracked: g ? [strip(refresh(g))] : [],
+    });
   }
   const det = detectLang(text, req.lang_hint);
   if (s.stage === 'collecting' && s.draft && s.draft.missing_fields.length) {
@@ -531,21 +726,44 @@ function chatTurn(ctx: MockCtx): ChatTurnResponse {
   const em = scanEmergency(s.text);
   if (em.terms.length && !s.emergency_acked) {
     s.stage = 'emergency';
-    s.draft = analyze(s.text, ui, { location: s.location, media_ids: s.media_ids, fields: s.fields, asset_id: s.asset_id });
-    return base({ intent: 'emergency', stage: 'emergency', detected_language: det.lang, emergency: emergencyInfo(em.terms, ui), reply: L(BOT.emergency[ui], ui, BOT.emergency.en), quick_replies: qr(QUICK.emergency[ui], ['continue_after_emergency']) });
+    s.draft = analyze(s.text, ui, {
+      location: s.location,
+      media_ids: s.media_ids,
+      fields: s.fields,
+      asset_id: s.asset_id,
+    });
+    return base({
+      intent: 'emergency',
+      stage: 'emergency',
+      detected_language: det.lang,
+      emergency: emergencyInfo(em.terms, ui),
+      reply: L(BOT.emergency[ui], ui, BOT.emergency.en),
+      quick_replies: qr(QUICK.emergency[ui], ['continue_after_emergency']),
+    });
   }
   if (/\?$|^(how|what|when|where|why)\b/i.test(text) && classify(text).dept === 'other') {
     s.stage = 'answered';
     return base({ intent: 'ask_info', stage: 'answered', reply: L(BOT.info[ui], ui, BOT.info.en) });
   }
-  s.draft = analyze(s.text, ui, { location: s.location, media_ids: s.media_ids, fields: s.fields, asset_id: s.asset_id, draft_id: s.draft?.draft_id });
+  s.draft = analyze(s.text, ui, {
+    location: s.location,
+    media_ids: s.media_ids,
+    fields: s.fields,
+    asset_id: s.asset_id,
+    draft_id: s.draft?.draft_id,
+  });
   const next = s.draft.missing_fields.find((k) => !s!.asked.includes(k));
   // The mock asks at most two follow-up questions, then moves to confirmation.
   if (next && s.asked.length < 2) {
     s.asked.push(next);
     s.stage = 'collecting';
     const q = deptById(s.draft.category).required_fields.find((f) => f.key === next)!;
-    return base({ stage: 'collecting', detected_language: det.lang, reply: L(q.question[ui], ui, q.question.en), missing_fields: s.draft.missing_fields });
+    return base({
+      stage: 'collecting',
+      detected_language: det.lang,
+      reply: L(q.question[ui], ui, q.question.en),
+      missing_fields: s.draft.missing_fields,
+    });
   }
   return confirmStage();
 }
@@ -560,33 +778,60 @@ function support(ctx: MockCtx, id: string) {
   g.support_count += 1;
   const incident = g.incident_id ? db.incidents.find((i) => i.id === g.incident_id) : undefined;
   if (incident) incident.support_count += 1;
-  pushEvent(g, 'support_added', ctx.user?.role === 'guest' ? 'guest' : 'citizen', `Support added (${incident?.support_count ?? g.support_count} total)`);
-  const pr = computePriority({ urgency: g.priority, hazards: g.hazards, emergency: g.is_emergency, distress: g.distress_score, vulnerable: g.vulnerable, supporters: incident?.support_count ?? g.support_count });
+  pushEvent(
+    g,
+    'support_added',
+    ctx.user?.role === 'guest' ? 'guest' : 'citizen',
+    `Support added (${incident?.support_count ?? g.support_count} total)`,
+  );
+  const pr = computePriority({
+    urgency: g.priority,
+    hazards: g.hazards,
+    emergency: g.is_emergency,
+    distress: g.distress_score,
+    vulnerable: g.vulnerable,
+    supporters: incident?.support_count ?? g.support_count,
+  });
   if (pr.score > g.priority_score) {
     g.priority_score = pr.score;
     g.priority = pr.level;
     g.priority_factors = pr.factors;
   }
   touch(g);
-  return { support_count: incident?.support_count ?? g.support_count, incident_id: g.incident_id, grievance_id: g.id };
+  return {
+    support_count: incident?.support_count ?? g.support_count,
+    incident_id: g.incident_id,
+    grievance_id: g.id,
+  };
 }
 
 function feedback(ctx: MockCtx) {
   const g = requireOwner(ctx, ctx.params.id);
   const b = B(ctx);
-  if (g.status !== 'resolved_pending_verification') throw new MockHttpError(409, 'invalid_state', 'Complaint is not awaiting verification');
+  if (g.status !== 'resolved_pending_verification')
+    throw new MockHttpError(409, 'invalid_state', 'Complaint is not awaiting verification');
   if (b.accepted) {
     g.status = 'closed';
     g.closure_type = 'citizen_verified';
     g.rating = b.rating;
     g.feedback_comment = b.comment;
     g.closed_at = nowIso();
-    pushEvent(g, 'citizen_verified', 'citizen', `Citizen confirmed the fix${b.rating ? ` · rated ${b.rating}/5` : ''}`);
+    pushEvent(
+      g,
+      'citizen_verified',
+      'citizen',
+      `Citizen confirmed the fix${b.rating ? ` · rated ${b.rating}/5` : ''}`,
+    );
     pushEvent(g, 'closed', 'system', 'Closed — citizen verified');
   } else {
     g.status = 'reopened';
     g.reopen_count += 1;
-    pushEvent(g, 'citizen_rejected', 'citizen', b.comment ? `Citizen says not fixed: ${b.comment}` : 'Citizen says the issue is not fixed');
+    pushEvent(
+      g,
+      'citizen_rejected',
+      'citizen',
+      b.comment ? `Citizen says not fixed: ${b.comment}` : 'Citizen says the issue is not fixed',
+    );
     pushEvent(g, 'reopened', 'citizen', `Reopened (${g.reopen_count})`);
   }
   touch(g);
@@ -595,7 +840,8 @@ function feedback(ctx: MockCtx) {
 
 function reopen(ctx: MockCtx) {
   const g = requireOwner(ctx, ctx.params.id);
-  if (!['resolved_pending_verification', 'closed'].includes(g.status)) throw new MockHttpError(409, 'invalid_state', 'Only resolved or closed complaints can be reopened');
+  if (!['resolved_pending_verification', 'closed'].includes(g.status))
+    throw new MockHttpError(409, 'invalid_state', 'Only resolved or closed complaints can be reopened');
   g.status = 'reopened';
   g.reopen_count += 1;
   g.closed_at = undefined;
@@ -609,7 +855,13 @@ function appeal(ctx: MockCtx): Appeal {
   const g = requireOwner(ctx, ctx.params.id);
   const reason = String(B(ctx).reason ?? '');
   const det = detectLang(reason);
-  g.appeal = { id: `AP-${g.id.slice(-6)}`, grievance_id: g.id, reason: L(reason, det.lang, det.lang === 'en' ? reason : `[Mock translation] ${reason}`), status: 'filed', created_at: nowIso() };
+  g.appeal = {
+    id: `AP-${g.id.slice(-6)}`,
+    grievance_id: g.id,
+    reason: L(reason, det.lang, det.lang === 'en' ? reason : `[Mock translation] ${reason}`),
+    status: 'filed',
+    created_at: nowIso(),
+  };
   pushEvent(g, 'appeal_filed', 'citizen', 'Appeal filed');
   touch(g);
   return g.appeal;
@@ -619,7 +871,11 @@ function citizenMessage(ctx: MockCtx): Message {
   const g = requireOwner(ctx, ctx.params.id);
   const text = String(B(ctx).text ?? '');
   const det = detectLang(text);
-  const msg = addMessage(g, { sender: 'citizen', sender_name: g.citizen_display_name, text: L(text, det.lang, det.lang === 'en' ? text : `[Mock translation] ${text}`) });
+  const msg = addMessage(g, {
+    sender: 'citizen',
+    sender_name: g.citizen_display_name,
+    text: L(text, det.lang, det.lang === 'en' ? text : `[Mock translation] ${text}`),
+  });
   pushEvent(g, 'message', 'citizen', 'Citizen sent a message');
   touch(g);
   return msg;
@@ -635,7 +891,8 @@ function upload(ctx: MockCtx): Media {
   let uploaded_by: Media['uploaded_by'] = 'citizen';
   if (typeof FormData !== 'undefined' && body instanceof FormData) {
     const file = body.get('file');
-    if (file && typeof file !== 'string' && typeof URL !== 'undefined' && 'createObjectURL' in URL) url = URL.createObjectURL(file);
+    if (file && typeof file !== 'string' && typeof URL !== 'undefined' && 'createObjectURL' in URL)
+      url = URL.createObjectURL(file);
     purpose = (body.get('purpose') as Media['purpose']) ?? purpose;
     lat = body.get('lat') ? Number(body.get('lat')) : undefined;
     lng = body.get('lng') ? Number(body.get('lng')) : undefined;
@@ -661,7 +918,8 @@ function upload(ctx: MockCtx): Media {
 function inboxSort(a: GrievanceDetail, b: GrievanceDetail) {
   const em = Number(b.is_emergency && isOpen(b.status)) - Number(a.is_emergency && isOpen(a.status));
   if (em) return em;
-  const co = Number(b.priority === 'critical' && b.sla.breached) - Number(a.priority === 'critical' && a.sla.breached);
+  const co =
+    Number(b.priority === 'critical' && b.sla.breached) - Number(a.priority === 'critical' && a.sla.breached);
   if (co) return co;
   if (b.priority_score !== a.priority_score) return b.priority_score - a.priority_score;
   return a.sla.remaining_minutes - b.sla.remaining_minutes;
@@ -681,7 +939,11 @@ function filterList(list: GrievanceDetail[], q: URLSearchParams) {
       (!category || category.split(',').includes(g.category)) &&
       (!ward || g.location.ward_id === ward || g.location.zone === ward) &&
       (!overdue || g.sla.breached) &&
-      (!text || g.id.toLowerCase().includes(text) || g.title.en.toLowerCase().includes(text) || g.title.original.toLowerCase().includes(text) || g.summary_en.toLowerCase().includes(text)),
+      (!text ||
+        g.id.toLowerCase().includes(text) ||
+        g.title.en.toLowerCase().includes(text) ||
+        g.title.original.toLowerCase().includes(text) ||
+        g.summary_en.toLowerCase().includes(text)),
   );
 }
 
@@ -696,9 +958,21 @@ function setStatus(ctx: MockCtx) {
     g.closed_at = nowIso();
   }
   if (b.delay_reason) g.sla.delay_reason = L(String(b.delay_reason), 'en');
-  pushEvent(g, 'status_changed', u.role, `Status changed to ${status.replace(/_/g, ' ')}${b.note ? ` — ${b.note}` : ''}`, { actor_name: u.name, payload: { status } });
+  pushEvent(
+    g,
+    'status_changed',
+    u.role,
+    `Status changed to ${status.replace(/_/g, ' ')}${b.note ? ` — ${b.note}` : ''}`,
+    { actor_name: u.name, payload: { status } },
+  );
   const owner = getDb().owners[g.id];
-  if (owner) notify(owner, { grievance_id: g.id, type: 'status', title: g.title, body: L(`Status: ${status.replace(/_/g, ' ')}`, 'en') });
+  if (owner)
+    notify(owner, {
+      grievance_id: g.id,
+      type: 'status',
+      title: g.title,
+      body: L(`Status: ${status.replace(/_/g, ' ')}`, 'en'),
+    });
   touch(g);
   return g;
 }
@@ -707,22 +981,38 @@ function brief(ctx: MockCtx): OfficerBrief {
   requireRole(ctx, ['officer', 'supervisor', 'admin']);
   const g = getG(ctx.params.id);
   const d = deptById(g.category);
-  const similar = getDb().grievances.filter((x) => x.category === g.category && x.status === 'closed' && x.id !== g.id).slice(0, 2);
-  const missing = d.required_fields.filter((f) => !g.summary_en.toLowerCase().includes(f.key.split('_')[0])).slice(0, 2);
+  const similar = getDb()
+    .grievances.filter((x) => x.category === g.category && x.status === 'closed' && x.id !== g.id)
+    .slice(0, 2);
+  const missing = d.required_fields
+    .filter((f) => !g.summary_en.toLowerCase().includes(f.key.split('_')[0]))
+    .slice(0, 2);
   return {
     situation: `${g.summary_en} Reported in ${g.location.ward_name ?? 'unknown ward'} (${g.location.zone ?? '—'}), ${g.support_count} supporters.`,
-    evidence: [g.media.length ? `${g.media.length} photo(s) attached` : 'No photos attached', `Location source: ${g.location.source}`],
+    evidence: [
+      g.media.length ? `${g.media.length} photo(s) attached` : 'No photos attached',
+      `Location source: ${g.location.source}`,
+    ],
     risks: g.hazards.length ? g.hazards.map((h) => h.replace(/_/g, ' ')) : ['No safety hazards detected'],
-    suggested_next_steps: ['Acknowledge the citizen', `Schedule a site visit (${d.agency_en})`, 'Upload a resolution photo from the same spot'],
+    suggested_next_steps: [
+      'Acknowledge the citizen',
+      `Schedule a site visit (${d.agency_en})`,
+      'Upload a resolution photo from the same spot',
+    ],
     missing_info: missing.map((f) => `Ask the citizen: ${f.question.en}`),
-    similar_resolved: similar.map((x) => ({ grievance_id: x.id, title_en: x.title.en, resolution_note: 'Repaired by field team within SLA.' })),
+    similar_resolved: similar.map((x) => ({
+      grievance_id: x.id,
+      title_en: x.title.en,
+      resolution_note: 'Repaired by field team within SLA.',
+    })),
     generated_by: 'fallback',
     created_at: nowIso(),
   };
 }
 
 const REPLY_EN: Record<ReplyIntent, string> = {
-  acknowledge: 'Thank you for reporting this. We have received your complaint and our team will look into it.',
+  acknowledge:
+    'Thank you for reporting this. We have received your complaint and our team will look into it.',
   request_info: 'Could you please share a nearby landmark or a photo so we can locate the issue faster?',
   schedule_visit: 'Our field team will visit the location tomorrow between 10 AM and 1 PM.',
   work_started: 'Work has started on your complaint. We will update you once it is complete.',
@@ -736,7 +1026,11 @@ function draftReply(ctx: MockCtx): DraftReply {
   const g = getG(ctx.params.id);
   const intent = (B(ctx).intent ?? 'acknowledge') as ReplyIntent;
   const en = `${REPLY_EN[intent]}${B(ctx).extra_en ? ` ${B(ctx).extra_en}` : ''}`;
-  return { intent, draft_en: en, draft_citizen: L(g.language === 'en' ? en : `[Mock translation → ${g.language}] ${en}`, g.language, en) };
+  return {
+    intent,
+    draft_en: en,
+    draft_citizen: L(g.language === 'en' ? en : `[Mock translation → ${g.language}] ${en}`, g.language, en),
+  };
 }
 
 function officerMessage(ctx: MockCtx): Message {
@@ -744,7 +1038,12 @@ function officerMessage(ctx: MockCtx): Message {
   const g = getG(ctx.params.id);
   const en = String(B(ctx).text_en ?? '');
   const known = Object.values(REPLY_EN).includes(en);
-  const original = g.language === 'en' ? en : known && g.language === 'te' ? 'మీ ఫిర్యాదుపై పని జరుగుతోంది. త్వరలో సమాచారం ఇస్తాము.' : `[Mock translation → ${g.language}] ${en}`;
+  const original =
+    g.language === 'en'
+      ? en
+      : known && g.language === 'te'
+        ? 'మీ ఫిర్యాదుపై పని జరుగుతోంది. త్వరలో సమాచారం ఇస్తాము.'
+        : `[Mock translation → ${g.language}] ${en}`;
   const msg = addMessage(g, { sender: 'officer', sender_name: u.name, text: L(original, g.language, en) });
   pushEvent(g, 'message', u.role, 'Officer replied to the citizen', { actor_name: u.name });
   const owner = getDb().owners[g.id];
@@ -765,12 +1064,20 @@ function resolve(ctx: MockCtx) {
   const dist = b.lat != null && b.lng != null ? distanceM(g.location, { lat: b.lat, lng: b.lng }) : null;
   g.status = 'resolved_pending_verification';
   g.resolved_at = nowIso();
-  pushEvent(g, 'resolution_submitted', u.role, `Resolution submitted: ${b.note ?? ''}`.trim(), { actor_name: u.name });
+  pushEvent(g, 'resolution_submitted', u.role, `Resolution submitted: ${b.note ?? ''}`.trim(), {
+    actor_name: u.name,
+  });
   g.ai_verification = verification(dup, nowIso());
   if (!dup && dist != null) g.ai_verification.checks.distance_m = dist;
   pushEvent(g, 'ai_verification', 'ai', `AI verification: ${g.ai_verification.verdict}`);
   const owner = db.owners[g.id];
-  if (owner) notify(owner, { grievance_id: g.id, type: 'verification_request', title: g.title, body: L('Please confirm whether the issue is fixed.', 'en') });
+  if (owner)
+    notify(owner, {
+      grievance_id: g.id,
+      type: 'verification_request',
+      title: g.title,
+      body: L('Please confirm whether the issue is fixed.', 'en'),
+    });
   touch(g);
   return g;
 }
@@ -782,7 +1089,8 @@ function inWindow(q: URLSearchParams) {
   const from = nowMs() - days * DAY;
   return getDb().grievances.filter((g) => Date.parse(g.created_at) >= from);
 }
-const resolutionHours = (g: GrievanceDetail) => (g.resolved_at ? (Date.parse(g.resolved_at) - Date.parse(g.created_at)) / HOUR : null);
+const resolutionHours = (g: GrievanceDetail) =>
+  g.resolved_at ? (Date.parse(g.resolved_at) - Date.parse(g.created_at)) / HOUR : null;
 const avg = (xs: number[]) => (xs.length ? +(xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(1) : 0);
 
 function kpis(ctx: MockCtx): KPIs {
@@ -801,9 +1109,18 @@ function kpis(ctx: MockCtx): KPIs {
     avg_first_response_hours: 3.4,
     sla_compliance_pct: res.length ? Math.round((withinSla / res.length) * 1000) / 10 : 100,
     satisfaction_avg: avg(rated),
-    reopened_pct: list.length ? Math.round((list.filter((g) => g.reopen_count > 0).length / list.length) * 1000) / 10 : 0,
+    reopened_pct: list.length
+      ? Math.round((list.filter((g) => g.reopen_count > 0).length / list.length) * 1000) / 10
+      : 0,
     needs_review: list.filter((g) => g.status === 'needs_review').length,
-    deltas: { total: 12, open: -4, resolved: 9, overdue: -2, sla_compliance_pct: 3.1, avg_resolution_hours: -5.2 },
+    deltas: {
+      total: 12,
+      open: -4,
+      resolved: 9,
+      overdue: -2,
+      sla_compliance_pct: 3.1,
+      avg_resolution_hours: -5.2,
+    },
   };
 }
 
@@ -818,7 +1135,19 @@ function perf(ctx: MockCtx): DepartmentPerformance[] {
     const sat = avg(mine.filter((g) => g.rating).map((g) => g.rating!));
     const reopen = mine.length ? mine.filter((g) => g.reopen_count > 0).length / mine.length : 0;
     const score = Math.round(sla * 0.5 + (sat / 5) * 100 * 0.3 + (1 - reopen) * 100 * 0.2);
-    return { department_id: d.id, total: mine.length, open: mine.filter((g) => isOpen(g.status)).length, resolved: closed.length, overdue: mine.filter((g) => isOpen(g.status) && g.sla.breached).length, avg_resolution_hours: avg(rh), sla_compliance_pct: Math.round(sla * 10) / 10, satisfaction_avg: sat, reopen_rate: Math.round(reopen * 1000) / 1000, score, rank: 0 };
+    return {
+      department_id: d.id,
+      total: mine.length,
+      open: mine.filter((g) => isOpen(g.status)).length,
+      resolved: closed.length,
+      overdue: mine.filter((g) => isOpen(g.status) && g.sla.breached).length,
+      avg_resolution_hours: avg(rh),
+      sla_compliance_pct: Math.round(sla * 10) / 10,
+      satisfaction_avg: sat,
+      reopen_rate: Math.round(reopen * 1000) / 1000,
+      score,
+      rank: 0,
+    };
   });
   rows.sort((a, b) => b.score - a.score).forEach((r, i) => (r.rank = i + 1));
   return rows;
@@ -834,12 +1163,19 @@ function trends(ctx: MockCtx): TrendPoint[] {
     const start = nowMs() - (i + 1) * DAY;
     const end = start + group * DAY;
     const created = list.filter((g) => Date.parse(g.created_at) >= start && Date.parse(g.created_at) < end);
-    const resolved = list.filter((g) => g.resolved_at && Date.parse(g.resolved_at) >= start && Date.parse(g.resolved_at) < end);
+    const resolved = list.filter(
+      (g) => g.resolved_at && Date.parse(g.resolved_at) >= start && Date.parse(g.resolved_at) < end,
+    );
     const by: Partial<Record<DepartmentId, number>> = {};
     for (const g of created) by[g.category] = (by[g.category] ?? 0) + 1;
     // Mock baseline traffic on top of seeded grievances so charts look alive.
     const baseline = r.int(8, 16) * group;
-    out.push({ date: iso(start).slice(0, 10), created: created.length + baseline, resolved: resolved.length + Math.round(baseline * 0.85), by_category: by });
+    out.push({
+      date: iso(start).slice(0, 10),
+      created: created.length + baseline,
+      resolved: resolved.length + Math.round(baseline * 0.85),
+      by_category: by,
+    });
   }
   return out;
 }
@@ -847,12 +1183,21 @@ function trends(ctx: MockCtx): TrendPoint[] {
 function breakdown(ctx: MockCtx): BreakdownRow[] {
   const by = ctx.query.get('by') ?? 'category';
   const list = inWindow(ctx.query).map(refresh);
-  const keyOf = (g: GrievanceDetail) => (by === 'ward' ? g.location.ward_id ?? '—' : by === 'zone' ? g.location.zone ?? '—' : g.category);
-  const labelOf = (k: string) => (by === 'ward' ? wardById(k)?.name ?? k : by === 'zone' ? k : deptById(k as DepartmentId).name.en);
+  const keyOf = (g: GrievanceDetail) =>
+    by === 'ward' ? (g.location.ward_id ?? '—') : by === 'zone' ? (g.location.zone ?? '—') : g.category;
+  const labelOf = (k: string) =>
+    by === 'ward' ? (wardById(k)?.name ?? k) : by === 'zone' ? k : deptById(k as DepartmentId).name.en;
   const groups = new Map<string, GrievanceDetail[]>();
   for (const g of list) groups.set(keyOf(g), [...(groups.get(keyOf(g)) ?? []), g]);
   return [...groups.entries()]
-    .map(([key, gs]) => ({ key, label: labelOf(key), total: gs.length, open: gs.filter((g) => isOpen(g.status)).length, overdue: gs.filter((g) => isOpen(g.status) && g.sla.breached).length, avg_resolution_hours: avg(gs.map(resolutionHours).filter((x): x is number => x != null)) }))
+    .map(([key, gs]) => ({
+      key,
+      label: labelOf(key),
+      total: gs.length,
+      open: gs.filter((g) => isOpen(g.status)).length,
+      overdue: gs.filter((g) => isOpen(g.status) && g.sla.breached).length,
+      avg_resolution_hours: avg(gs.map(resolutionHours).filter((x): x is number => x != null)),
+    }))
     .sort((a, b) => b.total - a.total);
 }
 
@@ -863,12 +1208,34 @@ function mapPoints(ctx: MockCtx, pub: boolean): MapPoint[] {
   const r = createRng(4242);
   return getDb()
     .grievances.filter((g) => Date.parse(g.created_at) >= from && !g.is_private)
-    .filter((g) => (!q.get('category') || g.category === q.get('category')) && (!q.get('status') || g.status === q.get('status')) && (!q.get('priority') || g.priority === q.get('priority')))
+    .filter(
+      (g) =>
+        (!q.get('category') || g.category === q.get('category')) &&
+        (!q.get('status') || g.status === q.get('status')) &&
+        (!q.get('priority') || g.priority === q.get('priority')),
+    )
     .map((g) => {
-      const p = pub ? r.jitter(g.location.lat, g.location.lng, 75) : { lat: g.location.lat, lng: g.location.lng };
+      const p = pub
+        ? r.jitter(g.location.lat, g.location.lng, 75)
+        : { lat: g.location.lat, lng: g.location.lng };
       return pub
-        ? { lat: p.lat, lng: p.lng, category: g.category, priority: g.priority, status: g.status, incident_id: g.incident_id }
-        : { id: g.id, lat: p.lat, lng: p.lng, category: g.category, priority: g.priority, status: g.status, incident_id: g.incident_id };
+        ? {
+            lat: p.lat,
+            lng: p.lng,
+            category: g.category,
+            priority: g.priority,
+            status: g.status,
+            incident_id: g.incident_id,
+          }
+        : {
+            id: g.id,
+            lat: p.lat,
+            lng: p.lng,
+            category: g.category,
+            priority: g.priority,
+            status: g.status,
+            incident_id: g.incident_id,
+          };
     });
 }
 
@@ -884,11 +1251,24 @@ function publicStats(): PublicStats {
     avg_resolution_hours: avg(rh),
     by_department: DEPARTMENTS.filter((d) => d.id !== 'other').map((d) => {
       const mine = list.filter((g) => g.category === d.id);
-      return { department_id: d.id, total: mine.length, resolved_pct: Math.round((mine.filter((g) => g.status === 'closed').length / Math.max(1, mine.length)) * 100), avg_resolution_hours: avg(mine.map(resolutionHours).filter((x): x is number => x != null)) };
+      return {
+        department_id: d.id,
+        total: mine.length,
+        resolved_pct: Math.round(
+          (mine.filter((g) => g.status === 'closed').length / Math.max(1, mine.length)) * 100,
+        ),
+        avg_resolution_hours: avg(mine.map(resolutionHours).filter((x): x is number => x != null)),
+      };
     }),
     by_zone: zones.map((z) => {
       const mine = list.filter((g) => g.location.zone === z);
-      return { zone: z, total: mine.length, resolved_pct: Math.round((mine.filter((g) => g.status === 'closed').length / Math.max(1, mine.length)) * 100) };
+      return {
+        zone: z,
+        total: mine.length,
+        resolved_pct: Math.round(
+          (mine.filter((g) => g.status === 'closed').length / Math.max(1, mine.length)) * 100,
+        ),
+      };
     }),
     trend: trends({ query: new URLSearchParams('days=30&group=week') } as MockCtx),
     recent_resolved: resolved.slice(0, 6).map((g) => ({
@@ -953,7 +1333,8 @@ function auditVerify(ctx: MockCtx): AuditVerification {
     let prev: string | null = null;
     for (const e of g.timeline) {
       checked++;
-      if (e.prev_hash !== prev || e.hash !== eventHash(prev, e)) return { grievance_id: gid, events_checked: checked, valid: false, first_broken_event_id: e.id };
+      if (e.prev_hash !== prev || e.hash !== eventHash(prev, e))
+        return { grievance_id: gid, events_checked: checked, valid: false, first_broken_event_id: e.id };
       prev = e.hash;
     }
   }
@@ -972,7 +1353,16 @@ function retrain(): AIMetrics {
     trained_at: nowIso(),
     accuracy: acc,
     macro_f1: f1,
-    history: [...m.history, { model_version: `clf-v${v}`, accuracy: acc, macro_f1: f1, trained_at: nowIso(), corrections_used: m.history[m.history.length - 1].corrections_used + db.routing_corrections }],
+    history: [
+      ...m.history,
+      {
+        model_version: `clf-v${v}`,
+        accuracy: acc,
+        macro_f1: f1,
+        trained_at: nowIso(),
+        corrections_used: m.history[m.history.length - 1].corrections_used + db.routing_corrections,
+      },
+    ],
   };
   db.routing_corrections = 0;
   return db.ai_metrics;
@@ -991,245 +1381,609 @@ function clock(ctx: MockCtx): DemoClock {
 // ---------------------------------------------------------------- guide
 
 const GUIDE = [
-  { title: 'Roads & potholes', anchor: 'roads', snippet: 'Report potholes, damaged roads and footpaths. Include a landmark and a photo. Typical SLA: 48–96 hours.' },
-  { title: 'Water supply', anchor: 'water', snippet: 'No supply, leaks, low pressure or dirty water. Contaminated water is treated as high priority.' },
-  { title: 'Garbage & sanitation', anchor: 'sanitation', snippet: 'Missed pickups, overflowing bins, dead animals. Typical SLA: 48 hours.' },
-  { title: 'Streetlights', anchor: 'streetlights', snippet: 'Lights not working or burning in daytime. The pole number helps the team find it.' },
-  { title: 'Emergencies', anchor: 'emergencies', snippet: 'For fire, live wires, gas leaks or collapse, call 112 first. You can still register a complaint after.' },
-  { title: 'Appeals', anchor: 'appeals', snippet: 'If you are not satisfied with a closure, you can reject it and file an appeal. A supervisor reviews every appeal.' },
-  { title: 'Privacy & anonymous reporting', anchor: 'privacy', snippet: 'You can report anonymously or privately. Public maps never show your name, text or exact location.' },
-  { title: 'How verification works', anchor: 'verification', snippet: 'When an officer marks a complaint resolved, AI checks the proof photo and you confirm whether it is really fixed.' },
+  {
+    title: 'Roads & potholes',
+    anchor: 'roads',
+    snippet:
+      'Report potholes, damaged roads and footpaths. Include a landmark and a photo. Typical SLA: 48–96 hours.',
+  },
+  {
+    title: 'Water supply',
+    anchor: 'water',
+    snippet: 'No supply, leaks, low pressure or dirty water. Contaminated water is treated as high priority.',
+  },
+  {
+    title: 'Garbage & sanitation',
+    anchor: 'sanitation',
+    snippet: 'Missed pickups, overflowing bins, dead animals. Typical SLA: 48 hours.',
+  },
+  {
+    title: 'Streetlights',
+    anchor: 'streetlights',
+    snippet: 'Lights not working or burning in daytime. The pole number helps the team find it.',
+  },
+  {
+    title: 'Emergencies',
+    anchor: 'emergencies',
+    snippet:
+      'For fire, live wires, gas leaks or collapse, call 112 first. You can still register a complaint after.',
+  },
+  {
+    title: 'Appeals',
+    anchor: 'appeals',
+    snippet:
+      'If you are not satisfied with a closure, you can reject it and file an appeal. A supervisor reviews every appeal.',
+  },
+  {
+    title: 'Privacy & anonymous reporting',
+    anchor: 'privacy',
+    snippet:
+      'You can report anonymously or privately. Public maps never show your name, text or exact location.',
+  },
+  {
+    title: 'How verification works',
+    anchor: 'verification',
+    snippet:
+      'When an officer marks a complaint resolved, AI checks the proof photo and you confirm whether it is really fixed.',
+  },
 ];
 
 // ---------------------------------------------------------------- the table (#1–#57)
 
 export const handlers: MockHandler[] = [
   /* 1 */ { method: 'POST', pattern: '/chat/turn', fn: chatTurn },
-  /* 2 */ { method: 'POST', pattern: '/grievances/analyze', fn: (ctx) => { const b = B(ctx); return analyze(String(b.text ?? ''), b.ui_lang ?? 'en', { location: b.location, media_ids: b.media_ids }); } },
-  /* 3 */ { method: 'POST', pattern: '/grievances', fn: (ctx) => {
-    const b = B(ctx);
-    const draft = b.draft as GrievanceDraft;
-    const dups = duplicatesFor(draft.cleaned_original, b.location ?? draft.location, draft.category);
-    const { grievance, guest_pin } = createFromDraft(ctx, draft, { location: b.location, media_ids: b.media_ids, asset_id: b.asset_id, is_anonymous: b.is_anonymous, is_private: b.is_private });
-    return { grievance: strip(grievance), guest_pin, duplicates: dups.length ? dups : undefined };
-  } },
-  /* 4 */ { method: 'POST', pattern: '/grievances/check-duplicates', fn: (ctx) => { const b = B(ctx); return duplicatesFor(String(b.text ?? ''), b.location, b.category); } },
-  /* 5 */ { method: 'POST', pattern: '/grievances/:id/support', fn: (ctx) => { const r = support(ctx, ctx.params.id); return { support_count: r.support_count, incident_id: r.incident_id }; } },
-  /* 6 */ { method: 'GET', pattern: '/grievances/:id', fn: (ctx) => viewFor(ctx, requireOwner(ctx, ctx.params.id)) },
-  /* 7 */ { method: 'GET', pattern: '/me/grievances', fn: (ctx) => {
-    const u = requireUser(ctx);
-    const db = getDb();
-    const mine = db.grievances.filter((g) => db.owners[g.id] === u.id).map(refresh);
-    return paged(filterList(mine, ctx.query).map(strip), ctx.query);
-  } },
+  /* 2 */ {
+    method: 'POST',
+    pattern: '/grievances/analyze',
+    fn: (ctx) => {
+      const b = B(ctx);
+      return analyze(String(b.text ?? ''), b.ui_lang ?? 'en', {
+        location: b.location,
+        media_ids: b.media_ids,
+      });
+    },
+  },
+  /* 3 */ {
+    method: 'POST',
+    pattern: '/grievances',
+    fn: (ctx) => {
+      const b = B(ctx);
+      const draft = b.draft as GrievanceDraft;
+      const dups = duplicatesFor(draft.cleaned_original, b.location ?? draft.location, draft.category);
+      const { grievance, guest_pin } = createFromDraft(ctx, draft, {
+        location: b.location,
+        media_ids: b.media_ids,
+        asset_id: b.asset_id,
+        is_anonymous: b.is_anonymous,
+        is_private: b.is_private,
+      });
+      return { grievance: strip(grievance), guest_pin, duplicates: dups.length ? dups : undefined };
+    },
+  },
+  /* 4 */ {
+    method: 'POST',
+    pattern: '/grievances/check-duplicates',
+    fn: (ctx) => {
+      const b = B(ctx);
+      return duplicatesFor(String(b.text ?? ''), b.location, b.category);
+    },
+  },
+  /* 5 */ {
+    method: 'POST',
+    pattern: '/grievances/:id/support',
+    fn: (ctx) => {
+      const r = support(ctx, ctx.params.id);
+      return { support_count: r.support_count, incident_id: r.incident_id };
+    },
+  },
+  /* 6 */ {
+    method: 'GET',
+    pattern: '/grievances/:id',
+    fn: (ctx) => viewFor(ctx, requireOwner(ctx, ctx.params.id)),
+  },
+  /* 7 */ {
+    method: 'GET',
+    pattern: '/me/grievances',
+    fn: (ctx) => {
+      const u = requireUser(ctx);
+      const db = getDb();
+      const mine = db.grievances.filter((g) => db.owners[g.id] === u.id).map(refresh);
+      return paged(filterList(mine, ctx.query).map(strip), ctx.query);
+    },
+  },
   /* 8 */ { method: 'POST', pattern: '/grievances/:id/feedback', fn: feedback },
   /* 9 */ { method: 'POST', pattern: '/grievances/:id/reopen', fn: reopen },
   /* 10 */ { method: 'POST', pattern: '/grievances/:id/appeal', fn: appeal },
   /* 11 */ { method: 'POST', pattern: '/grievances/:id/messages', fn: citizenMessage },
   /* 12 */ { method: 'POST', pattern: '/uploads', fn: upload },
-  /* 13 */ { method: 'POST', pattern: '/speech/transcribe', fn: (ctx) => {
-    const lang = (ctx.body instanceof FormData ? (ctx.body.get('language') as string) : undefined) ?? 'te';
-    const sample: Record<string, string> = { te: PHRASES[0].text, hi: PHRASES[2].text, ur: PHRASES[5].text, en: PHRASES[3].text };
-    return { text: sample[lang.slice(0, 2)] ?? sample.en, language: (lang.slice(0, 2) as Lang) ?? 'te', duration_s: 6.2 };
-  } },
-  /* 14 */ { method: 'POST', pattern: '/speech/tts', fn: () => { throw new MockHttpError(501, 'not_configured', 'Server TTS is not configured in mock mode'); } },
-  /* 15 */ { method: 'POST', pattern: '/translate', fn: (ctx) => {
-    const b = B(ctx);
-    const det = detectLang(String(b.text ?? ''));
-    const known = PHRASES.find((p) => p.text === b.text || p.title === b.text);
-    const text = b.target_lang === 'en' ? (known?.text_en ?? (det.lang === 'en' ? b.text : `[Mock translation → en] ${b.text}`)) : det.lang === b.target_lang ? b.text : `[Mock translation → ${b.target_lang}] ${b.text}`;
-    return { text, source_lang: det.lang };
-  } },
-  /* 16 */ { method: 'GET', pattern: '/search', fn: (ctx) => {
-    const q = (ctx.query.get('q') ?? '').toLowerCase();
-    const scope = ctx.query.get('scope') ?? 'public';
-    const db = getDb();
-    let pool = db.grievances;
-    if (scope === 'mine') pool = pool.filter((g) => ctx.user && db.owners[g.id] === ctx.user.id);
-    else if (scope === 'gov') pool = scopeForOfficer(ctx, pool);
-    else pool = pool.filter((g) => !g.is_private);
-    const grievances = q ? filterList(pool, new URLSearchParams({ q })).slice(0, 20).map(strip) : [];
-    const guide = q ? GUIDE.filter((s) => (s.title + s.snippet).toLowerCase().includes(q)) : [];
-    return { grievances, guide };
-  } },
-  /* 17 */ { method: 'POST', pattern: '/guide/ask', fn: (ctx) => {
-    const b = B(ctx);
-    const question = String(b.question ?? '').toLowerCase();
-    const ui = (b.ui_lang ?? 'en') as DeepLang;
-    const hit = GUIDE.find((s) => question.includes(s.anchor.replace('_', ' ')) || question.includes(s.title.split(' ')[0].toLowerCase())) ?? GUIDE[0];
-    return { answer: L(ui === 'en' ? hit.snippet : `${BOT.info[ui]}`, ui, hit.snippet), sources: [{ title: hit.title, anchor: hit.anchor }], department_id: DEPARTMENTS.some((d) => d.id === hit.anchor) ? hit.anchor : undefined };
-  } },
-  /* 18 */ { method: 'GET', pattern: '/notifications', fn: (ctx) => { const u = requireUser(ctx); return paged<Notification>(getDb().notifications[u.id] ?? [], ctx.query); } },
-  /* 19 */ { method: 'POST', pattern: '/notifications/:id/read', fn: (ctx) => {
-    const u = requireUser(ctx);
-    for (const n of getDb().notifications[u.id] ?? []) if (ctx.params.id === 'all' || n.id === ctx.params.id) n.read = true;
-    return { ok: true };
-  } },
+  /* 13 */ {
+    method: 'POST',
+    pattern: '/speech/transcribe',
+    fn: (ctx) => {
+      const lang = (ctx.body instanceof FormData ? (ctx.body.get('language') as string) : undefined) ?? 'te';
+      const sample: Record<string, string> = {
+        te: PHRASES[0].text,
+        hi: PHRASES[2].text,
+        ur: PHRASES[5].text,
+        en: PHRASES[3].text,
+      };
+      return {
+        text: sample[lang.slice(0, 2)] ?? sample.en,
+        language: (lang.slice(0, 2) as Lang) ?? 'te',
+        duration_s: 6.2,
+      };
+    },
+  },
+  /* 14 */ {
+    method: 'POST',
+    pattern: '/speech/tts',
+    fn: () => {
+      throw new MockHttpError(501, 'not_configured', 'Server TTS is not configured in mock mode');
+    },
+  },
+  /* 15 */ {
+    method: 'POST',
+    pattern: '/translate',
+    fn: (ctx) => {
+      const b = B(ctx);
+      const det = detectLang(String(b.text ?? ''));
+      const known = PHRASES.find((p) => p.text === b.text || p.title === b.text);
+      const text =
+        b.target_lang === 'en'
+          ? (known?.text_en ?? (det.lang === 'en' ? b.text : `[Mock translation → en] ${b.text}`))
+          : det.lang === b.target_lang
+            ? b.text
+            : `[Mock translation → ${b.target_lang}] ${b.text}`;
+      return { text, source_lang: det.lang };
+    },
+  },
+  /* 16 */ {
+    method: 'GET',
+    pattern: '/search',
+    fn: (ctx) => {
+      const q = (ctx.query.get('q') ?? '').toLowerCase();
+      const scope = ctx.query.get('scope') ?? 'public';
+      const db = getDb();
+      let pool = db.grievances;
+      if (scope === 'mine') pool = pool.filter((g) => ctx.user && db.owners[g.id] === ctx.user.id);
+      else if (scope === 'gov') pool = scopeForOfficer(ctx, pool);
+      else pool = pool.filter((g) => !g.is_private);
+      const grievances = q ? filterList(pool, new URLSearchParams({ q })).slice(0, 20).map(strip) : [];
+      const guide = q ? GUIDE.filter((s) => (s.title + s.snippet).toLowerCase().includes(q)) : [];
+      return { grievances, guide };
+    },
+  },
+  /* 17 */ {
+    method: 'POST',
+    pattern: '/guide/ask',
+    fn: (ctx) => {
+      const b = B(ctx);
+      const question = String(b.question ?? '').toLowerCase();
+      const ui = (b.ui_lang ?? 'en') as DeepLang;
+      const hit =
+        GUIDE.find(
+          (s) =>
+            question.includes(s.anchor.replace('_', ' ')) ||
+            question.includes(s.title.split(' ')[0].toLowerCase()),
+        ) ?? GUIDE[0];
+      return {
+        answer: L(ui === 'en' ? hit.snippet : `${BOT.info[ui]}`, ui, hit.snippet),
+        sources: [{ title: hit.title, anchor: hit.anchor }],
+        department_id: DEPARTMENTS.some((d) => d.id === hit.anchor) ? hit.anchor : undefined,
+      };
+    },
+  },
+  /* 18 */ {
+    method: 'GET',
+    pattern: '/notifications',
+    fn: (ctx) => {
+      const u = requireUser(ctx);
+      return paged<Notification>(getDb().notifications[u.id] ?? [], ctx.query);
+    },
+  },
+  /* 19 */ {
+    method: 'POST',
+    pattern: '/notifications/:id/read',
+    fn: (ctx) => {
+      const u = requireUser(ctx);
+      for (const n of getDb().notifications[u.id] ?? [])
+        if (ctx.params.id === 'all' || n.id === ctx.params.id) n.read = true;
+      return { ok: true };
+    },
+  },
   /* 20 */ { method: 'GET', pattern: '/meta/departments', fn: () => DEPARTMENTS },
   /* 21 */ { method: 'GET', pattern: '/meta/wards', fn: () => WARDS },
   /* 22 */ { method: 'GET', pattern: '/meta/wards.geojson', fn: () => wardsGeoJSON() },
   /* 23 */ { method: 'GET', pattern: '/meta/emergency-contacts', fn: () => EMERGENCY_CONTACTS },
-  /* 24 */ { method: 'GET', pattern: '/meta/assets/:id', fn: (ctx) => {
-    const a = getDb().assets.find((x) => x.id === ctx.params.id);
-    if (!a) throw new MockHttpError(404, 'not_found', `Asset ${ctx.params.id} not found`);
-    return a;
-  } },
+  /* 24 */ {
+    method: 'GET',
+    pattern: '/meta/assets/:id',
+    fn: (ctx) => {
+      const a = getDb().assets.find((x) => x.id === ctx.params.id);
+      if (!a) throw new MockHttpError(404, 'not_found', `Asset ${ctx.params.id} not found`);
+      return a;
+    },
+  },
   /* 25 */ { method: 'GET', pattern: '/public/stats', fn: publicStats },
   /* 26 */ { method: 'GET', pattern: '/public/map', fn: (ctx) => mapPoints(ctx, true) },
-  /* 27 */ { method: 'GET', pattern: '/public/nearby', fn: (ctx) => {
-    const lat = Number(ctx.query.get('lat') ?? 17.385);
-    const lng = Number(ctx.query.get('lng') ?? 78.4867);
-    const radius = Number(ctx.query.get('radius_m') ?? 1500);
-    return nearbyOpen({ lat, lng }, radius)
-      .filter(({ g }) => !g.is_private)
-      .slice(0, 30)
-      .map(({ g, d }) => ({ title: g.title, category: g.category, status: g.status, distance_m: d, support_count: g.support_count, grievance_id: g.id }));
-  } },
-  /* 28 */ { method: 'GET', pattern: '/officer/inbox', fn: (ctx) => {
-    requireRole(ctx, ['officer', 'supervisor', 'admin']);
-    const scoped = scopeForOfficer(ctx, getDb().grievances.map(refresh));
-    const q = ctx.query;
-    const list = filterList(q.get('status') ? scoped : scoped.filter((g) => isOpen(g.status)), q);
-    const sort = q.get('sort');
-    if (sort === 'newest') list.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
-    else if (sort === 'sla') list.sort((a, b) => a.sla.remaining_minutes - b.sla.remaining_minutes);
-    else list.sort(inboxSort);
-    return paged(list.map(strip), q);
-  } },
-  /* 29 */ { method: 'GET', pattern: '/officer/review-queue', fn: (ctx) => {
-    requireRole(ctx, ['supervisor', 'admin']);
-    const kind = ctx.query.get('kind') ?? 'routing';
-    const all = getDb().grievances.map(refresh);
-    const pick: Record<string, (g: GrievanceDetail) => boolean> = {
-      routing: (g) => g.status === 'needs_review',
-      emergency: (g) => g.is_emergency && g.emergency_confirmed === null && isOpen(g.status),
-      disputed: (g) => g.ai_verification?.verdict === 'suspicious' || (g.reopen_count > 0 && isOpen(g.status)),
-      appeal: (g) => g.appeal?.status === 'filed' || g.appeal?.status === 'under_review',
-    };
-    return paged(all.filter(pick[kind] ?? pick.routing).sort(inboxSort).map(strip), ctx.query);
-  } },
+  /* 27 */ {
+    method: 'GET',
+    pattern: '/public/nearby',
+    fn: (ctx) => {
+      const lat = Number(ctx.query.get('lat') ?? 17.385);
+      const lng = Number(ctx.query.get('lng') ?? 78.4867);
+      const radius = Number(ctx.query.get('radius_m') ?? 1500);
+      return nearbyOpen({ lat, lng }, radius)
+        .filter(({ g }) => !g.is_private)
+        .slice(0, 30)
+        .map(({ g, d }) => ({
+          title: g.title,
+          category: g.category,
+          status: g.status,
+          distance_m: d,
+          support_count: g.support_count,
+          grievance_id: g.id,
+        }));
+    },
+  },
+  /* 28 */ {
+    method: 'GET',
+    pattern: '/officer/inbox',
+    fn: (ctx) => {
+      requireRole(ctx, ['officer', 'supervisor', 'admin']);
+      const scoped = scopeForOfficer(ctx, getDb().grievances.map(refresh));
+      const q = ctx.query;
+      const list = filterList(q.get('status') ? scoped : scoped.filter((g) => isOpen(g.status)), q);
+      const sort = q.get('sort');
+      if (sort === 'newest') list.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+      else if (sort === 'sla') list.sort((a, b) => a.sla.remaining_minutes - b.sla.remaining_minutes);
+      else list.sort(inboxSort);
+      return paged(list.map(strip), q);
+    },
+  },
+  /* 29 */ {
+    method: 'GET',
+    pattern: '/officer/review-queue',
+    fn: (ctx) => {
+      requireRole(ctx, ['supervisor', 'admin']);
+      const kind = ctx.query.get('kind') ?? 'routing';
+      const all = getDb().grievances.map(refresh);
+      const pick: Record<string, (g: GrievanceDetail) => boolean> = {
+        routing: (g) => g.status === 'needs_review',
+        emergency: (g) => g.is_emergency && g.emergency_confirmed === null && isOpen(g.status),
+        disputed: (g) =>
+          g.ai_verification?.verdict === 'suspicious' || (g.reopen_count > 0 && isOpen(g.status)),
+        appeal: (g) => g.appeal?.status === 'filed' || g.appeal?.status === 'under_review',
+      };
+      return paged(
+        all
+          .filter(pick[kind] ?? pick.routing)
+          .sort(inboxSort)
+          .map(strip),
+        ctx.query,
+      );
+    },
+  },
   /* 30 */ { method: 'POST', pattern: '/officer/grievances/:id/status', fn: setStatus },
-  /* 31 */ { method: 'POST', pattern: '/officer/grievances/:id/notes', fn: (ctx) => {
-    const u = requireRole(ctx, ['officer', 'supervisor', 'admin']);
-    const g = getG(ctx.params.id);
-    const ev = pushEvent(g, 'note', u.role, String(B(ctx).text ?? ''), { actor_name: u.name, internal: true });
-    touch(g);
-    return ev;
-  } },
-  /* 32 */ { method: 'POST', pattern: '/officer/grievances/:id/reassign', fn: (ctx) => {
-    const u = requireRole(ctx, ['officer', 'supervisor', 'admin']);
-    const g = getG(ctx.params.id);
-    const b = B(ctx);
-    const dept = (b.department_id as DepartmentId) ?? g.category;
-    const officer = (b.officer_id && officerById(b.officer_id)) || pickOfficer(dept, g.location.ward_id ?? WARDS[0].id);
-    g.category = dept;
-    g.routing = { ...g.routing, department: dept, method: 'human', needs_review: false, votes: [...g.routing.votes, { source: 'human', department: dept }] };
-    g.assigned_officer = officer;
-    if (g.status === 'needs_review' || g.status === 'registered') g.status = 'assigned';
-    pushEvent(g, 'reassigned', u.role, `Reassigned to ${officer.name} (${deptById(dept).name.en}) — ${b.reason ?? ''}`.trim(), { actor_name: u.name, payload: { officer_id: officer.id, department_id: dept } });
-    touch(g);
-    return g;
-  } },
-  /* 33 */ { method: 'POST', pattern: '/officer/grievances/:id/route-decision', fn: (ctx) => {
-    const u = requireRole(ctx, ['supervisor', 'admin']);
-    const g = getG(ctx.params.id);
-    const b = B(ctx);
-    const dept = b.department_id as DepartmentId;
-    const officer = pickOfficer(dept, g.location.ward_id ?? WARDS[0].id);
-    if (dept !== g.routing.department) getDb().routing_corrections += 1;
-    g.category = dept;
-    g.routing = { ...g.routing, department: dept, sub_department: b.sub_department, method: 'human', needs_review: false, votes: [...g.routing.votes, { source: 'human', department: dept }], explanation_en: `Routed to ${deptById(dept).name.en} by ${u.name}.` };
-    g.assigned_officer = officer;
-    g.status = 'assigned';
-    pushEvent(g, 'assigned', u.role, `Routing decided: ${deptById(dept).name.en}; assigned to ${officer.name}`, { actor_name: u.name });
-    touch(g);
-    return g;
-  } },
-  /* 34 */ { method: 'POST', pattern: '/officer/grievances/:id/emergency', fn: (ctx) => {
-    const u = requireRole(ctx, ['supervisor', 'admin']);
-    const g = getG(ctx.params.id);
-    const confirmed = !!B(ctx).confirmed;
-    g.emergency_confirmed = confirmed;
-    if (confirmed) {
-      g.priority = 'critical';
-      g.priority_score = Math.max(g.priority_score, 80);
-      g.priority_factors = [...g.priority_factors.filter((f) => f.key !== 'human_confirmed'), { key: 'human_confirmed', label_en: 'Emergency confirmed by supervisor', points: 0 }];
-    } else {
-      g.is_emergency = false;
-      g.priority = levelForScore(g.priority_score);
-    }
-    pushEvent(g, confirmed ? 'emergency_confirmed' : 'priority_changed', u.role, confirmed ? 'Emergency confirmed — SLA set to 4 hours' : `Emergency not confirmed${B(ctx).note ? `: ${B(ctx).note}` : ''}`, { actor_name: u.name });
-    refresh(g);
-    touch(g);
-    return g;
-  } },
+  /* 31 */ {
+    method: 'POST',
+    pattern: '/officer/grievances/:id/notes',
+    fn: (ctx) => {
+      const u = requireRole(ctx, ['officer', 'supervisor', 'admin']);
+      const g = getG(ctx.params.id);
+      const ev = pushEvent(g, 'note', u.role, String(B(ctx).text ?? ''), {
+        actor_name: u.name,
+        internal: true,
+      });
+      touch(g);
+      return ev;
+    },
+  },
+  /* 32 */ {
+    method: 'POST',
+    pattern: '/officer/grievances/:id/reassign',
+    fn: (ctx) => {
+      const u = requireRole(ctx, ['officer', 'supervisor', 'admin']);
+      const g = getG(ctx.params.id);
+      const b = B(ctx);
+      const dept = (b.department_id as DepartmentId) ?? g.category;
+      const officer =
+        (b.officer_id && officerById(b.officer_id)) || pickOfficer(dept, g.location.ward_id ?? WARDS[0].id);
+      g.category = dept;
+      g.routing = {
+        ...g.routing,
+        department: dept,
+        method: 'human',
+        needs_review: false,
+        votes: [...g.routing.votes, { source: 'human', department: dept }],
+      };
+      g.assigned_officer = officer;
+      if (g.status === 'needs_review' || g.status === 'registered') g.status = 'assigned';
+      pushEvent(
+        g,
+        'reassigned',
+        u.role,
+        `Reassigned to ${officer.name} (${deptById(dept).name.en}) — ${b.reason ?? ''}`.trim(),
+        { actor_name: u.name, payload: { officer_id: officer.id, department_id: dept } },
+      );
+      touch(g);
+      return g;
+    },
+  },
+  /* 33 */ {
+    method: 'POST',
+    pattern: '/officer/grievances/:id/route-decision',
+    fn: (ctx) => {
+      const u = requireRole(ctx, ['supervisor', 'admin']);
+      const g = getG(ctx.params.id);
+      const b = B(ctx);
+      const dept = b.department_id as DepartmentId;
+      const officer = pickOfficer(dept, g.location.ward_id ?? WARDS[0].id);
+      if (dept !== g.routing.department) getDb().routing_corrections += 1;
+      g.category = dept;
+      g.routing = {
+        ...g.routing,
+        department: dept,
+        sub_department: b.sub_department,
+        method: 'human',
+        needs_review: false,
+        votes: [...g.routing.votes, { source: 'human', department: dept }],
+        explanation_en: `Routed to ${deptById(dept).name.en} by ${u.name}.`,
+      };
+      g.assigned_officer = officer;
+      g.status = 'assigned';
+      pushEvent(
+        g,
+        'assigned',
+        u.role,
+        `Routing decided: ${deptById(dept).name.en}; assigned to ${officer.name}`,
+        { actor_name: u.name },
+      );
+      touch(g);
+      return g;
+    },
+  },
+  /* 34 */ {
+    method: 'POST',
+    pattern: '/officer/grievances/:id/emergency',
+    fn: (ctx) => {
+      const u = requireRole(ctx, ['supervisor', 'admin']);
+      const g = getG(ctx.params.id);
+      const confirmed = !!B(ctx).confirmed;
+      g.emergency_confirmed = confirmed;
+      if (confirmed) {
+        g.priority = 'critical';
+        g.priority_score = Math.max(g.priority_score, 80);
+        g.priority_factors = [
+          ...g.priority_factors.filter((f) => f.key !== 'human_confirmed'),
+          { key: 'human_confirmed', label_en: 'Emergency confirmed by supervisor', points: 0 },
+        ];
+      } else {
+        g.is_emergency = false;
+        g.priority = levelForScore(g.priority_score);
+      }
+      pushEvent(
+        g,
+        confirmed ? 'emergency_confirmed' : 'priority_changed',
+        u.role,
+        confirmed
+          ? 'Emergency confirmed — SLA set to 4 hours'
+          : `Emergency not confirmed${B(ctx).note ? `: ${B(ctx).note}` : ''}`,
+        { actor_name: u.name },
+      );
+      refresh(g);
+      touch(g);
+      return g;
+    },
+  },
   /* 35 */ { method: 'POST', pattern: '/officer/grievances/:id/brief', fn: brief },
   /* 36 */ { method: 'POST', pattern: '/officer/grievances/:id/draft-reply', fn: draftReply },
   /* 37 */ { method: 'POST', pattern: '/officer/grievances/:id/message', fn: officerMessage },
   /* 38 */ { method: 'POST', pattern: '/officer/grievances/:id/resolve', fn: resolve },
-  /* 39 */ { method: 'POST', pattern: '/officer/grievances/:id/appeal-decision', fn: (ctx) => {
-    const u = requireRole(ctx, ['supervisor', 'admin']);
-    const g = getG(ctx.params.id);
-    if (!g.appeal) throw new MockHttpError(409, 'invalid_state', 'No appeal on this complaint');
-    const b = B(ctx);
-    g.appeal = { ...g.appeal, status: b.decision, decision_note: L(String(b.note ?? ''), 'en'), decided_at: nowIso() };
-    if (b.decision === 'upheld') {
-      g.status = 'reopened';
-      g.reopen_count += 1;
-    }
-    pushEvent(g, 'appeal_decided', u.role, `Appeal ${b.decision}${b.note ? `: ${b.note}` : ''}`, { actor_name: u.name });
-    touch(g);
-    return g;
-  } },
-  /* 40 */ { method: 'POST', pattern: '/officer/bulk', fn: (ctx) => {
-    const u = requireRole(ctx, ['officer', 'supervisor', 'admin']);
-    const b = B(ctx);
-    let updated = 0;
-    for (const id of (b.ids as string[]) ?? []) {
-      const g = findGrievance(id);
-      if (!g) continue;
-      if (b.action === 'status') {
-        g.status = b.payload?.status;
-        pushEvent(g, 'status_changed', u.role, `Bulk status change to ${b.payload?.status}`, { actor_name: u.name });
-      } else if (b.action === 'assign') {
-        const o = officerById(b.payload?.officer_id);
-        if (o) g.assigned_officer = o;
-        pushEvent(g, 'reassigned', u.role, `Bulk assigned to ${o?.name ?? '—'}`, { actor_name: u.name });
-      } else if (b.action === 'merge') {
-        g.incident_id = b.payload?.incident_id;
-        g.status = 'merged';
-        pushEvent(g, 'merged', u.role, `Merged into ${b.payload?.incident_id}`, { actor_name: u.name });
+  /* 39 */ {
+    method: 'POST',
+    pattern: '/officer/grievances/:id/appeal-decision',
+    fn: (ctx) => {
+      const u = requireRole(ctx, ['supervisor', 'admin']);
+      const g = getG(ctx.params.id);
+      if (!g.appeal) throw new MockHttpError(409, 'invalid_state', 'No appeal on this complaint');
+      const b = B(ctx);
+      g.appeal = {
+        ...g.appeal,
+        status: b.decision,
+        decision_note: L(String(b.note ?? ''), 'en'),
+        decided_at: nowIso(),
+      };
+      if (b.decision === 'upheld') {
+        g.status = 'reopened';
+        g.reopen_count += 1;
       }
+      pushEvent(g, 'appeal_decided', u.role, `Appeal ${b.decision}${b.note ? `: ${b.note}` : ''}`, {
+        actor_name: u.name,
+      });
       touch(g);
-      updated++;
-    }
-    return { updated };
-  } },
-  /* 41 */ { method: 'GET', pattern: '/officer/officers', fn: (ctx) => { requireRole(ctx, ['officer', 'supervisor', 'admin']); const d = ctx.query.get('department'); return OFFICERS.filter((o) => !d || o.department_id === d); } },
-  /* 42 */ { method: 'GET', pattern: '/officer/incidents', fn: (ctx) => {
-    requireRole(ctx, ['officer', 'supervisor', 'admin']);
-    const w = ctx.query.get('ward');
-    const c = ctx.query.get('category');
-    return getDb().incidents.filter((i) => (!w || i.ward_id === w) && (!c || i.category === c));
-  } },
-  /* 43 */ { method: 'GET', pattern: '/admin/kpis', fn: (ctx) => { requireRole(ctx, ['admin', 'supervisor']); return kpis(ctx); } },
-  /* 44 */ { method: 'GET', pattern: '/admin/departments/performance', fn: (ctx) => { requireRole(ctx, ['admin', 'supervisor']); return perf(ctx); } },
-  /* 45 */ { method: 'GET', pattern: '/admin/officers/workload', fn: (ctx) => { requireRole(ctx, ['admin', 'supervisor']); return workload(ctx); } },
-  /* 46 */ { method: 'GET', pattern: '/admin/analytics/trends', fn: (ctx) => { requireRole(ctx, ['admin', 'supervisor']); return trends(ctx); } },
-  /* 47 */ { method: 'GET', pattern: '/admin/analytics/breakdown', fn: (ctx) => { requireRole(ctx, ['admin', 'supervisor']); return breakdown(ctx); } },
-  /* 48 */ { method: 'GET', pattern: '/admin/map', fn: (ctx) => { requireRole(ctx, ['admin', 'supervisor']); return mapPoints(ctx, false); } },
-  /* 49 */ { method: 'GET', pattern: '/admin/alerts', fn: (ctx): Alert[] => { requireRole(ctx, ['admin', 'supervisor']); return getDb().alerts; } },
-  /* 50 */ { method: 'GET', pattern: '/admin/insights', fn: (ctx) => { requireRole(ctx, ['admin']); return insights(ctx); } },
-  /* 51 */ { method: 'GET', pattern: '/admin/audit', fn: (ctx) => { requireRole(ctx, ['admin']); return auditList(ctx); } },
-  /* 52 */ { method: 'GET', pattern: '/admin/audit/verify', fn: (ctx) => { requireRole(ctx, ['admin', 'supervisor', 'officer']); return auditVerify(ctx); } },
-  /* 53 */ { method: 'GET', pattern: '/admin/ai/metrics', fn: (ctx) => { requireRole(ctx, ['admin']); return getDb().ai_metrics; } },
-  /* 54 */ { method: 'POST', pattern: '/admin/ai/retrain', fn: (ctx) => { requireRole(ctx, ['admin']); return retrain(); } },
+      return g;
+    },
+  },
+  /* 40 */ {
+    method: 'POST',
+    pattern: '/officer/bulk',
+    fn: (ctx) => {
+      const u = requireRole(ctx, ['officer', 'supervisor', 'admin']);
+      const b = B(ctx);
+      let updated = 0;
+      for (const id of (b.ids as string[]) ?? []) {
+        const g = findGrievance(id);
+        if (!g) continue;
+        if (b.action === 'status') {
+          g.status = b.payload?.status;
+          pushEvent(g, 'status_changed', u.role, `Bulk status change to ${b.payload?.status}`, {
+            actor_name: u.name,
+          });
+        } else if (b.action === 'assign') {
+          const o = officerById(b.payload?.officer_id);
+          if (o) g.assigned_officer = o;
+          pushEvent(g, 'reassigned', u.role, `Bulk assigned to ${o?.name ?? '—'}`, { actor_name: u.name });
+        } else if (b.action === 'merge') {
+          g.incident_id = b.payload?.incident_id;
+          g.status = 'merged';
+          pushEvent(g, 'merged', u.role, `Merged into ${b.payload?.incident_id}`, { actor_name: u.name });
+        }
+        touch(g);
+        updated++;
+      }
+      return { updated };
+    },
+  },
+  /* 41 */ {
+    method: 'GET',
+    pattern: '/officer/officers',
+    fn: (ctx) => {
+      requireRole(ctx, ['officer', 'supervisor', 'admin']);
+      const d = ctx.query.get('department');
+      return OFFICERS.filter((o) => !d || o.department_id === d);
+    },
+  },
+  /* 42 */ {
+    method: 'GET',
+    pattern: '/officer/incidents',
+    fn: (ctx) => {
+      requireRole(ctx, ['officer', 'supervisor', 'admin']);
+      const w = ctx.query.get('ward');
+      const c = ctx.query.get('category');
+      return getDb().incidents.filter((i) => (!w || i.ward_id === w) && (!c || i.category === c));
+    },
+  },
+  /* 43 */ {
+    method: 'GET',
+    pattern: '/admin/kpis',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin', 'supervisor']);
+      return kpis(ctx);
+    },
+  },
+  /* 44 */ {
+    method: 'GET',
+    pattern: '/admin/departments/performance',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin', 'supervisor']);
+      return perf(ctx);
+    },
+  },
+  /* 45 */ {
+    method: 'GET',
+    pattern: '/admin/officers/workload',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin', 'supervisor']);
+      return workload(ctx);
+    },
+  },
+  /* 46 */ {
+    method: 'GET',
+    pattern: '/admin/analytics/trends',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin', 'supervisor']);
+      return trends(ctx);
+    },
+  },
+  /* 47 */ {
+    method: 'GET',
+    pattern: '/admin/analytics/breakdown',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin', 'supervisor']);
+      return breakdown(ctx);
+    },
+  },
+  /* 48 */ {
+    method: 'GET',
+    pattern: '/admin/map',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin', 'supervisor']);
+      return mapPoints(ctx, false);
+    },
+  },
+  /* 49 */ {
+    method: 'GET',
+    pattern: '/admin/alerts',
+    fn: (ctx): Alert[] => {
+      requireRole(ctx, ['admin', 'supervisor']);
+      return getDb().alerts;
+    },
+  },
+  /* 50 */ {
+    method: 'GET',
+    pattern: '/admin/insights',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin']);
+      return insights(ctx);
+    },
+  },
+  /* 51 */ {
+    method: 'GET',
+    pattern: '/admin/audit',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin']);
+      return auditList(ctx);
+    },
+  },
+  /* 52 */ {
+    method: 'GET',
+    pattern: '/admin/audit/verify',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin', 'supervisor', 'officer']);
+      return auditVerify(ctx);
+    },
+  },
+  /* 53 */ {
+    method: 'GET',
+    pattern: '/admin/ai/metrics',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin']);
+      return getDb().ai_metrics;
+    },
+  },
+  /* 54 */ {
+    method: 'POST',
+    pattern: '/admin/ai/retrain',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin']);
+      return retrain();
+    },
+  },
   /* 55 */ { method: 'GET', pattern: '/admin/demo/clock', fn: clock },
   /* 55 */ { method: 'POST', pattern: '/admin/demo/clock', fn: clock },
-  /* 56 */ { method: 'POST', pattern: '/admin/demo/reset', fn: (ctx) => { requireRole(ctx, ['admin']); buildDb(); return { ok: true }; } },
+  /* 56 */ {
+    method: 'POST',
+    pattern: '/admin/demo/reset',
+    fn: (ctx) => {
+      requireRole(ctx, ['admin']);
+      buildDb();
+      return { ok: true };
+    },
+  },
   // Additive (requested from B in docs/contract-notes/A.md): current user's profile.
-  { method: 'GET', pattern: '/me', fn: (ctx) => { const u = requireUser(ctx); return { id: u.id, role: u.role, name: u.name, email: u.email, preferred_language: u.preferred_language, department_id: u.department_id }; } },
-  /* 57 */ { method: 'GET', pattern: '/health', fn: () => ({ status: 'ok', version: 'mock', providers: { gemini: 'mock', groq: 'mock', db: 'mock', embeddings: 'mock' } }) },
+  {
+    method: 'GET',
+    pattern: '/me',
+    fn: (ctx) => {
+      const u = requireUser(ctx);
+      return {
+        id: u.id,
+        role: u.role,
+        name: u.name,
+        email: u.email,
+        preferred_language: u.preferred_language,
+        department_id: u.department_id,
+      };
+    },
+  },
+  /* 57 */ {
+    method: 'GET',
+    pattern: '/health',
+    fn: () => ({
+      status: 'ok',
+      version: 'mock',
+      providers: { gemini: 'mock', groq: 'mock', db: 'mock', embeddings: 'mock' },
+    }),
+  },
 ];
-
-

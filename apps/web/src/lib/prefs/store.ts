@@ -77,7 +77,10 @@ export function useTheme(): Theme {
   return usePrefs((s) => effectiveTheme(s));
 }
 
-const mql = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+const mql =
+  typeof window !== 'undefined' && window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : null;
 const subscribeOS = (cb: () => void) => {
   mql?.addEventListener('change', cb);
   return () => mql?.removeEventListener('change', cb);
@@ -86,7 +89,11 @@ const subscribeOS = (cb: () => void) => {
 /** True when the OS asks for reduced motion or the in-app toggle is on (and not explicitly overridden to full). */
 export function useReducedMotion(): boolean {
   const pref = usePrefs((s) => s.motion);
-  const os = useSyncExternalStore(subscribeOS, () => !!mql?.matches, () => false);
+  const os = useSyncExternalStore(
+    subscribeOS,
+    () => !!mql?.matches,
+    () => false,
+  );
   return pref === 'reduced' || (pref === 'system' && os);
 }
 
@@ -104,7 +111,9 @@ export function usePrefsToDocument() {
     else delete el.dataset.font;
     if (reduced) el.dataset.motion = 'reduced';
     else delete el.dataset.motion;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'ink' ? '#070A12' : '#F7F5F0');
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', theme === 'ink' ? '#070A12' : '#F7F5F0');
   }, [theme, contrast, font, reduced]);
 }
 

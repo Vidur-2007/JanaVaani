@@ -14,7 +14,13 @@ export function GovPlaceholder({ titleKey, children }: { titleKey: string; child
         <h1 className="font-display text-2xl font-semibold">{t(titleKey)}</h1>
         <p className="text-muted-foreground font-mono text-sm">{pathname}</p>
       </header>
-      {children ?? <EmptyState icon={Construction} title={t('placeholder.coming_soon')} description={t('placeholder.owner', { owner: 'C' })} />}
+      {children ?? (
+        <EmptyState
+          icon={Construction}
+          title={t('placeholder.coming_soon')}
+          description={t('placeholder.owner', { owner: 'C' })}
+        />
+      )}
     </PageTransition>
   );
 }

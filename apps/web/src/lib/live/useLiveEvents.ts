@@ -100,8 +100,18 @@ export function useLiveEvents() {
       setConnection('connecting');
       const channel = supabase
         .channel('live_events')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_events' }, (payload) => emit(payload.new as LiveEvent))
-        .subscribe((s) => setConnection(s === 'SUBSCRIBED' ? 'live' : s === 'CHANNEL_ERROR' || s === 'TIMED_OUT' ? 'offline' : 'connecting'));
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_events' }, (payload) =>
+          emit(payload.new as LiveEvent),
+        )
+        .subscribe((s) =>
+          setConnection(
+            s === 'SUBSCRIBED'
+              ? 'live'
+              : s === 'CHANNEL_ERROR' || s === 'TIMED_OUT'
+                ? 'offline'
+                : 'connecting',
+          ),
+        );
       return () => {
         supabase!.removeChannel(channel);
       };

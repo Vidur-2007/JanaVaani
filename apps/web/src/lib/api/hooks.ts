@@ -5,7 +5,11 @@ import type { Department, DepartmentId } from '@contracts/types';
 import { api, qk } from './endpoints';
 
 export function useDepartments() {
-  return useQuery({ queryKey: qk.meta.departments, queryFn: ({ signal }) => api.departments(signal), staleTime: Infinity });
+  return useQuery({
+    queryKey: qk.meta.departments,
+    queryFn: ({ signal }) => api.departments(signal),
+    staleTime: Infinity,
+  });
 }
 
 /** Map of department id → Department (undefined until loaded). */

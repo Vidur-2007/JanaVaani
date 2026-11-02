@@ -3,7 +3,10 @@ import type { DeepLang } from '@contracts/types';
 
 export const BRAND = {
   name: 'JanaVaani',
-  nativeName: { en: 'JanaVaani', te: 'జనవాణి', hi: 'जनवाणी', ur: 'جن وانی' } satisfies Record<DeepLang, string>,
+  nativeName: { en: 'JanaVaani', te: 'జనవాణి', hi: 'जनवाणी', ur: 'جن وانی' } satisfies Record<
+    DeepLang,
+    string
+  >,
   tagline: {
     en: 'Every complaint, in every language.',
     te: 'ప్రతి ఫిర్యాదు, ప్రతి భాషలో.',

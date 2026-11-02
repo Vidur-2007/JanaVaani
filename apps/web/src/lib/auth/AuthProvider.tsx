@@ -7,7 +7,15 @@ import { DEMO_PASSWORD, DEMO_USERS, type MockProfile } from '@mocks/data/people'
 import { API_MODE, request, setAuthBridge } from '@/lib/api/client';
 import type { MeProfile } from '@/lib/api/endpoints';
 import { supabase } from '@/lib/supabase';
-import { findDemoUser, mockGuest, mockMagicLink, mockPasswordLogin, readMockSession, toProfile, writeMockSession } from './mockAuth';
+import {
+  findDemoUser,
+  mockGuest,
+  mockMagicLink,
+  mockPasswordLogin,
+  readMockSession,
+  toProfile,
+  writeMockSession,
+} from './mockAuth';
 import type { AuthContextValue, AuthStatus, AuthUser, Profile } from './types';
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -18,7 +26,17 @@ const SUPABASE_AUTH = API_MODE !== 'mock' && supabase !== null;
 function mockUserFor(p: Profile | null): MockProfile | null {
   if (!p) return null;
   const demo = p.email ? DEMO_USERS.find((u) => u.email === p.email) : undefined;
-  return demo ?? { id: p.id, role: p.role, name: p.name, email: p.email ?? '', preferred_language: p.preferred_language, department_id: p.department_id, persona_en: '' };
+  return (
+    demo ?? {
+      id: p.id,
+      role: p.role,
+      name: p.name,
+      email: p.email ?? '',
+      preferred_language: p.preferred_language,
+      department_id: p.department_id,
+      persona_en: '',
+    }
+  );
 }
 
 async function profileFromSupabase(user: User): Promise<Profile> {
@@ -33,9 +51,16 @@ async function profileFromSupabase(user: User): Promise<Profile> {
     return {
       id: user.id,
       role,
-      name: (meta.name as string) ?? (meta.full_name as string) ?? demo?.name ?? user.email?.split('@')[0] ?? 'Guest',
+      name:
+        (meta.name as string) ??
+        (meta.full_name as string) ??
+        demo?.name ??
+        user.email?.split('@')[0] ??
+        'Guest',
       email: user.email,
-      preferred_language: ((meta.preferred_language as DeepLang) ?? demo?.preferred_language ?? 'en') as DeepLang,
+      preferred_language: ((meta.preferred_language as DeepLang) ??
+        demo?.preferred_language ??
+        'en') as DeepLang,
       department_id: (meta.department_id as Profile['department_id']) ?? demo?.department_id,
     };
   }
@@ -96,7 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ---- bridge to the API client
   useEffect(() => {
     setAuthBridge({
-      getToken: async () => (SUPABASE_AUTH ? ((await supabase!.auth.getSession()).data.session?.access_token ?? null) : null),
+      getToken: async () =>
+        SUPABASE_AUTH ? ((await supabase!.auth.getSession()).data.session?.access_token ?? null) : null,
       getMockUser: () => (SUPABASE_AUTH ? mockUserFor(profile) : readMockSession()),
     });
   }, [profile, session]);
@@ -158,7 +184,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return waitProfile(data.user);
       },
       signInWithMagicLink: async (email) => {
-        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/app` } });
+        const { error } = await sb.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: `${window.location.origin}/app` },
+        });
         if (error) throw error;
         return null;
       },

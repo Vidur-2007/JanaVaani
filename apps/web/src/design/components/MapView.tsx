@@ -28,7 +28,11 @@ const MapViewImpl = lazy(() => import('./MapViewImpl'));
 export function MapView(props: MapViewProps) {
   const height = props.height ?? 320;
   return (
-    <Suspense fallback={<Skeleton className={cn('w-full rounded-[var(--radius-lg)]', props.className)} style={{ height }} />}>
+    <Suspense
+      fallback={
+        <Skeleton className={cn('w-full rounded-[var(--radius-lg)]', props.className)} style={{ height }} />
+      }
+    >
       <MapViewImpl {...props} height={height} />
     </Suspense>
   );

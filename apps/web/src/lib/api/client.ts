@@ -7,7 +7,9 @@ export type ApiMode = 'mock' | 'hybrid' | 'live';
 
 const env = import.meta.env;
 const MODES: readonly string[] = ['mock', 'hybrid', 'live'];
-export const API_MODE: ApiMode = (env.VITE_API_MODE && MODES.includes(env.VITE_API_MODE) ? env.VITE_API_MODE : 'mock') as ApiMode;
+export const API_MODE: ApiMode = (
+  env.VITE_API_MODE && MODES.includes(env.VITE_API_MODE) ? env.VITE_API_MODE : 'mock'
+) as ApiMode;
 export const API_BASE: string = (env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
 export const DEMO_MODE: boolean = String(env.VITE_DEMO_MODE ?? 'true') === 'true';
 
@@ -46,7 +48,8 @@ interface FallbackState {
 export const useMockFallbacks = create<FallbackState>((set) => ({
   count: 0,
   paths: {},
-  record: (path) => set((s) => ({ count: s.count + 1, paths: { ...s.paths, [path]: (s.paths[path] ?? 0) + 1 } })),
+  record: (path) =>
+    set((s) => ({ count: s.count + 1, paths: { ...s.paths, [path]: (s.paths[path] ?? 0) + 1 } })),
 }));
 
 // ---------------------------------------------------------------- mock execution
@@ -64,7 +67,13 @@ const sleep = (ms: number, signal?: AbortSignal) =>
     });
   });
 
-async function viaMock<T>(method: string, pathWithQuery: string, body: unknown, signal?: AbortSignal, raw?: boolean): Promise<T> {
+async function viaMock<T>(
+  method: string,
+  pathWithQuery: string,
+  body: unknown,
+  signal?: AbortSignal,
+  raw?: boolean,
+): Promise<T> {
   const m = await loadMocks();
   await sleep(latency(), signal);
   try {
@@ -79,7 +88,13 @@ async function viaMock<T>(method: string, pathWithQuery: string, body: unknown, 
 
 // ---------------------------------------------------------------- live execution
 
-async function viaLive<T>(method: string, pathWithQuery: string, body: unknown, signal?: AbortSignal, raw?: boolean): Promise<T> {
+async function viaLive<T>(
+  method: string,
+  pathWithQuery: string,
+  body: unknown,
+  signal?: AbortSignal,
+  raw?: boolean,
+): Promise<T> {
   const headers: Record<string, string> = { Accept: raw ? '*/*' : 'application/json' };
   const token = await bridge.getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -97,7 +112,12 @@ async function viaLive<T>(method: string, pathWithQuery: string, body: unknown, 
     } catch {
       /* non-JSON error body */
     }
-    throw new ApiRequestError(res.status, err?.error?.code ?? `http_${res.status}`, err?.error?.message ?? res.statusText, err?.error?.details);
+    throw new ApiRequestError(
+      res.status,
+      err?.error?.code ?? `http_${res.status}`,
+      err?.error?.message ?? res.statusText,
+      err?.error?.details,
+    );
   }
   if (raw) return (await res.blob()) as T;
   if (res.status === 204) return undefined as T;
@@ -132,7 +152,11 @@ export interface RequestOptions {
   mode?: ApiMode;
 }
 
-export async function request<T>(method: 'GET' | 'POST', path: string, opts: RequestOptions = {}): Promise<T> {
+export async function request<T>(
+  method: 'GET' | 'POST',
+  path: string,
+  opts: RequestOptions = {},
+): Promise<T> {
   const full = `${path}${buildQuery(opts.query)}`;
   const mode = opts.mode ?? API_MODE;
   if (mode === 'mock') return viaMock<T>(method, full, opts.body, opts.signal, opts.raw);
@@ -147,8 +171,10 @@ export async function request<T>(method: 'GET' | 'POST', path: string, opts: Req
   }
 }
 
-export const get = <T>(path: string, query?: Query, signal?: AbortSignal) => request<T>('GET', path, { query, signal });
-export const post = <T>(path: string, body?: unknown, query?: Query) => request<T>('POST', path, { body: body ?? {}, query });
+export const get = <T>(path: string, query?: Query, signal?: AbortSignal) =>
+  request<T>('GET', path, { query, signal });
+export const post = <T>(path: string, body?: unknown, query?: Query) =>
+  request<T>('POST', path, { body: body ?? {}, query });
 
 /** Human-readable message for any thrown error. */
 export function errorMessage(e: unknown): string {

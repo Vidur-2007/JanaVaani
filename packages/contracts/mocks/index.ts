@@ -36,7 +36,10 @@ function match(pattern: string, path: string): Record<string, string> | null {
   return params;
 }
 
-export function findMock(method: string, path: string): { handler: MockHandler; params: Record<string, string> } | null {
+export function findMock(
+  method: string,
+  path: string,
+): { handler: MockHandler; params: Record<string, string> } | null {
   const m = method.toUpperCase();
   for (const h of [...extra, ...handlers]) {
     if (h.method !== m) continue;
@@ -63,7 +66,14 @@ export async function runMock(
   const [path, qs = ''] = pathWithQuery.split('?');
   const found = findMock(method, path);
   if (!found) throw new MockHttpError(404, 'not_found', `No mock for ${method} ${path}`);
-  const ctx: MockCtx = { method: method.toUpperCase(), path, params: found.params, query: new URLSearchParams(qs), body, user };
+  const ctx: MockCtx = {
+    method: method.toUpperCase(),
+    path,
+    params: found.params,
+    query: new URLSearchParams(qs),
+    body,
+    user,
+  };
   const out = await found.handler.fn(ctx);
   // Deep-copy so callers (and the React Query cache) never hold live references into the mock db.
   return out === undefined ? out : JSON.parse(JSON.stringify(out));

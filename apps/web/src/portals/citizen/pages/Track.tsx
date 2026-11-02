@@ -34,20 +34,53 @@ export default function Track() {
         <h1 className="font-display text-2xl font-semibold">{t('track.title')}</h1>
         <p className="text-muted-foreground">{t('track.subtitle')}</p>
       </header>
-      <form onSubmit={submit} className="bg-surface grid gap-3 rounded-[var(--radius-lg)] border p-4 sm:grid-cols-[1fr_10rem_auto] sm:items-end">
+      <form
+        onSubmit={submit}
+        className="bg-surface grid gap-3 rounded-[var(--radius-lg)] border p-4 sm:grid-cols-[1fr_10rem_auto] sm:items-end"
+      >
         <div className="space-y-1.5">
           <Label htmlFor="ticket">{t('track.ticket')}</Label>
-          <Input id="ticket" required placeholder="GRV-2026-000123" value={ticket} onChange={(e) => setTicket(e.target.value)} className="h-11 font-mono" autoComplete="off" />
+          <Input
+            id="ticket"
+            required
+            placeholder="GRV-2026-000123"
+            value={ticket}
+            onChange={(e) => setTicket(e.target.value)}
+            className="h-11 font-mono"
+            autoComplete="off"
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="pin">{t('track.pin')}</Label>
-          <Input id="pin" required inputMode="numeric" pattern="\d{6}" maxLength={6} value={pinInput} onChange={(e) => setPinInput(e.target.value)} className="h-11 font-mono tracking-widest" autoComplete="one-time-code" />
+          <Input
+            id="pin"
+            required
+            inputMode="numeric"
+            pattern="\d{6}"
+            maxLength={6}
+            value={pinInput}
+            onChange={(e) => setPinInput(e.target.value)}
+            className="h-11 font-mono tracking-widest"
+            autoComplete="one-time-code"
+          />
         </div>
         <Button type="submit" className="touch-target">
           {t('track.submit')}
         </Button>
       </form>
-      {id && pin && (q.isPending ? <PageSkeleton className="p-0 md:p-0" /> : q.isError ? <ErrorState error={notFound ? undefined : q.error} title={notFound ? t('track.not_found') : undefined} onRetry={notFound ? undefined : () => q.refetch()} /> : <GrievanceSummary g={q.data} />)}
+      {id &&
+        pin &&
+        (q.isPending ? (
+          <PageSkeleton className="p-0 md:p-0" />
+        ) : q.isError ? (
+          <ErrorState
+            error={notFound ? undefined : q.error}
+            title={notFound ? t('track.not_found') : undefined}
+            onRetry={notFound ? undefined : () => q.refetch()}
+          />
+        ) : (
+          <GrievanceSummary g={q.data} />
+        ))}
     </PageTransition>
   );
 }

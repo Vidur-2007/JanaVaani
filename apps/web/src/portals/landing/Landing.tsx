@@ -7,7 +7,16 @@ import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowRight, Building2, Globe2, Landmark, Mic, Search, UserRound } from 'lucide-react';
 import { Button } from '@/design/ui/button';
-import { ErrorState, KPIStat, LanguageSwitcher, LiveIndicator, Logo, PageTransition, StatSkeleton, ThemeToggle } from '@/design/components';
+import {
+  ErrorState,
+  KPIStat,
+  LanguageSwitcher,
+  LiveIndicator,
+  Logo,
+  PageTransition,
+  StatSkeleton,
+  ThemeToggle,
+} from '@/design/components';
 import { reveal } from '@/design/motion';
 import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
@@ -59,7 +68,11 @@ function Stats() {
     <div className="grid gap-3 sm:grid-cols-3">
       <KPIStat label={t('stats.total')} value={s.total} />
       <KPIStat label={t('stats.resolved')} value={s.resolution_rate_pct} decimals={1} suffix="%" />
-      <KPIStat label={t('stats.avg_hours')} value={s.avg_resolution_hours} format={(n) => fmt.duration(n * 60)} />
+      <KPIStat
+        label={t('stats.avg_hours')}
+        value={s.avg_resolution_hours}
+        format={(n) => fmt.duration(n * 60)}
+      />
     </div>
   );
 }
@@ -102,7 +115,9 @@ export default function Landing() {
               aria-hidden
             />
             <div className="mx-auto max-w-6xl px-4 pt-12 pb-20 md:pt-24 md:pb-32">
-              <p className="text-signal mb-4 font-mono text-xs tracking-widest uppercase">{t('hero.eyebrow')}</p>
+              <p className="text-signal mb-4 font-mono text-xs tracking-widest uppercase">
+                {t('hero.eyebrow')}
+              </p>
               <CyclingGreeting />
               <p className="text-muted-foreground mt-6 max-w-2xl text-lg">{t('hero.subhead')}</p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -142,7 +157,10 @@ export default function Landing() {
                   <Icon className="text-primary size-7" aria-hidden />
                   <p className="font-display mt-4 text-lg font-semibold">{t(`portals.${key}`)}</p>
                   <p className="text-muted-foreground text-sm">{t(`portals.${key}_desc`)}</p>
-                  <ArrowRight className="rtl-flip text-muted-foreground group-hover:text-primary mt-4 size-5 transition-colors" aria-hidden />
+                  <ArrowRight
+                    className="rtl-flip text-muted-foreground group-hover:text-primary mt-4 size-5 transition-colors"
+                    aria-hidden
+                  />
                 </Link>
               ))}
             </div>

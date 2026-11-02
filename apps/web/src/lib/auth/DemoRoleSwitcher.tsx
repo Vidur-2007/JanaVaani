@@ -48,12 +48,18 @@ export function DemoRoleSwitcher({ className }: { className?: string }) {
         disabled={busy}
       >
         <UserRoundCog className="size-4" aria-hidden />
-        <span className="max-w-28 truncate">{profile ? t(`roles.${profile.role}`) : t('demo.signed_out')}</span>
+        <span className="max-w-28 truncate">
+          {profile ? t(`roles.${profile.role}`) : t('demo.signed_out')}
+        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
         <DropdownMenuLabel>{t('demo.accounts')}</DropdownMenuLabel>
         {DEMO_USERS.map((u) => (
-          <DropdownMenuItem key={u.id} onSelect={() => pick(u.email)} className="flex flex-col items-start gap-0">
+          <DropdownMenuItem
+            key={u.id}
+            onSelect={() => pick(u.email)}
+            className="flex flex-col items-start gap-0"
+          >
             <span className="font-medium">{u.name}</span>
             <span className="text-muted-foreground text-xs">{u.persona_en}</span>
           </DropdownMenuItem>

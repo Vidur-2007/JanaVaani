@@ -48,7 +48,11 @@ export function StatSkeleton({ className }: { className?: string }) {
 
 export function PageSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('mx-auto w-full max-w-5xl space-y-6 p-4 md:p-8', className)} role="status" aria-busy="true">
+    <div
+      className={cn('mx-auto w-full max-w-5xl space-y-6 p-4 md:p-8', className)}
+      role="status"
+      aria-busy="true"
+    >
       <Skeleton className="h-8 w-1/3" />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (

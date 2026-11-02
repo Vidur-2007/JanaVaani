@@ -3,7 +3,14 @@ import type { Ward } from '../../src/types';
 // Spec B §3.2 — 30 demo wards (approximate centroids). Ids W-<ZONE>-NN, numbered in table order per zone.
 // B's ml/build_wards.py should produce the same ids so mock and live data line up.
 
-export const ZONES = ['Serilingampally', 'Kukatpally', 'Khairatabad', 'Secunderabad', 'Charminar', 'LB Nagar'] as const;
+export const ZONES = [
+  'Serilingampally',
+  'Kukatpally',
+  'Khairatabad',
+  'Secunderabad',
+  'Charminar',
+  'LB Nagar',
+] as const;
 export const ZONE_CODES: Record<(typeof ZONES)[number], string> = {
   Serilingampally: 'SLP',
   Kukatpally: 'KKP',
@@ -79,7 +86,10 @@ export function wardsGeoJSON() {
       const ring: [number, number][] = [];
       for (let i = 0; i <= 6; i++) {
         const a = (Math.PI / 3) * (i % 6);
-        ring.push([+(w.centroid.lng + r * Math.cos(a)).toFixed(5), +(w.centroid.lat + r * 0.92 * Math.sin(a)).toFixed(5)]);
+        ring.push([
+          +(w.centroid.lng + r * Math.cos(a)).toFixed(5),
+          +(w.centroid.lat + r * 0.92 * Math.sin(a)).toFixed(5),
+        ]);
       }
       return {
         type: 'Feature' as const,

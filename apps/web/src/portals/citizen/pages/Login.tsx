@@ -62,7 +62,15 @@ export default function Login() {
           >
             <div className="space-y-1.5">
               <Label htmlFor="email">{t('login.email')}</Label>
-              <Input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11" />
+              <Input
+                id="email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-11"
+              />
             </div>
             <Button type="submit" className="touch-target w-full" disabled={!!busy}>
               {busy === 'magic' && <Loader2 className="size-4 animate-spin" aria-hidden />}
@@ -70,8 +78,18 @@ export default function Login() {
             </Button>
           </form>
           <p className="text-muted-foreground text-center text-xs">{t('login.or')}</p>
-          <Button variant="outline" className="touch-target w-full" disabled={!!busy} onClick={() => run('guest', auth.signInAsGuest)} data-testid="guest-login">
-            {busy === 'guest' ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <UserRound className="size-4" aria-hidden />}
+          <Button
+            variant="outline"
+            className="touch-target w-full"
+            disabled={!!busy}
+            onClick={() => run('guest', auth.signInAsGuest)}
+            data-testid="guest-login"
+          >
+            {busy === 'guest' ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <UserRound className="size-4" aria-hidden />
+            )}
             {tc('auth.continue_as_guest')}
           </Button>
         </TabsContent>
@@ -85,11 +103,27 @@ export default function Login() {
           >
             <div className="space-y-1.5">
               <Label htmlFor="gov-email">{t('login.email')}</Label>
-              <Input id="gov-email" type="email" required autoComplete="username" value={govEmail} onChange={(e) => setGovEmail(e.target.value)} className="h-11" />
+              <Input
+                id="gov-email"
+                type="email"
+                required
+                autoComplete="username"
+                value={govEmail}
+                onChange={(e) => setGovEmail(e.target.value)}
+                className="h-11"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">{t('login.password')}</Label>
-              <Input id="password" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="h-11" />
+              <Input
+                id="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-11"
+              />
             </div>
             <Button type="submit" className="touch-target w-full" disabled={!!busy}>
               {busy === 'password' && <Loader2 className="size-4 animate-spin" aria-hidden />}
@@ -100,7 +134,10 @@ export default function Login() {
       </Tabs>
 
       {DEMO_MODE && (
-        <section className="bg-surface space-y-3 rounded-[var(--radius-lg)] border p-4" aria-labelledby="demo-title">
+        <section
+          className="bg-surface space-y-3 rounded-[var(--radius-lg)] border p-4"
+          aria-labelledby="demo-title"
+        >
           <div>
             <h2 id="demo-title" className="font-display font-semibold">
               {t('login.demo_title')}
@@ -119,7 +156,8 @@ export default function Login() {
               >
                 <span className="flex flex-col items-start">
                   <span className="font-medium">
-                    {u.name} <span className="text-muted-foreground font-normal">· {tc(`roles.${u.role}`)}</span>
+                    {u.name}{' '}
+                    <span className="text-muted-foreground font-normal">· {tc(`roles.${u.role}`)}</span>
                   </span>
                   <span className="text-muted-foreground text-xs font-normal">{u.persona_en}</span>
                 </span>

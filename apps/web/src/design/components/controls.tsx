@@ -53,7 +53,9 @@ export function ListenButton({ text, lang, size = 'sm', variant = 'ghost', class
       ) : (
         <Volume2 className="size-4" aria-hidden />
       )}
-      {size !== 'icon' && <span>{busy ? t('tts.stop') : unavailable ? t('tts.unavailable_short') : t('tts.listen')}</span>}
+      {size !== 'icon' && (
+        <span>{busy ? t('tts.stop') : unavailable ? t('tts.unavailable_short') : t('tts.listen')}</span>
+      )}
     </Button>
   );
 }
@@ -68,7 +70,12 @@ export interface LanguageSwitcherProps {
   onChange?: (lang: DeepLang) => void;
 }
 
-export function LanguageSwitcher({ variant = 'menu', langs = DEEP_LANGS, className, onChange }: LanguageSwitcherProps) {
+export function LanguageSwitcher({
+  variant = 'menu',
+  langs = DEEP_LANGS,
+  className,
+  onChange,
+}: LanguageSwitcherProps) {
   const { t, i18n } = useTranslation('common');
   const current = (i18n.resolvedLanguage ?? 'en') as DeepLang;
   const choose = async (l: DeepLang) => {
@@ -88,7 +95,9 @@ export function LanguageSwitcher({ variant = 'menu', langs = DEEP_LANGS, classNa
             lang={l}
             className={cn(
               'touch-target rounded-full border px-4 text-sm font-medium transition-colors',
-              current === l ? 'border-primary bg-primary text-primary-foreground' : 'bg-surface hover:bg-surface-2',
+              current === l
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'bg-surface hover:bg-surface-2',
             )}
           >
             {LANGUAGE_NAMES[l].native}
@@ -100,7 +109,12 @@ export function LanguageSwitcher({ variant = 'menu', langs = DEEP_LANGS, classNa
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className={cn('touch-target gap-1.5', className)} aria-label={t('lang.choose')}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn('touch-target gap-1.5', className)}
+          aria-label={t('lang.choose')}
+        >
           <Languages className="size-4" aria-hidden />
           <span lang={current}>{LANGUAGE_NAMES[current].native}</span>
         </Button>

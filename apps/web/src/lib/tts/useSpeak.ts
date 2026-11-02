@@ -25,7 +25,9 @@ export function pickVoice(voices: SpeechSynthesisVoice[], lang: Lang): SpeechSyn
   const code = SPEECH_CODES[lang as keyof typeof SPEECH_CODES] ?? 'en-IN';
   const base = code.slice(0, 2);
   const score = (v: SpeechSynthesisVoice) =>
-    (v.lang.replace('_', '-') === code ? 4 : v.lang.startsWith(base) ? 2 : 0) + (v.localService ? 0.5 : 0) + (/google|microsoft/i.test(v.name) ? 0.25 : 0);
+    (v.lang.replace('_', '-') === code ? 4 : v.lang.startsWith(base) ? 2 : 0) +
+    (v.localService ? 0.5 : 0) +
+    (/google|microsoft/i.test(v.name) ? 0.25 : 0);
   const ranked = voices.filter((v) => v.lang.startsWith(base)).sort((a, b) => score(b) - score(a));
   return ranked[0] ?? null;
 }

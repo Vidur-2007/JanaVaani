@@ -2,7 +2,17 @@
 // The backend does the real language detection; this only looks at characters.
 import type { Lang } from '@contracts/types';
 
-export type Script = 'telugu' | 'devanagari' | 'arabic' | 'tamil' | 'kannada' | 'malayalam' | 'bengali' | 'gujarati' | 'latin' | 'unknown';
+export type Script =
+  | 'telugu'
+  | 'devanagari'
+  | 'arabic'
+  | 'tamil'
+  | 'kannada'
+  | 'malayalam'
+  | 'bengali'
+  | 'gujarati'
+  | 'latin'
+  | 'unknown';
 
 const RANGES: [Script, number, number][] = [
   ['telugu', 0x0c00, 0x0c7f],
@@ -17,7 +27,16 @@ const RANGES: [Script, number, number][] = [
 
 /** Likely language per script. Devanagari → Hindi and Arabic script → Urdu in this product's context. */
 export const SCRIPT_LANG: Record<Script, Lang> = {
-  telugu: 'te', devanagari: 'hi', arabic: 'ur', tamil: 'ta', kannada: 'kn', malayalam: 'ml', bengali: 'bn', gujarati: 'gu', latin: 'en', unknown: 'other',
+  telugu: 'te',
+  devanagari: 'hi',
+  arabic: 'ur',
+  tamil: 'ta',
+  kannada: 'kn',
+  malayalam: 'ml',
+  bengali: 'bn',
+  gujarati: 'gu',
+  latin: 'en',
+  unknown: 'other',
 };
 
 export interface ScriptInfo {
@@ -56,5 +75,11 @@ export function detectScript(text: string): ScriptInfo {
     }
   }
   const native = Object.keys(counts).some((s) => s !== 'latin');
-  return { script, lang: SCRIPT_LANG[script], counts, mixed: native && (counts.latin ?? 0) >= 3, rtl: script === 'arabic' };
+  return {
+    script,
+    lang: SCRIPT_LANG[script],
+    counts,
+    mixed: native && (counts.latin ?? 0) >= 3,
+    rtl: script === 'arabic',
+  };
 }

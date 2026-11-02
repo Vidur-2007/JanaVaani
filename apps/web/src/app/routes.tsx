@@ -21,7 +21,9 @@ import { ErrorBoundary } from './ErrorBoundary';
 const LandingRoutes = lazy(() => import('@/portals/landing/routes'));
 const CitizenRoutes = lazy(() => import('@/portals/citizen/routes'));
 const OfficerRoutes = lazy(() => import('@/portals/officer/routes'));
-const SupervisorRoutes = lazy(() => import('@/portals/officer/routes').then((m) => ({ default: m.SupervisorRoutes })));
+const SupervisorRoutes = lazy(() =>
+  import('@/portals/officer/routes').then((m) => ({ default: m.SupervisorRoutes })),
+);
 const AdminRoutes = lazy(() => import('@/portals/admin/routes'));
 const PublicRoutes = lazy(() => import('@/portals/public/routes'));
 
@@ -36,12 +38,54 @@ function Portal({ children }: { children: ReactNode }) {
 export function AppRoutes() {
   return (
     <Routes>
-      <Route index element={<Portal><LandingRoutes /></Portal>} />
-      <Route path="officer/*" element={<Portal><OfficerRoutes /></Portal>} />
-      <Route path="supervisor/*" element={<Portal><SupervisorRoutes /></Portal>} />
-      <Route path="admin/*" element={<Portal><AdminRoutes /></Portal>} />
-      <Route path="public/*" element={<Portal><PublicRoutes /></Portal>} />
-      <Route path="*" element={<Portal><CitizenRoutes /></Portal>} />
+      <Route
+        index
+        element={
+          <Portal>
+            <LandingRoutes />
+          </Portal>
+        }
+      />
+      <Route
+        path="officer/*"
+        element={
+          <Portal>
+            <OfficerRoutes />
+          </Portal>
+        }
+      />
+      <Route
+        path="supervisor/*"
+        element={
+          <Portal>
+            <SupervisorRoutes />
+          </Portal>
+        }
+      />
+      <Route
+        path="admin/*"
+        element={
+          <Portal>
+            <AdminRoutes />
+          </Portal>
+        }
+      />
+      <Route
+        path="public/*"
+        element={
+          <Portal>
+            <PublicRoutes />
+          </Portal>
+        }
+      />
+      <Route
+        path="*"
+        element={
+          <Portal>
+            <CitizenRoutes />
+          </Portal>
+        }
+      />
     </Routes>
   );
 }

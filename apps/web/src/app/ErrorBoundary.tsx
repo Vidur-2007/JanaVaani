@@ -32,7 +32,12 @@ class Boundary extends Component<Props, State> {
   reset = () => this.setState({ error: null });
 
   render() {
-    if (this.state.error) return this.props.fallback?.(this.state.error, this.reset) ?? <ErrorScreen error={this.state.error} onReset={this.reset} />;
+    if (this.state.error)
+      return (
+        this.props.fallback?.(this.state.error, this.reset) ?? (
+          <ErrorScreen error={this.state.error} onReset={this.reset} />
+        )
+      );
     return this.props.children;
   }
 }
@@ -47,7 +52,9 @@ export function ErrorScreen({ error, onReset }: { error: Error; onReset?: () => 
         </div>
         <h1 className="font-display text-xl font-semibold">{t('errors.boundary_title')}</h1>
         <p className="text-muted-foreground text-sm">{t('errors.boundary_body')}</p>
-        {import.meta.env.DEV && <pre className="bg-surface-2 overflow-auto rounded-lg p-3 text-start text-xs">{error.message}</pre>}
+        {import.meta.env.DEV && (
+          <pre className="bg-surface-2 overflow-auto rounded-lg p-3 text-start text-xs">{error.message}</pre>
+        )}
         <div className="flex justify-center gap-2">
           {onReset && (
             <Button variant="outline" onClick={onReset} className="touch-target">

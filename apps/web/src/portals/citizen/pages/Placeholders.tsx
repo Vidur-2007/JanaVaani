@@ -11,7 +11,11 @@ function Placeholder({ titleKey, testId }: { titleKey: string; testId: string })
     <PageTransition className="space-y-4">
       <div data-testid={testId}>
         <h1 className="font-display text-2xl font-semibold">{t(titleKey)}</h1>
-        <EmptyState icon={Construction} title={t('placeholder.coming_soon')} description={id ? id : t('placeholder.owner', { owner: 'A' })} />
+        <EmptyState
+          icon={Construction}
+          title={t('placeholder.coming_soon')}
+          description={id ? id : t('placeholder.owner', { owner: 'A' })}
+        />
       </div>
     </PageTransition>
   );
