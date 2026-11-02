@@ -30,7 +30,19 @@
   "sewage water is entering",
   "smoke from transformer",
   "transformer makes loud noise and smokes",
-  "line is hanging very low"
+  "line is hanging very low",
+  "live electric wire",
+  "electric wire has fallen",
+  "electric wire fell",
+  "wire has fallen",
+  "fallen wire",
+  "naked wire",
+  "high voltage wire",
+  "sparks coming",
+  "sparks from",
+  "sparks everywhere",
+  "transformer exploded",
+  "transformer burst"
  ],
  "te": [
   "మంటలు",
@@ -46,7 +58,10 @@
   "మ్యాన్‌హోల్ మూత లేదు",
   "ఇళ్లలోకి వస్తోంది",
   "ట్రాన్స్‌ఫార్మర్ నుండి పొగ",
-  "తీగ రోడ్డు మీద చాలా కిందకు"
+  "తీగ రోడ్డు మీద చాలా కిందకు",
+  "కరెంట్ తీగ",
+  "విద్యుత్ తీగ",
+  "నిప్పురవ్వలు"
  ],
  "hi": [
   "आग",
@@ -63,7 +78,9 @@
   "मैनहोल का ढक्कन गायब",
   "घरों में घुस",
   "ट्रांसफार्मर से धुआँ",
-  "बहुत नीचे लटक रही"
+  "बहुत नीचे लटक रही",
+  "तार गिर",
+  "चिंगारी"
  ],
  "ur": [
   "آگ",
@@ -76,7 +93,9 @@
   "سیلاب",
   "ڈوب رہا",
   "گھروں میں آ رہا",
-  "ٹرانسفارمر سے دھواں"
+  "ٹرانسفارمر سے دھواں",
+  "تار گر",
+  "چنگاری"
  ],
  "translit": [
   "aag lagi",
@@ -95,7 +114,13 @@
   "transformer nunchi smoke",
   "transformer se dhuan",
   "ghar mein aa raha",
-  "chala kinda vrelaadutundi"
+  "chala kinda vrelaadutundi",
+  "bijli ka taar",
+  "taar gir",
+  "taar toota",
+  "aag lag",
+  "wire tegi",
+  "wire padindi"
  ],
  "hazard_map": {
   "live_wire": [
@@ -119,7 +144,29 @@
    "line is hanging very low",
    "తీగ రోడ్డు మీద చాలా కిందకు",
    "बहुत नीचे लटक रही",
-   "chala kinda vrelaadutundi"
+   "chala kinda vrelaadutundi",
+   "live electric wire",
+   "electric wire has fallen",
+   "electric wire fell",
+   "wire has fallen",
+   "fallen wire",
+   "naked wire",
+   "high voltage wire",
+   "sparks coming",
+   "sparks from",
+   "sparks everywhere",
+   "కరెంట్ తీగ",
+   "విద్యుత్ తీగ",
+   "నిప్పురవ్వలు",
+   "तार गिर",
+   "चिंगारी",
+   "تار گر",
+   "چنگاری",
+   "bijli ka taar",
+   "taar gir",
+   "taar toota",
+   "wire tegi",
+   "wire padindi"
   ],
   "fire": [
    "fire",
@@ -138,7 +185,10 @@
    "ट्रांसफार्मर से धुआँ",
    "ٹرانسفارمر سے دھواں",
    "transformer nunchi smoke",
-   "transformer se dhuan"
+   "transformer se dhuan",
+   "transformer exploded",
+   "transformer burst",
+   "aag lag"
   ],
   "gas_leak": [
    "gas leak",

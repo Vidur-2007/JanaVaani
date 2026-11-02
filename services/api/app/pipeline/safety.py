@@ -2,7 +2,7 @@
 import re
 import unicodedata
 
-from ..refdata import emergency_keywords
+from ..refdata import emergency_keywords, is_whole_word
 
 PII = [
     (re.compile(r"\b\d{4}\s?\d{4}\s?\d{4}\b"), "[AADHAAR]"),
@@ -24,22 +24,26 @@ def mask_pii(text: str) -> str:
     return out
 
 
+_HI_UR = re.compile(r"[ऀ-ॿ؀-ۿ]")   # postpositions are separate words here; Telugu suffixes are not
+_NOT_A_FIRE = re.compile(r"\bfire (station|brigade office|works)\b|\bfire (the|this|that|him|her|them|these|those)\b")
+
+
 def _has_phrase(text: str, phrase: str) -> bool:
     p = unicodedata.normalize("NFC", phrase).lower()
     if re.fullmatch(r"[a-z ]+", p):            # latin phrase: word boundaries (avoid 'fire' in 'fireworks'? keep strict)
         return re.search(rf"(?<![a-z]){re.escape(p)}(?![a-z])", text) is not None
+    if " " not in p and _HI_UR.search(p):      # 'आग' must not match 'आगे' or 'आगरा'; 'آگ' must not match 'آگے'
+        return any(is_whole_word(text, m.start(), m.end()) for m in re.finditer(re.escape(p), text))
     return p in text
 
 
 def detect_emergency(text: str) -> dict:
-    t = unicodedata.normalize("NFC", text or "").lower()
+    t = _NOT_A_FIRE.sub(" ", unicodedata.normalize("NFC", text or "").lower())
     kw = emergency_keywords()
     matched = []
     for lang in ("en", "te", "hi", "ur", "translit"):
         matched += [p for p in kw[lang] if _has_phrase(t, p)]
     hazards = sorted({h for h, phrases in kw["hazard_map"].items() if any(_has_phrase(t, p) for p in phrases)})
-    # 'fire' as a bare English word is only an emergency when not negated / not 'fire station' etc.
-    matched = [m for m in matched if not (m == "fire" and re.search(r"fire (station|brigade office|works)", t))]
     return {"is_emergency": bool(matched), "matched_terms": sorted(set(matched)), "hazards": hazards}
 
 

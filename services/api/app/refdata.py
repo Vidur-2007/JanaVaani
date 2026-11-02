@@ -1,6 +1,8 @@
 """Reference data loaded from data/*.json (departments, wards, SLA, keywords, contacts)."""
 import json
 import math
+import re
+import unicodedata
 from functools import lru_cache
 
 from .core.config import DATA_DIR
@@ -72,6 +74,27 @@ def ward_for_point(lat: float, lng: float) -> dict | None:
     return min(wards(), key=lambda w: haversine_m(lat, lng, w["lat"], w["lng"]))
 
 
+def is_whole_word(text: str, start: int, end: int) -> bool:
+    is_word = lambda ch: unicodedata.category(ch)[0] in "LM"
+    return not (start > 0 and is_word(text[start - 1])) and not (end < len(text) and is_word(text[end]))
+
+
+def _fold(text: str) -> str:
+    return unicodedata.normalize("NFC", text or "").replace("‌", "").replace("‍", "").lower()
+
+
+@lru_cache
+def _ward_aliases() -> list[tuple[str, dict]]:
+    names = _load("geo/locality_aliases.json")
+    return [(_fold(a), w) for w in wards() for a in names.get(w["name"], [])]
+
+
+def _alias_in(text: str, alias: str) -> bool:
+    if re.search(r"[ఀ-౿]", alias):     # Telugu suffixes attach to the name: మియాపూర్లో
+        return alias in text
+    return any(is_whole_word(text, m.start(), m.end()) for m in re.finditer(re.escape(alias), text))
+
+
 def ward_by_mention(text: str) -> dict | None:
     t = (text or "").lower()
     best = None
@@ -79,7 +102,11 @@ def ward_by_mention(text: str) -> dict | None:
         if w["name"].lower() in t:
             if best is None or len(w["name"]) > len(best["name"]):
                 best = w
-    return best
+    if best:
+        return best
+    folded = _fold(text)
+    hits = [(a, w) for a, w in _ward_aliases() if _alias_in(folded, a)]
+    return max(hits, key=lambda h: len(h[0]))[1] if hits else None
 
 
 def wards_geojson() -> dict:
