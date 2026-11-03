@@ -14,6 +14,26 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
   - Items B2 and B3 below need B's human. B1 is resolved: B allows supervisors on the admin GETs.
 - **Contract notes:** see section 6 and `docs/contract-notes/C.md`.
 
+### Stretch after the final merge (S1, S2, S8)
+
+Built after the H42 merge, at the integrator's request, in C's folders only:
+
+- **S1 Disaster Surge Mode.**
+  - A red banner on the Command Center appears when the alert feed holds a surge: a critical spike, or a spike with ≥ 10 complaints.
+  - **Open war room** goes to `/admin/surge/:alertId` (admin + supervisor; every spike in `/admin/alerts` also links there).
+  - The war room shows live counts (complaints in 48 h, open, critical open, unassigned, resolved), a map of the affected complaints with ward chips, and a team assignment board (one column per assigned officer, unassigned last).
+  - Data: #49 + #28 + #6, under `qk.admin`, so live events refresh it.
+- **S2 root-cause graph** (`RootCauseGraph`, used in the war room): complaints → incident → suspected root cause, in a deterministic radial SVG.
+  - Stable across live refetches; nodes link to cases; there is a list view.
+  - The cause is **rule-based and labelled "Suggested by rules … not by AI"**: a shared asset named by ≥ 2 complaints, else the dominant sub-department (≥ 40%), else the department, plus the dominant ward.
+- **S8 assets.**
+  - `/admin/assets/:id`: asset, open issues, complaint history, citizen QR (`/r/:id`), print.
+  - `/admin/assets`: printable QR sheet. It defaults to the assets citizens actually reported, or takes typed ids. Admin nav: "Assets & QR".
+- **i18n:** en/te/hi complete; Urdu for the banner and titles (other strings fall back to English, as allowed).
+- **Tests:** `e2e/gov/p8-stretch.spec.ts` (banner → war room, root-cause graph + list + node navigation, QR sheet + asset page).
+- **Checked against B's API run locally (hybrid):** banner + war room for "Spike: 10 water complaints in 24 h (W-CHR-01)" show 19 complaints in 48 h, cause "contamination in Charminar", 0 mock fallbacks. B mismatches are in `docs/contract-notes/C.md`.
+- **Not built:** S9 (field visits, SLA policy editor, civic scores) and S6 (monthly AI report). Both need B endpoints that don't exist.
+
 ### P8 rehearsal
 
 No deployed site exists and `main` is still the scaffold, so the deployed click-through could not run. A throwaway clone merged B, A and C at their latest commits: no conflicts, typecheck and lint pass, Playwright on Chromium, Edge and mobile Chrome in mock mode gave 390 passed, 48 skipped, 6 failed. The Chromium failures are A's two stale smoke tests; the other 4 are expected to be the same two tests. No gov blockers were found. Real phones and the Edge and Chrome phone views of the deployed site remain unchecked.
@@ -34,7 +54,7 @@ UI in `live` mode on B's latest code, run locally with no AI keys. Times are one
 
 - **Do not reset on stage.** Reset before the demo.
 - **Retrain moves with corrections, but can go down.** 20 deliberately wrong corrections took synthetic accuracy from 77.8% to 69.4% and human-set accuracy from 75.0% to 79.2%. Step 7 needs genuine corrections, and the outcome of one real correction is untested. Rehearse the exact correction, or do not promise a rise.
-- Stretch (Surge Mode, root-cause graph) was not built. B has no endpoints for them, and client-only versions would show invented data.
+- Stretch (Surge Mode, root-cause graph) was not built in P7; they were built after the final merge from existing data only (see "Stretch after the final merge").
 
 ### Known issues (P6)
 

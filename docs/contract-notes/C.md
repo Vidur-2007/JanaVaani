@@ -2,6 +2,12 @@
 
 Additive changes to the shared contract (extra types in `portals/gov-shared/types-ext.ts`). Newest first.
 
+## Stretch S1/S2/S8 (after the final merge)
+
+- **Request to B:** #49 spike alerts carry only ~3 example `grievance_ids`, while the title counts 10–24. The war room therefore rebuilds the member set as the alert's ids + same-category (and same-ward) complaints from #28 in the 48 h before the alert. Please return all member ids, or add an optional `member_count`, so the counts match exactly.
+- #28 single-value `status` (already noted) also applies to the war room and QR sheet. Both rely on the default (open + pending verification).
+- S8 uses #24 only. There is no asset list endpoint, so the QR sheet defaults to the `asset_id`s seen on inbox complaints, or takes ids typed in. Mock and B's seed number assets differently (`SL-KHB-0001` vs `SL-SLP-0000`). Optional request: `GET /meta/assets?ward=&type=`.
+
 ## Checked against B's code (`origin/feat/ai-engine` at 6931dad, offline mode, run locally)
 
 B has no deployed URL yet, so these came from B's API run from a scratch export, not a merge. All P3 response shapes matched the contract.
