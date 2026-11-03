@@ -1,12 +1,18 @@
 # Progress — Laptop A (foundation, landing, citizen portal)
 
 ## Current phase
-**P7 — wow polish: items 1–3 DONE; item 4 (human review of the top 40 te/hi/ur strings) WAITING on the human; item 5 (stretch) not started (only after 1–4). Final PR `feat/citizen` → `main` ("Final: citizen portal") at H42.**
+**P7 — wow polish + stretch: DONE.** Next: at H42, open PR `feat/citizen` → `main` titled "Final: citizen portal" (not opened yet: the H30 merge is still pending and no H42 call has been made).
 
-### P7 item 4: waiting on the human
-- `docs/progress/A-i18n-review.md` lists the 40 most visible strings in en/te/hi/ur. Reply with `NN te: <new text>`; Claude applies them to the locale files.
+### P7 item 4: native-speaker review skipped (team decision)
+- `docs/progress/A-i18n-review.md` lists the 40 most visible strings. Claude self-reviewed them in te/hi/ur and fixed one: #39 te "No, not fixed" made explicit.
+- A native-speaker pass is still recommended before real use.
 
 ## Done (P7)
+- **Stretch (Spec A §8), all four done:**
+  - **S5: read a notice or bill.** A composer button photographs a document, then `POST /documents/extract` (new additive endpoint; types in `portals/citizen/types-ext.ts`, request logged for B) returns an AI summary in the UI language, key fields and suggested complaint text. "Use this in my complaint" pre-fills the composer and keeps the photo attached. Mock: a synthetic water bill, registered lazily from `portals/citizen/mocks-ext.ts`.
+  - **S10: voice navigation.** In voice mode, "open my complaints", నా ఫిర్యాదులు, मेरी शिकायतें, میری شکایات (plus home, notifications, settings, nearby, track, guide) navigate with a toast. Matching is strict (whole utterance after an optional verb, ≤ 5 words). `test:voice` adds 19 cases, including near-misses that must stay complaints. A hint line tells users what they can say.
+  - **Onboarding illustrations:** three mascot-free inline SVGs (language bubbles ఆ/अ/ع/A, consent shield + lock, accessibility Aa + contrast + voice). Theme tokens, stroke draw-in, gentle float, static under reduced motion, `aria-hidden`.
+  - **Share on WhatsApp:** a `wa.me` link on the submitted screen and tracker. It carries the ticket ID, title and the supporter link (`/app/complaints/:id`, which shows the public-safe card + "I'm affected too"). It never includes the guest PIN and is hidden for private complaints.
 - **Micro-interactions:**
   - Every `Button` has a springy press: quick squash, overshoot release.
   - Chips, tiles, stars, filter and reason chips, and onboarding tiles use `.jv-press`.
@@ -83,7 +89,13 @@
   - Hybrid suite 8/8 (chromium + mobile-chrome).
   - The report/voice/tracker specs ×3 on mobile-chrome: 69/69 (no flakes).
 
-## Known issues / remaining (P6)
+## Known issues / remaining (after P7)
+- **Integration:** the H30 merge is still pending (`main` = `v0-scaffold`; PRs Vidur-2007/JanaVaani#1 and Vidur-2007/JanaVaani#2 open). Merge B → A → C, then `git merge origin/main` once on `feat/citizen`.
+- **B endpoints Laptop A now relies on (with mock fallback):** `POST /documents/extract` (S5), and localized quick-reply labels (see `docs/contract-notes/A.md`).
+- **Demo-day check on the deployed API:** the rehearsal ran against B's API locally in offline mode. With Gemini keys, re-check that Lakshmi receives the officer reply in Telugu and that Listen works.
+- **The boot splash uses system fonts** for te/hi/ur until the web fonts load. Real Android/Windows/macOS have Indic system fonts; minimal Linux images don't.
+
+### Still open from P6
 - **msedge project not run in this session:** no Edge in the cloud sandbox. Run `npm run test:e2e -- --project=msedge` on a laptop with Edge before H42. Nothing Edge-specific was found in code review: `color-mix`, `:has`, `content-visibility`, `dvh`, Web Speech and MediaRecorder opus are all supported in current Edge.
 - **Not yet tested on real devices:** voice on a real Android phone (the recorder path after `audio-capture`), the camera/gallery chooser, safe areas on a gesture-nav phone, and Edge Natural voices for te/hi/ur.
 - **Lighthouse:** the landing scores 84–89 across runs (target ≥ 85); it varies with TBT from React + motion. Measured on the mock build with a local brotli server; re-measure on the Vercel URL. Further wins would need motion's `LazyMotion` across the design system (a larger refactor, so it's a P7 candidate).
