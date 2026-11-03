@@ -15,8 +15,16 @@ export function DemoMoments() {
   const emergency = first('emergency_unconfirmed');
   const moments = [
     { key: 'inbox', icon: CircleAlert, to: '/officer' },
-    { key: 'suspicious', icon: ShieldAlert, to: suspicious ? `/officer/case/${suspicious}` : '/supervisor?kind=disputed' },
-    { key: 'emergency', icon: Siren, to: emergency ? `/officer/case/${emergency}` : '/supervisor?kind=emergency' },
+    {
+      key: 'suspicious',
+      icon: ShieldAlert,
+      to: suspicious ? `/officer/case/${suspicious}` : '/supervisor?kind=disputed',
+    },
+    {
+      key: 'emergency',
+      icon: Siren,
+      to: emergency ? `/officer/case/${emergency}` : '/supervisor?kind=emergency',
+    },
     { key: 'spike', icon: TrendingUp, to: '/admin/alerts' },
     { key: 'ai', icon: BrainCircuit, to: '/admin/ai' },
   ];
@@ -24,7 +32,13 @@ export function DemoMoments() {
     <Panel title={t('demo.moments')} className="lg:col-span-2">
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5" data-testid="demo-moments">
         {moments.map((m) => (
-          <Button key={m.key} asChild variant="outline" size="sm" className="min-h-11 justify-start md:min-h-9">
+          <Button
+            key={m.key}
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-11 justify-start md:min-h-9"
+          >
             <Link to={m.to} data-testid={`moment-${m.key}`}>
               <m.icon className="size-4" aria-hidden />
               {t(`demo.moment.${m.key}`)}

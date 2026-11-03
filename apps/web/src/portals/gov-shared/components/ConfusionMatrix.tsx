@@ -43,7 +43,9 @@ export function ConfusionMatrix({ labels, matrix }: { labels: DepartmentId[]; ma
                     })}
                     className="tabular size-8 rounded text-center font-mono"
                     style={{
-                      background: n ? `color-mix(in oklab, ${tone} ${Math.round(15 + (n / max) * 70)}%, transparent)` : 'var(--surface-2)',
+                      background: n
+                        ? `color-mix(in oklab, ${tone} ${Math.round(15 + (n / max) * 70)}%, transparent)`
+                        : 'var(--surface-2)',
                     }}
                   >
                     {n || ''}

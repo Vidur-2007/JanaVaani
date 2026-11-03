@@ -40,12 +40,16 @@ export function VerificationBadge({
   if (!detailed) return badge;
 
   const { same_location, issue_resolved_visible, duplicate_photo, distance_m } = verification.checks;
-  const yesNo = (v: boolean | null) => t(v == null ? 'verification.unknown' : v ? 'verification.yes' : 'verification.no');
+  const yesNo = (v: boolean | null) =>
+    t(v == null ? 'verification.unknown' : v ? 'verification.yes' : 'verification.no');
   const checks = [
     [t('verification.same_location'), yesNo(same_location)],
     [t('verification.issue_resolved'), yesNo(issue_resolved_visible)],
     [t('verification.duplicate_photo'), yesNo(duplicate_photo)],
-    [t('verification.distance'), distance_m == null ? t('verification.unknown') : `${fmt.number(distance_m)} m`],
+    [
+      t('verification.distance'),
+      distance_m == null ? t('verification.unknown') : `${fmt.number(distance_m)} m`,
+    ],
   ];
   return (
     <div className={cn('space-y-2', className)}>
@@ -58,7 +62,9 @@ export function VerificationBadge({
       {verification.reasons_en.length > 0 && (
         <ul className="list-disc space-y-0.5 ps-4 text-sm">
           {verification.reasons_en.map((r) => (
-            <li key={r}>{r}</li>
+            <li key={r}>
+              <bdi lang="en">{r}</bdi>
+            </li>
           ))}
         </ul>
       )}

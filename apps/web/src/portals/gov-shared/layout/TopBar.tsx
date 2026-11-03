@@ -66,7 +66,9 @@ export function TopBar({ onSearch, onMenu }: { onSearch: () => void; onMenu: () 
       >
         <Search className="size-4 shrink-0" aria-hidden />
         <span className="flex-1 truncate text-start">{t('palette.search_hint')}</span>
-        <kbd className="bg-surface-2 rounded border px-1.5 font-mono text-[11px]">{mac ? '⌘K' : 'Ctrl K'}</kbd>
+        <kbd className="bg-surface-2 rounded border px-1.5 font-mono text-[11px]">
+          {mac ? '⌘K' : 'Ctrl K'}
+        </kbd>
       </button>
       <Button
         variant="ghost"

@@ -56,8 +56,7 @@ export interface DataTableProps<T extends RowData> {
 const LONG_LIST = 100;
 
 const isTyping = (el: EventTarget | null) =>
-  el instanceof HTMLElement &&
-  (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
+  el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
 
 export function DataTable<T extends RowData>({
   data,
@@ -248,11 +247,7 @@ export function DataTable<T extends RowData>({
                     onRowOpen?.(row.original);
                   }}
                   onFocus={() => setActive(i)}
-                  style={
-                    long
-                      ? { contentVisibility: 'auto', containIntrinsicSize: 'auto 56px' }
-                      : undefined
-                  }
+                  style={long ? { contentVisibility: 'auto', containIntrinsicSize: 'auto 56px' } : undefined}
                   className={cn(
                     'hover:bg-surface-2/70 focus-visible:bg-surface-2 transition-colors duration-700 [&>td]:border-b [&:last-child>td]:border-b-0',
                     onRowOpen && 'cursor-pointer',

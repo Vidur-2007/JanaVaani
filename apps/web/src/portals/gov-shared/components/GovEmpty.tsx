@@ -23,7 +23,14 @@ function Skyline() {
         <rect x="116" y="50" width="4" height="4" rx="1" />
       </g>
       <circle cx="90" cy="30" r="17" fill="var(--bg)" stroke="var(--accent)" strokeWidth="2.5" />
-      <path d="m82 30 6 6 11-12" fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="m82 30 6 6 11-12"
+        fill="none"
+        stroke="var(--accent)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

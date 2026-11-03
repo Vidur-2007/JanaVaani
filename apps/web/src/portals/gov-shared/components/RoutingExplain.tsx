@@ -45,7 +45,9 @@ export function RoutingExplain({ routing, className }: { routing: Routing; class
           );
         })}
       </ul>
-      <p className="text-muted-foreground text-sm">{routing.explanation_en}</p>
+      <p className="text-muted-foreground text-sm">
+        <bdi lang="en">{routing.explanation_en}</bdi>
+      </p>
       {routing.needs_review && (
         <p className="text-warning flex items-center gap-1.5 text-xs font-medium">
           <TriangleAlert className="size-3.5" aria-hidden />

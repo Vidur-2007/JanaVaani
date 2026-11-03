@@ -50,7 +50,10 @@ export default function Officers() {
             <p className="font-medium">
               {r.officer.name}
               {r.overloaded && (
-                <span data-testid="overloaded" className="bg-surface text-warning border-warning/50 ms-2 rounded-full border px-1.5 py-0.5 text-[11px] font-medium">
+                <span
+                  data-testid="overloaded"
+                  className="bg-surface text-warning border-warning/50 ms-2 rounded-full border px-1.5 py-0.5 text-[11px] font-medium"
+                >
                   {t('officers.overloaded')}
                 </span>
               )}
@@ -65,22 +68,34 @@ export default function Officers() {
         header: t('inbox.column.department'),
         cell: ({ row }) => <DepartmentBadge department={row.original.officer.department_id} size="sm" />,
       },
-      ...(['open', 'critical', 'overdue', 'resolved_7d'] as const).map(
-        (k): DataColumn<Row> => ({
-          id: k,
-          title: t(`officers.${k}`),
-          header: t(`officers.${k}`),
-          cell: ({ row }) => <span className="tabular font-mono">{fmt.number(row.original[k])}</span>,
-        }),
-      ),
+      ...(['open', 'critical', 'overdue', 'resolved_7d'] as const).map((k): DataColumn<Row> => ({
+        id: k,
+        title: t(`officers.${k}`),
+        header: t(`officers.${k}`),
+        cell: ({ row }) => <span className="tabular font-mono">{fmt.number(row.original[k])}</span>,
+      })),
     ],
     [t, fmt],
   );
   const sheets = [
     {
       name: t('nav.officers'),
-      columns: [t('officers.officer'), t('inbox.column.department'), t('officers.open'), t('officers.critical'), t('officers.overdue'), t('officers.resolved_7d')],
-      rows: rows.map((r) => [r.officer.name, r.officer.department_id, r.open, r.critical, r.overdue, r.resolved_7d]),
+      columns: [
+        t('officers.officer'),
+        t('inbox.column.department'),
+        t('officers.open'),
+        t('officers.critical'),
+        t('officers.overdue'),
+        t('officers.resolved_7d'),
+      ],
+      rows: rows.map((r) => [
+        r.officer.name,
+        r.officer.department_id,
+        r.open,
+        r.critical,
+        r.overdue,
+        r.resolved_7d,
+      ]),
     },
   ];
   const chart = rows.slice(0, 12).map((r) => ({
@@ -92,7 +107,13 @@ export default function Officers() {
     <PageTransition className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.officers')}</h1>
-        <ExportMenu sheets={sheets} filename="officer-workload" title={t('nav.officers')} target={tableArea} disabled={rows.length === 0} />
+        <ExportMenu
+          sheets={sheets}
+          filename="officer-workload"
+          title={t('nav.officers')}
+          target={tableArea}
+          disabled={rows.length === 0}
+        />
       </header>
       {q.isPending ? (
         <ListSkeleton rows={4} />
@@ -118,32 +139,55 @@ export default function Officers() {
                 <YAxis allowDecimals={false} tick={axisTick} tickLine={false} axisLine={false} />
                 <Tooltip cursor={{ fill: 'var(--surface-2)' }} contentStyle={tooltipStyle} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="critical" stackId="load" name={t('officers.critical')} fill="var(--prio-critical)" animationDuration={CHART_ANIMATION_MS} />
-                <Bar dataKey="other" stackId="load" name={t('officers.other_open')} fill="var(--accent)" radius={[4, 4, 0, 0]} animationDuration={CHART_ANIMATION_MS} />
+                <Bar
+                  dataKey="critical"
+                  stackId="load"
+                  name={t('officers.critical')}
+                  fill="var(--prio-critical)"
+                  animationDuration={CHART_ANIMATION_MS}
+                />
+                <Bar
+                  dataKey="other"
+                  stackId="load"
+                  name={t('officers.other_open')}
+                  fill="var(--accent)"
+                  radius={[4, 4, 0, 0]}
+                  animationDuration={CHART_ANIMATION_MS}
+                />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
           <div ref={tableArea}>
-          <DataTable
-            data={rows}
-            columns={columns}
-            getRowId={rowId}
-            label={t('nav.officers')}
-            maxHeight="min(70dvh, 640px)"
-            rowClassName={(r) => cn(r.overloaded && 'bg-warning/8')}
-            renderCard={(r) => (
-              <article className={cn('bg-surface space-y-1 rounded-[var(--radius-md)] border p-3', r.overloaded && 'border-warning/50')}>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium">{r.officer.name}</p>
-                  <DepartmentBadge department={r.officer.department_id} size="sm" iconOnly />
-                </div>
-                <p className="text-muted-foreground tabular text-xs">
-                  {t('bulk.open_cases', { count: r.open })} · {t('officers.overdue_count', { count: r.overdue })}
-                </p>
-                {r.overloaded && <p data-testid="overloaded" className="text-warning text-xs font-medium">{t('officers.overloaded')}</p>}
-              </article>
-            )}
-          />
+            <DataTable
+              data={rows}
+              columns={columns}
+              getRowId={rowId}
+              label={t('nav.officers')}
+              maxHeight="min(70dvh, 640px)"
+              rowClassName={(r) => cn(r.overloaded && 'bg-warning/8')}
+              renderCard={(r) => (
+                <article
+                  className={cn(
+                    'bg-surface space-y-1 rounded-[var(--radius-md)] border p-3',
+                    r.overloaded && 'border-warning/50',
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-sm font-medium">{r.officer.name}</p>
+                    <DepartmentBadge department={r.officer.department_id} size="sm" iconOnly />
+                  </div>
+                  <p className="text-muted-foreground tabular text-xs">
+                    {t('bulk.open_cases', { count: r.open })} ·{' '}
+                    {t('officers.overdue_count', { count: r.overdue })}
+                  </p>
+                  {r.overloaded && (
+                    <p data-testid="overloaded" className="text-warning text-xs font-medium">
+                      {t('officers.overloaded')}
+                    </p>
+                  )}
+                </article>
+              )}
+            />
           </div>
         </>
       )}

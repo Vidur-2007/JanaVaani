@@ -108,7 +108,9 @@ export default function Audit() {
         id: 'when',
         title: t('audit.when'),
         header: t('audit.when'),
-        cell: ({ row }) => <span className="text-xs whitespace-nowrap">{fmt.dateTime(row.original.created_at)}</span>,
+        cell: ({ row }) => (
+          <span className="text-xs whitespace-nowrap">{fmt.dateTime(row.original.created_at)}</span>
+        ),
       },
       {
         id: 'ticket',
@@ -155,7 +157,13 @@ export default function Audit() {
         <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.audit')}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <HowItWorks />
-          <ExportMenu sheets={sheets} filename="audit-events" title={t('nav.audit')} target={exportTarget} disabled={!items.length} />
+          <ExportMenu
+            sheets={sheets}
+            filename="audit-events"
+            title={t('nav.audit')}
+            target={exportTarget}
+            disabled={!items.length}
+          />
           <Button
             size="sm"
             className="min-h-11 md:min-h-9"
@@ -185,8 +193,17 @@ export default function Audit() {
       </p>
       <section aria-label={t('filters.label')} className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1">
-          <Label htmlFor="audit-ticket" className="text-xs">{t('audit.ticket')}</Label>
-          <Input id="audit-ticket" value={ticket} onChange={(e) => setTicket(e.target.value)} placeholder="GRV-2026-000101" className="min-h-11 md:min-h-9" data-testid="audit-ticket" />
+          <Label htmlFor="audit-ticket" className="text-xs">
+            {t('audit.ticket')}
+          </Label>
+          <Input
+            id="audit-ticket"
+            value={ticket}
+            onChange={(e) => setTicket(e.target.value)}
+            placeholder="GRV-2026-000101"
+            className="min-h-11 md:min-h-9"
+            data-testid="audit-ticket"
+          />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">{t('audit.type')}</Label>
@@ -205,12 +222,27 @@ export default function Audit() {
           </Select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor="audit-actor" className="text-xs">{t('audit.actor')}</Label>
-          <Input id="audit-actor" value={actor} onChange={(e) => setActor(e.target.value)} className="min-h-11 md:min-h-9" />
+          <Label htmlFor="audit-actor" className="text-xs">
+            {t('audit.actor')}
+          </Label>
+          <Input
+            id="audit-actor"
+            value={actor}
+            onChange={(e) => setActor(e.target.value)}
+            className="min-h-11 md:min-h-9"
+          />
         </div>
         <div className="space-y-1">
-          <Label htmlFor="audit-date" className="text-xs">{t('audit.date')}</Label>
-          <Input id="audit-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="min-h-11 md:min-h-9" />
+          <Label htmlFor="audit-date" className="text-xs">
+            {t('audit.date')}
+          </Label>
+          <Input
+            id="audit-date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="min-h-11 md:min-h-9"
+          />
         </div>
       </section>
       {selected && <CaseChain key={selected} id={selected} />}
@@ -236,7 +268,9 @@ export default function Audit() {
                 onClick={() => setSelected(e.grievance_id)}
                 className="bg-surface block w-full space-y-0.5 rounded-[var(--radius-md)] border p-3 text-start"
               >
-                <span className="block text-sm font-medium">{tc(`timeline.types.${e.type}`, { defaultValue: e.type })}</span>
+                <span className="block text-sm font-medium">
+                  {tc(`timeline.types.${e.type}`, { defaultValue: e.type })}
+                </span>
                 <span className="text-muted-foreground block font-mono text-xs">{e.grievance_id}</span>
                 <span className="text-muted-foreground block text-xs">{fmt.dateTime(e.created_at)}</span>
               </button>
@@ -244,11 +278,25 @@ export default function Audit() {
           />
           {lastPage > 1 && (
             <nav aria-label={t('table.pagination')} className="flex items-center justify-end gap-2">
-              <Button variant="outline" size="icon" className="min-h-11 min-w-11 md:min-h-9 md:min-w-9" disabled={page <= 1} aria-label={t('table.previous')} onClick={() => setPage(page - 1)}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"
+                disabled={page <= 1}
+                aria-label={t('table.previous')}
+                onClick={() => setPage(page - 1)}
+              >
                 <ChevronLeft className="rtl-flip size-4" aria-hidden />
               </Button>
               <span className="tabular text-sm">{t('table.page', { page, total: lastPage })}</span>
-              <Button variant="outline" size="icon" className="min-h-11 min-w-11 md:min-h-9 md:min-w-9" disabled={page >= lastPage} aria-label={t('table.next')} onClick={() => setPage(page + 1)}>
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-11 min-w-11 md:min-h-9 md:min-w-9"
+                disabled={page >= lastPage}
+                aria-label={t('table.next')}
+                onClick={() => setPage(page + 1)}
+              >
                 <ChevronRight className="rtl-flip size-4" aria-hidden />
               </Button>
             </nav>

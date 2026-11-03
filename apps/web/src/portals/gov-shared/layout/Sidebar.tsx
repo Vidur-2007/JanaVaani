@@ -10,8 +10,8 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { cn } from '@/lib/utils';
 import { navForRole, type NavItem } from './nav';
 
-/** Gov UI language set (Spec C §9; Urdu arrives with P5). */
-export const GOV_LANGS = ['en', 'te', 'hi'] as ['en', 'te', 'hi'];
+/** Gov UI language set (Spec C §9). Urdu switches the layout to right-to-left. */
+export const GOV_LANGS = ['en', 'te', 'hi', 'ur'] as ['en', 'te', 'hi', 'ur'];
 
 function NavEntry({
   item,

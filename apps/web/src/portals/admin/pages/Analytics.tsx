@@ -30,6 +30,7 @@ import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { ChartCard } from '@/portals/gov-shared/components/ChartCard';
 import { DaysSelector, useDays } from '@/portals/gov-shared/components/DaysSelector';
+import { ExportMenu } from '@/portals/gov-shared/components/ExportMenu';
 import { Panel } from '@/portals/gov-shared/components/Panel';
 import { SLACountdownGov } from '@/portals/gov-shared/components/SLACountdownGov';
 import {
@@ -116,6 +117,29 @@ export default function Analytics() {
             ))}
           </ToggleGroup>
           <DaysSelector />
+          <ExportMenu
+            sheets={[
+              {
+                name: t(`analytics.by.${by}`),
+                columns: [
+                  t(`analytics.by.${by}`),
+                  t('kpi.total'),
+                  t('kpi.open'),
+                  t('kpi.overdue'),
+                  t('departments.avg_resolution'),
+                ],
+                rows: rows.map((r) => [r.label, r.total, r.open, r.overdue, r.avg_resolution_hours]),
+              },
+              {
+                name: t('kpi.trend_title'),
+                columns: [t('kpi.date'), t('kpi.created'), t('kpi.resolved')],
+                rows: series.map((p) => [p.date, p.created, p.resolved]),
+              },
+            ]}
+            filename={`analytics-${by}-${days}d`}
+            title={t('nav.analytics')}
+            disabled={rows.length === 0}
+          />
         </div>
       </header>
 
@@ -273,7 +297,7 @@ export default function Analytics() {
                 <li key={g.id} className="flex items-center gap-2 py-1.5 text-sm">
                   <PriorityChip priority={g.priority} size="sm" />
                   <Link to={`/officer/case/${g.id}`} className="hover:text-primary min-w-0 flex-1 truncate">
-                    {g.title.en}
+                    <bdi lang="en">{g.title.en}</bdi>
                   </Link>
                   <SLACountdownGov grievance={g} className="shrink-0" />
                 </li>

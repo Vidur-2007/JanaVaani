@@ -19,7 +19,9 @@ function Section({ title, items }: { title: string; items: string[] }) {
       <h3 className="text-muted-foreground mb-0.5 text-xs font-medium">{title}</h3>
       <ul className="list-disc space-y-0.5 ps-4 text-sm">
         {items.map((s) => (
-          <li key={s}>{s}</li>
+          <li key={s}>
+            <bdi lang="en">{s}</bdi>
+          </li>
         ))}
       </ul>
     </div>
@@ -65,7 +67,9 @@ export function AIBriefCard({ id }: { id: string }) {
         <ErrorState compact error={q.error} onRetry={() => q.refetch()} />
       ) : (
         <div className="space-y-3" data-testid="ai-brief">
-          <p className="text-sm">{q.data.situation}</p>
+          <p className="text-sm">
+            <bdi lang="en">{q.data.situation}</bdi>
+          </p>
           <Section title={t('brief.evidence')} items={q.data.evidence} />
           <Section title={t('brief.risks')} items={q.data.risks} />
           {q.data.suggested_next_steps.length > 0 && (
@@ -79,7 +83,9 @@ export function AIBriefCard({ id }: { id: string }) {
                         checked={!!done[s]}
                         onCheckedChange={(v) => setDone((d) => ({ ...d, [s]: !!v }))}
                       />
-                      <span className={done[s] ? 'text-muted-foreground line-through' : undefined}>{s}</span>
+                      <span className={done[s] ? 'text-muted-foreground line-through' : undefined}>
+                        <bdi lang="en">{s}</bdi>
+                      </span>
                     </label>
                   </li>
                 ))}
@@ -89,7 +95,7 @@ export function AIBriefCard({ id }: { id: string }) {
           {q.data.missing_info.map((m) => (
             <p key={m} className="text-warning flex items-start gap-1.5 text-sm">
               <MessageCircleQuestion className="mt-0.5 size-4 shrink-0" aria-hidden />
-              {m}
+              <bdi lang="en">{m}</bdi>
             </p>
           ))}
           {q.data.similar_resolved.length > 0 && (
@@ -99,9 +105,11 @@ export function AIBriefCard({ id }: { id: string }) {
                 {q.data.similar_resolved.map((s) => (
                   <li key={s.grievance_id} className="text-sm">
                     <Link to={`/officer/case/${s.grievance_id}`} className="hover:text-primary font-medium">
-                      {s.title_en}
+                      <bdi lang="en">{s.title_en}</bdi>
                     </Link>
-                    <span className="text-muted-foreground block text-xs">{s.resolution_note}</span>
+                    <span className="text-muted-foreground block text-xs">
+                      <bdi lang="en">{s.resolution_note}</bdi>
+                    </span>
                   </li>
                 ))}
               </ul>

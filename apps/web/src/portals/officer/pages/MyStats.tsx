@@ -50,12 +50,19 @@ export default function MyStats() {
             <Flame className="text-primary size-8 shrink-0" aria-hidden />
             <p>
               <span className="font-display tabular text-2xl font-semibold">{fmt.number(stats.streak)}</span>
-              <span className="text-muted-foreground ms-2 text-sm">{t('stats.streak', { count: stats.streak })}</span>
+              <span className="text-muted-foreground ms-2 text-sm">
+                {t('stats.streak', { count: stats.streak })}
+              </span>
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <KPIStatGov label={t('stats.resolved_week')} value={stats.resolved_7d} />
-            <KPIStatGov label={t('stats.avg_resolution')} value={stats.avg_resolution_hours} decimals={1} suffix=" h" />
+            <KPIStatGov
+              label={t('stats.avg_resolution')}
+              value={stats.avg_resolution_hours}
+              decimals={1}
+              suffix=" h"
+            />
             <KPIStatGov label={t('stats.sla')} value={stats.sla_pct} decimals={1} suffix="%" />
             {stats.avg_rating != null ? (
               <KPIStatGov label={t('stats.rating')} value={stats.avg_rating} decimals={1} suffix=" / 5" />
@@ -79,13 +86,33 @@ export default function MyStats() {
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={stats?.trend} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
             <CartesianGrid stroke="var(--border)" vertical={false} />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickLine={false} minTickGap={32} />
-            <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} tickLine={false} axisLine={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+              tickLine={false}
+              minTickGap={32}
+            />
+            <YAxis
+              allowDecimals={false}
+              tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
+              tickLine={false}
+              axisLine={false}
+            />
             <Tooltip
               cursor={{ fill: 'var(--surface-2)' }}
-              contentStyle={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8 }}
+              contentStyle={{
+                background: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+              }}
             />
-            <Bar dataKey="resolved" name={t('kpi.resolved')} fill="var(--accent)" radius={[4, 4, 0, 0]} animationDuration={600} />
+            <Bar
+              dataKey="resolved"
+              name={t('kpi.resolved')}
+              fill="var(--accent)"
+              radius={[4, 4, 0, 0]}
+              animationDuration={600}
+            />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>

@@ -99,7 +99,9 @@ export function CommandPalette({
                     onSelect={() => go(`/officer/case/${g.id}`)}
                   >
                     <FileSearch aria-hidden />
-                    <span className="truncate">{g.title.en}</span>
+                    <span className="truncate">
+                      <bdi lang="en">{g.title.en}</bdi>
+                    </span>
                     <span className="text-muted-foreground ms-auto shrink-0 font-mono text-xs">{g.id}</span>
                   </CommandItem>
                 ))}

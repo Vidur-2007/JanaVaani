@@ -1,6 +1,6 @@
 // Officer cockpit (Spec C §5.2): citizen's words, case work, actions. Three columns on desktop, stacked on mobile.
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { CircleMarker } from 'react-leaflet';
@@ -31,8 +31,7 @@ import { ResolveForm, VerificationResult } from '../components/case/ResolveForm'
 import { CaseFlags, EscalationDots } from '../components/InboxRow';
 
 const isTyping = (el: EventTarget | null) =>
-  el instanceof HTMLElement &&
-  (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
+  el instanceof HTMLElement && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName));
 
 /** Addresses often already contain the landmark, ward or zone, so each part only adds what is new. */
 function locationLine(l: Location) {
@@ -150,7 +149,17 @@ export default function CaseDetail() {
             {g.asset_id && (
               <p className="text-muted-foreground flex items-center gap-1.5 font-mono text-xs">
                 <QrCode className="size-3.5" aria-hidden />
-                {g.asset_id}
+                {profile?.role === 'admin' ? (
+                  <Link
+                    to={`/admin/assets/${g.asset_id}`}
+                    className="hover:text-primary underline"
+                    data-testid="asset-link"
+                  >
+                    {g.asset_id}
+                  </Link>
+                ) : (
+                  g.asset_id
+                )}
               </p>
             )}
           </Panel>

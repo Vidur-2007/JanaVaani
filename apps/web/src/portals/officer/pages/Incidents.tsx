@@ -144,7 +144,9 @@ function IncidentCard({ incident, onResolve }: { incident: Incident; onResolve: 
           <DepartmentBadge department={incident.category} size="sm" />
           <GovStatusChip status={incident.status} className="ms-auto" />
         </div>
-        <h2 className="font-display text-sm leading-snug font-semibold">{incident.title_en}</h2>
+        <h2 className="font-display text-sm leading-snug font-semibold">
+          <bdi lang="en">{incident.title_en}</bdi>
+        </h2>
         <p className="text-muted-foreground flex flex-wrap items-center gap-x-3 text-xs">
           <span className="tabular">{t('incidents.members', { count: incident.grievance_ids.length })}</span>
           <span className="tabular inline-flex items-center gap-1">

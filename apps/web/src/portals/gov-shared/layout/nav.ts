@@ -12,6 +12,7 @@ import {
   Inbox,
   LayoutDashboard,
   Map,
+  QrCode,
   ShieldCheck,
   Trophy,
   Users,
@@ -58,9 +59,8 @@ const GROUPS: NavGroup[] = [
       { to: '/admin/audit', labelKey: 'nav.audit', icon: ShieldCheck, roles: ADMIN },
       { to: '/admin/ai', labelKey: 'nav.ai', icon: BrainCircuit, roles: ADMIN },
       { to: '/admin/reports', labelKey: 'nav.reports', icon: FileChartColumn, roles: ADMIN },
-      ...(DEMO_MODE
-        ? [{ to: '/admin/demo', labelKey: 'nav.demo', icon: FlaskConical, roles: ADMIN }]
-        : []),
+      { to: '/admin/assets', labelKey: 'nav.assets', icon: QrCode, roles: ADMIN },
+      ...(DEMO_MODE ? [{ to: '/admin/demo', labelKey: 'nav.demo', icon: FlaskConical, roles: ADMIN }] : []),
     ],
   },
   {

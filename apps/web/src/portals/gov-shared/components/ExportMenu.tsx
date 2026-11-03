@@ -63,10 +63,16 @@ export function ExportMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem className="min-h-11 md:min-h-8" onSelect={() => run(() => exportCsv(sheets, filename))}>
+        <DropdownMenuItem
+          className="min-h-11 md:min-h-8"
+          onSelect={() => run(() => exportCsv(sheets, filename))}
+        >
           {t('export.csv')}
         </DropdownMenuItem>
-        <DropdownMenuItem className="min-h-11 md:min-h-8" onSelect={() => run(() => exportExcel(sheets, filename))}>
+        <DropdownMenuItem
+          className="min-h-11 md:min-h-8"
+          onSelect={() => run(() => exportExcel(sheets, filename))}
+        >
           {t('export.excel')}
         </DropdownMenuItem>
         <DropdownMenuItem className="min-h-11 md:min-h-8" onSelect={() => run(pdf)}>

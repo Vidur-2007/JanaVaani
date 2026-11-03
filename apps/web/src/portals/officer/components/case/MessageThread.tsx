@@ -17,7 +17,12 @@ function Bubble({ m }: { m: Message }) {
   const lang = original ? m.text.lang : 'en';
   return (
     <li className={cn('flex', mine ? 'justify-end' : 'justify-start')} data-testid="message">
-      <div className={cn('max-w-[85%] rounded-[var(--radius-md)] px-3 py-2', mine ? 'bg-primary/12' : 'bg-surface-2')}>
+      <div
+        className={cn(
+          'max-w-[85%] rounded-[var(--radius-md)] px-3 py-2',
+          mine ? 'bg-primary/12' : 'bg-surface-2',
+        )}
+      >
         <p className="text-sm break-words" lang={lang} dir={isRtl(lang) ? 'rtl' : 'ltr'}>
           {original ? m.text.original : m.text.en}
         </p>

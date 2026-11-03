@@ -133,7 +133,10 @@ export function AuditChain({
             <span
               key={e.id}
               title={e.hash}
-              className={cn('grid size-6 place-items-center rounded border transition-colors duration-150', tone(i))}
+              className={cn(
+                'grid size-6 place-items-center rounded border transition-colors duration-150',
+                tone(i),
+              )}
             >
               <Link2 className="size-3" />
             </span>

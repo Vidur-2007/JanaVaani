@@ -23,7 +23,11 @@ function SheetTable({ sheet }: { sheet: ExportSheet }) {
           <thead>
             <tr>
               {sheet.columns.map((c) => (
-                <th key={c} scope="col" className="text-muted-foreground border-b px-2 py-1 text-start text-xs font-medium">
+                <th
+                  key={c}
+                  scope="col"
+                  className="text-muted-foreground border-b px-2 py-1 text-start text-xs font-medium"
+                >
                   {c}
                 </th>
               ))}
@@ -50,11 +54,25 @@ export default function Reports() {
   const { t } = useTranslation('gov');
   const { t: tc } = useTranslation('common');
   const days = useDays();
-  const [picked, setPicked] = useState<Record<Section, boolean>>({ kpis: true, departments: true, issues: true, alerts: true });
+  const [picked, setPicked] = useState<Record<Section, boolean>>({
+    kpis: true,
+    departments: true,
+    issues: true,
+    alerts: true,
+  });
   const preview = useRef<HTMLDivElement>(null);
-  const kpis = useQuery({ queryKey: qk.admin.kpis(days), queryFn: ({ signal }) => api.adminKpis({ days }, signal) });
-  const perf = useQuery({ queryKey: qk.admin.performance(days), queryFn: ({ signal }) => api.departmentPerformance({ days }, signal) });
-  const issues = useQuery({ queryKey: qk.admin.breakdown({ by: 'category', days }), queryFn: ({ signal }) => api.breakdown({ by: 'category', days }, signal) });
+  const kpis = useQuery({
+    queryKey: qk.admin.kpis(days),
+    queryFn: ({ signal }) => api.adminKpis({ days }, signal),
+  });
+  const perf = useQuery({
+    queryKey: qk.admin.performance(days),
+    queryFn: ({ signal }) => api.departmentPerformance({ days }, signal),
+  });
+  const issues = useQuery({
+    queryKey: qk.admin.breakdown({ by: 'category', days }),
+    queryFn: ({ signal }) => api.breakdown({ by: 'category', days }, signal),
+  });
   const alerts = useQuery({ queryKey: qk.admin.alerts, queryFn: ({ signal }) => api.alerts(signal) });
   const failed = [kpis, perf, issues, alerts].find((q) => q.isError);
   const loading = [kpis, perf, issues, alerts].some((q) => q.isPending);
@@ -78,15 +96,32 @@ export default function Reports() {
       },
       departments: {
         name: t('reports.section.departments'),
-        columns: ['#', t('inbox.column.department'), t('departments.score'), t('departments.sla'), t('kpi.open'), t('kpi.overdue')],
+        columns: [
+          '#',
+          t('inbox.column.department'),
+          t('departments.score'),
+          t('departments.sla'),
+          t('kpi.open'),
+          t('kpi.overdue'),
+        ],
         rows: [...perf.data]
           .sort((a, b) => a.rank - b.rank)
-          .map((d) => [d.rank, tc(`departments.${d.department_id}`), d.score, d.sla_compliance_pct, d.open, d.overdue]),
+          .map((d) => [
+            d.rank,
+            tc(`departments.${d.department_id}`),
+            d.score,
+            d.sla_compliance_pct,
+            d.open,
+            d.overdue,
+          ]),
       },
       issues: {
         name: t('reports.section.issues'),
         columns: [t('reports.issue'), t('kpi.total'), t('kpi.open'), t('kpi.overdue')],
-        rows: [...issues.data].sort((a, b) => b.total - a.total).slice(0, 10).map((r) => [r.label, r.total, r.open, r.overdue]),
+        rows: [...issues.data]
+          .sort((a, b) => b.total - a.total)
+          .slice(0, 10)
+          .map((r) => [r.label, r.total, r.open, r.overdue]),
       },
       alerts: {
         name: t('reports.section.alerts'),
@@ -104,7 +139,13 @@ export default function Reports() {
         <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.reports')}</h1>
         <div className="flex items-center gap-2">
           <DaysSelector />
-          <ExportMenu sheets={sheets} filename={`janavaani-report-${days}d`} title={title} target={preview} disabled={sheets.length === 0} />
+          <ExportMenu
+            sheets={sheets}
+            filename={`janavaani-report-${days}d`}
+            title={title}
+            target={preview}
+            disabled={sheets.length === 0}
+          />
         </div>
       </header>
       <Panel title={t('reports.sections')}>

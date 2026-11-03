@@ -52,9 +52,14 @@ export default function AIModel() {
     const m = q.data;
     if (!m) return [];
     return Object.entries(m.per_language).map(([code, v]) => ({
-      name: code === 'code_mixed' ? t('ai.code_mixed') : (LANGUAGE_NAMES[code as keyof typeof LANGUAGE_NAMES]?.en ?? code),
+      name:
+        code === 'code_mixed'
+          ? t('ai.code_mixed')
+          : (LANGUAGE_NAMES[code as keyof typeof LANGUAGE_NAMES]?.en ?? code),
       synthetic: pct(v!.accuracy),
-      human: m.human_test?.per_language[code as keyof typeof m.per_language] ? pct(m.human_test.per_language[code as keyof typeof m.per_language]!.accuracy) : null,
+      human: m.human_test?.per_language[code as keyof typeof m.per_language]
+        ? pct(m.human_test.per_language[code as keyof typeof m.per_language]!.accuracy)
+        : null,
     }));
   }, [q.data, t]);
 
@@ -76,19 +81,29 @@ export default function AIModel() {
         <div>
           <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.ai')}</h1>
           <p className="text-muted-foreground text-sm">
-            <span className="text-text font-mono" data-testid="model-version">{m.model_version}</span>
+            <span className="text-text font-mono" data-testid="model-version">
+              {m.model_version}
+            </span>
             {' · '}
             {m.embedding_model}
             {' · '}
             {t('ai.trained', { date: fmt.dateTime(m.trained_at) })}
           </p>
         </div>
-        <Button className="min-h-11 md:min-h-9" size="sm" disabled={retrain.isPending} onClick={() => retrain.mutate()} data-testid="retrain">
+        <Button
+          className="min-h-11 md:min-h-9"
+          size="sm"
+          disabled={retrain.isPending}
+          onClick={() => retrain.mutate()}
+          data-testid="retrain"
+        >
           <RefreshCw className="size-4" aria-hidden />
           {retrain.isPending ? t('ai.retraining') : t('ai.retrain')}
         </Button>
       </header>
-      {retrain.isPending && <Progress value={null} aria-label={t('ai.retraining')} className="h-1.5 animate-pulse" />}
+      {retrain.isPending && (
+        <Progress value={null} aria-label={t('ai.retraining')} className="h-1.5 animate-pulse" />
+      )}
       {gain != null && !retrain.isPending && (
         <p
           className={cn('text-sm font-medium', gain > 0 ? 'text-success' : 'text-muted-foreground')}
@@ -101,9 +116,22 @@ export default function AIModel() {
         </p>
       )}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KPIStat label={t('ai.synthetic_accuracy')} value={pct(m.accuracy)} decimals={1} suffix="%" hint={t('ai.n_samples', { count: m.n_test })} />
+        <KPIStat
+          label={t('ai.synthetic_accuracy')}
+          value={pct(m.accuracy)}
+          decimals={1}
+          suffix="%"
+          hint={t('ai.n_samples', { count: m.n_test })}
+        />
         <KPIStat label={t('ai.synthetic_f1')} value={pct(m.macro_f1)} decimals={1} suffix="%" />
-        <KPIStat label={t('ai.human_accuracy')} value={m.human_test ? pct(m.human_test.accuracy) : 0} format={m.human_test ? undefined : () => '–'} decimals={1} suffix={m.human_test ? '%' : ''} hint={m.human_test ? t('ai.n_samples', { count: m.human_test.n }) : undefined} />
+        <KPIStat
+          label={t('ai.human_accuracy')}
+          value={m.human_test ? pct(m.human_test.accuracy) : 0}
+          format={m.human_test ? undefined : () => '–'}
+          decimals={1}
+          suffix={m.human_test ? '%' : ''}
+          hint={m.human_test ? t('ai.n_samples', { count: m.human_test.n }) : undefined}
+        />
         <KPIStat label={t('ai.human_f1')} value={0} format={() => '–'} hint={t('ai.human_f1_missing')} />
       </div>
       <Panel title={t('ai.how_title')}>
@@ -130,8 +158,18 @@ export default function AIModel() {
               <YAxis domain={[0, 100]} tick={axisTick} tickLine={false} axisLine={false} />
               <Tooltip cursor={{ fill: 'var(--surface-2)' }} contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="synthetic" name={t('ai.synthetic')} fill="var(--accent)" animationDuration={CHART_ANIMATION_MS} />
-              <Bar dataKey="human" name={t('ai.human')} fill="var(--primary)" animationDuration={CHART_ANIMATION_MS} />
+              <Bar
+                dataKey="synthetic"
+                name={t('ai.synthetic')}
+                fill="var(--accent)"
+                animationDuration={CHART_ANIMATION_MS}
+              />
+              <Bar
+                dataKey="human"
+                name={t('ai.human')}
+                fill="var(--primary)"
+                animationDuration={CHART_ANIMATION_MS}
+              />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -152,8 +190,20 @@ export default function AIModel() {
               <YAxis domain={['auto', 'auto']} tick={axisTick} tickLine={false} axisLine={false} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Line dataKey="accuracy_pct" name={t('ai.accuracy')} stroke="var(--accent)" strokeWidth={2} animationDuration={CHART_ANIMATION_MS} />
-              <Line dataKey="f1_pct" name={t('ai.macro_f1')} stroke="var(--primary)" strokeWidth={2} animationDuration={CHART_ANIMATION_MS} />
+              <Line
+                dataKey="accuracy_pct"
+                name={t('ai.accuracy')}
+                stroke="var(--accent)"
+                strokeWidth={2}
+                animationDuration={CHART_ANIMATION_MS}
+              />
+              <Line
+                dataKey="f1_pct"
+                name={t('ai.macro_f1')}
+                stroke="var(--primary)"
+                strokeWidth={2}
+                animationDuration={CHART_ANIMATION_MS}
+              />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -176,7 +226,11 @@ export default function AIModel() {
       <Panel title={t('ai.versions')}>
         <ul className="divide-y text-sm" data-testid="version-list">
           {[...m.history].reverse().map((h) => (
-            <li key={h.model_version} data-testid="version-row" className="flex flex-wrap justify-between gap-2 py-1.5">
+            <li
+              key={h.model_version}
+              data-testid="version-row"
+              className="flex flex-wrap justify-between gap-2 py-1.5"
+            >
               <span className="font-mono">{h.model_version}</span>
               <span className="text-muted-foreground tabular text-xs">
                 {fmt.percent(pct(h.accuracy))} · {t('ai.corrections_used', { count: h.corrections_used })}
