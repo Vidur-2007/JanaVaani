@@ -16,10 +16,15 @@ const Audit = lazy(() => import('./pages/Audit'));
 const AIModel = lazy(() => import('./pages/AIModel'));
 const Reports = lazy(() => import('./pages/Reports'));
 const DemoControls = lazy(() => import('./pages/DemoControls'));
+const AssetPage = lazy(() => import('./pages/AssetPage'));
+const AssetQrSheet = lazy(() => import('./pages/AssetQrSheet'));
 
 export default function AdminRoutes() {
   return (
     <Routes>
+      <Route element={<RequireRole roles={['admin']} />}>
+        <Route path="assets/sheet" element={<AssetQrSheet />} />
+      </Route>
       <Route element={<RequireRole roles={['admin', 'supervisor']} />}>
         <Route element={<GovLayout />}>
           <Route index element={<CommandCenter />} />
@@ -32,6 +37,7 @@ export default function AdminRoutes() {
             <Route path="audit" element={<Audit />} />
             <Route path="ai" element={<AIModel />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="assets/:id" element={<AssetPage />} />
             {DEMO_MODE && <Route path="demo" element={<DemoControls />} />}
           </Route>
           <Route path="*" element={<NotFound />} />

@@ -538,7 +538,8 @@
       "critical": "Critical",
       "warning": "Warning",
       "info": "Info"
-    }
+    },
+    "chart_caption": "Daily complaints in this category"
   },
   "ai": {
     "retrain": "Retrain from corrections",
@@ -651,5 +652,33 @@
     "method_no_people": "Before and after pictures are proof photos of the place, never of people.",
     "method_ai": "AI helps sort complaints, but people make the safety-critical decisions.",
     "report": "Report an issue"
+  },
+  "asset": {
+    "type": {
+      "streetlight": "Streetlight",
+      "drain": "Drain",
+      "water_pipe": "Water pipe",
+      "bin": "Bin",
+      "road_segment": "Road segment",
+      "signal": "Traffic signal"
+    },
+    "open_cases_one": "{{count}} open complaint",
+    "open_cases_other": "{{count}} open complaints",
+    "no_open": "No open complaints",
+    "history": "Complaint history",
+    "no_history": "No complaints recorded for this asset",
+    "qr": "Citizen QR code",
+    "qr_alt": "QR code that opens a report form for {{id}}",
+    "sheet_for_ward": "Print QR sheet for this ward",
+    "back": "Back",
+    "print": "Print",
+    "sheet_title": "{{type}} QR codes, {{ward}}",
+    "sheet_note": "There is no full asset list yet, so this sheet starts from assets named in this ward's complaints. Add more by ID.",
+    "add_id": "Asset ID",
+    "add": "Add",
+    "not_found": "Not found: {{ids}}",
+    "loading": "Loading assets…",
+    "sheet_empty": "No assets of this type yet. Add one by ID.",
+    "scan_hint": "Scan to report a problem here"
   }
 }
