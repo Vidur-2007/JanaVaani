@@ -34,8 +34,7 @@ def mode() -> str:
 
 
 def _headers() -> dict:
-    key = get_settings().supabase_service_role_key
-    return {"apikey": key, "Authorization": f"Bearer {key}"}
+    return get_settings().service_key_headers()
 
 
 def _object_url(path: str) -> str:

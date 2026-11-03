@@ -68,20 +68,54 @@ def supabase_user(email, role, name=None):
     """Create (or update) the auth user via the Supabase admin API when configured; else a deterministic local uuid.
     Sets app_metadata.role (server-controlled, read by the frontend before /me) and user_metadata.name/role."""
     s = get_settings()
-    key = s.supabase_service_role_key
-    if not (s.supabase_url and key):
+    if not (s.supabase_url and s.supabase_service_role_key):
         return str(uuid.uuid5(uuid.NAMESPACE_DNS, email))
     import httpx
-    h = {"apikey": key, "Authorization": f"Bearer {key}"}
+    h = s.service_key_headers()
     meta = {"app_metadata": {"role": role}, "user_metadata": {"name": name or email.split("@")[0], "role": role}}
     r = httpx.post(f"{s.supabase_url}/auth/v1/admin/users", headers=h, timeout=20,
                    json={"email": email, "password": PASSWORD, "email_confirm": True, **meta})
     if r.status_code in (200, 201):
         return r.json()["id"]
-    lst = httpx.get(f"{s.supabase_url}/auth/v1/admin/users", headers=h, params={"per_page": 1000}, timeout=20).json()
-    uid = next(u["id"] for u in lst.get("users", []) if u.get("email") == email)
-    httpx.put(f"{s.supabase_url}/auth/v1/admin/users/{uid}", headers=h, timeout=20, json=meta)   # re-seed keeps metadata current
+    if not _already_exists(r):
+        raise SupabaseSeedError(_describe(r, f"creating demo user {email}"))
+    lst = httpx.get(f"{s.supabase_url}/auth/v1/admin/users", headers=h, params={"per_page": 1000}, timeout=20)
+    if lst.status_code != 200:
+        raise SupabaseSeedError(_describe(lst, "listing auth users"))
+    uid = next((u["id"] for u in lst.json().get("users", []) if u.get("email") == email), None)
+    if uid is None:
+        raise SupabaseSeedError(f"Supabase says {email} already exists but it is not in the first 1000 auth users.")
+    up = httpx.put(f"{s.supabase_url}/auth/v1/admin/users/{uid}", headers=h, timeout=20, json=meta)   # re-seed keeps metadata current
+    if up.status_code != 200:
+        raise SupabaseSeedError(_describe(up, f"updating demo user {email}"))
     return uid
+
+
+class SupabaseSeedError(RuntimeError):
+    pass
+
+
+def _already_exists(r) -> bool:
+    """Supabase Auth answers 422 (code email_exists / user_already_exists) for an email it already has."""
+    if r.status_code == 422:
+        return True
+    try:
+        return r.json().get("error_code") in ("email_exists", "user_already_exists")
+    except ValueError:
+        return False
+
+
+def _describe(r, action: str) -> str:
+    """Status and Supabase's own message only; never request headers or keys."""
+    try:
+        body = r.json()
+        msg = body.get("msg") or body.get("message") or body.get("error_description") or body.get("error") or ""
+    except ValueError:
+        msg = ""
+    hint = {401: " Check that SUPABASE_SERVICE_ROLE_KEY is this project's secret (sb_secret_...) or service_role key.",
+            403: " The key is valid but lacks admin rights: use the secret / service_role key, not the publishable / anon key.",
+            404: " Check SUPABASE_URL (https://<project-ref>.supabase.co)."}.get(r.status_code, "")
+    return f"Supabase Auth admin API failed while {action}: HTTP {r.status_code} {str(msg)[:200]}".rstrip() + "." + hint
 
 
 def wipe(db):

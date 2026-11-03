@@ -46,6 +46,19 @@ class Settings(BaseSettings):
     def _empty_database_url_means_sqlite(cls, v: str) -> str:
         return v or SQLITE_URL
 
+    @field_validator("supabase_url")
+    @classmethod
+    def _no_trailing_slash(cls, v: str) -> str:
+        return v.strip().rstrip("/")     # paths are appended as f"{supabase_url}/auth/v1/..."
+
+    def service_key_headers(self) -> dict:
+        """Headers for Supabase Auth admin and Storage calls made with the backend key.
+        New secret keys (sb_secret_...) are not JWTs and go on `apikey` only; legacy service_role JWTs also need the Bearer header."""
+        key = self.supabase_service_role_key
+        if key.startswith("sb_"):
+            return {"apikey": key}
+        return {"apikey": key, "Authorization": f"Bearer {key}"}
+
     @property
     def origins(self) -> list[str]:
         return [o.strip() for o in self.allowed_origins.split(",") if o.strip()]
