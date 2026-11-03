@@ -7,24 +7,28 @@ import type { Location } from '@contracts/types';
 import { DEMO_MODE } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 
-/** Exact demo inputs. The live-wire phrase is the one B's emergency rules match (కరెంట్ తీగ / తీగ తెగి). */
+/**
+ * Exact demo inputs: word for word the phrases B pre-records in scripts/record_demo.py, so the deployed API
+ * replays their AI answers instantly (its cache is keyed on the text). Keep the two lists in sync.
+ */
 export const DEMO_PHRASES = {
   live_wire: {
     lang: 'te',
-    text: 'మా స్కూల్ దగ్గర కరెంట్ తీగ తెగి రోడ్డుపై పడింది, పిల్లలు అటుగా వెళ్తున్నారు',
+    text: 'మా బడి దగ్గర కరెంటు తీగ తెగి రోడ్డు మీద పడింది, పిల్లలు అటు వెళ్తున్నారు, Kukatpally',
   },
   pothole: { lang: 'en', text: 'Miyapur X roads lo pedda gunta undi' },
-  water: { lang: 'ur', text: 'فلک نما میں تین دن سے نل کا پانی گندا اور بدبودار آ رہا ہے' },
+  water: { lang: 'ur', text: 'ہمارے محلے میں نلوں میں گدلا پانی آ رہا ہے، Charminar' },
 } as const;
 export type DemoPhraseKey = keyof typeof DEMO_PHRASES;
 
 /**
- * Miyapur X Roads as the demo data places it: within ~70 m of the seeded 32-report pothole incident in both the
- * mocks (17.4968, 78.3614) and B's seed (ward centroid + 0.0012/0.0008), so the duplicate check finds it.
+ * Miyapur X Roads as the demo data places it: B's record_demo.py point, on the seeded 32-report pothole incident
+ * (B: ward centroid + 0.0012/0.0008) and ~150 m from the mock incident (17.4968, 78.3614), so the duplicate
+ * check finds it in both.
  */
 export const DEMO_MIYAPUR: Location = {
-  lat: 17.4974,
-  lng: 78.3617,
+  lat: 17.498,
+  lng: 78.3622,
   address: 'Miyapur X Roads',
   landmark: 'Miyapur X Roads',
   source: 'pin',

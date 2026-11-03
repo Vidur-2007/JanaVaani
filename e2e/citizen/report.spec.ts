@@ -175,7 +175,7 @@ test.describe('demo helpers (VITE_DEMO_MODE)', () => {
     await signIn(page, LAKSHMI);
     await page.goto('/app/report?mode=text');
     await page.getByTestId('demo-live_wire').click();
-    await expect(page.getByTestId('composer-input')).toHaveValue(/కరెంట్ తీగ/);
+    await expect(page.getByTestId('composer-input')).toHaveValue(/కరెంటు తీగ/);
     await expect(page.locator('[data-role="user"]')).toHaveCount(0);
     await page.getByTestId('composer-input').press('Enter');
     await expect(page.getByTestId('call-112')).toBeVisible();
