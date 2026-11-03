@@ -651,5 +651,10 @@
       "period": "Period",
       "due_date": "Due date"
     }
+  },
+  "share": {
+    "whatsapp": "Share on WhatsApp",
+    "new_tab": "(opens WhatsApp)",
+    "message": "I reported a civic problem on JanaVaani: {{title}} (ticket {{id}}). Facing the same issue? Add your support here: {{link}}"
   }
 }

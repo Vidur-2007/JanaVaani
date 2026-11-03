@@ -12,6 +12,7 @@ import { api, qk } from '@/lib/api/endpoints';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { pickLocalized } from '@/lib/localized';
 import { useReducedMotion } from '@/lib/prefs/store';
+import { ShareWhatsApp } from '../components/ShareWhatsApp';
 
 export interface SubmittedItem {
   grievance_id: string;
@@ -124,6 +125,7 @@ function SubmittedCard({ item }: { item: SubmittedItem }) {
             {t('submitted.track')}
           </Link>
         </Button>
+        {g && <ShareWhatsApp id={item.grievance_id} title={title?.text} isPrivate={g.is_private} className="h-12 sm:col-span-2" />}
       </div>
     </div>
   );

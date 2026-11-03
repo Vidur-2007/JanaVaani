@@ -152,3 +152,14 @@ test('chat tracking: "What happened to my water complaint?"', async ({ page }) =
   await card.click();
   await expect(detail(page)).toBeVisible();
 });
+
+test('share on WhatsApp: wa.me link with ticket + supporter link, never the guest PIN', async ({ page }) => {
+  await page.goto(`/track?id=${STREETLIGHT}&pin=936329`);
+  const share = page.getByTestId('share-whatsapp');
+  await expect(share).toBeVisible();
+  const href = decodeURIComponent((await share.getAttribute('href')) ?? '');
+  expect(href).toMatch(/^https:\/\/wa\.me\/\?text=/);
+  expect(href).toContain(STREETLIGHT);
+  expect(href).toContain(`/app/complaints/${STREETLIGHT}`);
+  expect(href).not.toContain('936329');
+});

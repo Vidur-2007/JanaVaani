@@ -23,6 +23,7 @@ import { useTranslated } from '../components/useTranslated';
 import { EvidencePanel, MessagesThread, OfficeCard, Panel, SlaPanel } from './Panels';
 import { completedSteps, StepProgress, STEP_KEYS } from './StepProgress';
 import { ActionsPanel } from './Actions';
+import { ShareWhatsApp } from '../components/ShareWhatsApp';
 
 function ClosureLabel({ g }: { g: GrievanceDetail }) {
   const { t } = useTranslation('citizen');
@@ -207,6 +208,7 @@ export function Tracker({ g, pin, isOwner }: { g: GrievanceDetail; pin?: string;
                     {t('tracker.full_report')}
                   </Link>
                 </Button>
+                <ShareWhatsApp id={g.id} title={title.text} isPrivate={g.is_private} className="justify-start" />
               </div>
             </Panel>
           </motion.div>
