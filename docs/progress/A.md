@@ -1,7 +1,18 @@
 # Progress — Laptop A (foundation, landing, citizen portal)
 
 ## Current phase
-**P7 — wow polish + stretch: DONE.** Next: at H42, open PR `feat/citizen` → `main` titled "Final: citizen portal" (not opened yet: the H30 merge is still pending and no H42 call has been made).
+**P8 — final merge done on `main` (B → A → C), README + demo-video checklist written, tagged `v1.0-submission`. Not done here: Vercel and HF Space deploys (no accounts/tokens in the build sandbox); see README → Deployment. From H44: bug fixes only, straight to `main`.**
+
+### P8 summary (integrator)
+- **Merges:** `feat/ai-engine` (#1) → `feat/citizen` (#2) → `feat/gov-portals` (C had no PR). The only conflict was `.gitignore` (both sides kept). C touched no shared files.
+- **Checks on merged `main`:**
+  - `npm run build`, `lint`, `test:mocks`, `test:voice` and `test:i18n` pass.
+  - Backend `pytest`: **113 passed**.
+  - Playwright on chromium + mobile-chrome: **347 passed, 5 failed** on the first run. All 5 were test-only and are fixed:
+    - 4 were A's P0 smoke tests that still expected C's placeholder pages.
+    - 1 was C's export test, which reopened the menu mid-close-animation (it fails on C's own branch too).
+- **Blocker fixed:** the demo-kit phrases and the Miyapur point now match B's `scripts/record_demo.py` word for word, so the deployed API replays cached AI answers instantly.
+- **"Against the deployed API":** not possible here, because no deployment exists yet. Rehearsed against B's API running locally (offline mode). Re-run `docs/demo-video-checklist.md` §3–§6 on the real URLs.
 
 ### P7 item 4: native-speaker review skipped (team decision)
 - `docs/progress/A-i18n-review.md` lists the 40 most visible strings. Claude self-reviewed them in te/hi/ur and fixed one: #39 te "No, not fixed" made explicit.
