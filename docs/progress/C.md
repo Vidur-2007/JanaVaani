@@ -6,7 +6,7 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 - **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P4: alerts, audit explorer and block chain, AI model page, demo controls, CSV/Excel/PDF exports, report builder, `e2e/gov/p4-trust.spec.ts`. P5: public portal, realtime highlights, gov.json (en/te/hi complete; Urdu for the public portal, nav and charts), accessibility pass, `e2e/gov/p5-public.spec.ts`. P6 (except the merge and deployed API): §16 run on B's local API, bug fixes, `e2e/gov/p6-suite.spec.ts`, chart memoization, KPI tween, error-state gaps. P7: polish (alert cascade, staggered map pulses, audit walk timing, palette legend, skyline empty states), demo shortcuts, `e2e/gov/p7-demo.spec.ts`. P8 partly: `docs/demo-script.md` and `docs/slides-outline.md` drafted; the deployed click-through is not done. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
 - **In progress:** P3 Step 1 is unfinished: B has no deployed URL, so `.env.local` is not set and the UI has not run in hybrid mode.
-- **Next:** get these post-merge additions into `main` (integrator). After deployment: click through every gov route in Chrome and Edge on desktop and phone, fill in the blanks in `docs/demo-script.md`, and do two full run-throughs.
+- **Next:** open the gov PR. After the merge and deployment: click through every gov route in Chrome and Edge on desktop and phone, fill in the blanks in `docs/demo-script.md`, and do two full run-throughs.
 - **Blockers:**
   - **The H30 merge has not happened.** `origin/main` is still the scaffold, PRs #1 (B) and #2 (A) are open, and there is no gov PR. `git merge origin/main` was a no-op, so this branch still has `v0-scaffold` shared code.
   - **B's API is not deployed** (needs Supabase project, keys and HF Space, per B's handover).
@@ -16,17 +16,36 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 ### Spec C audit (after the final merge)
 
-`main` has the final B, A and C merge (tagged `v1.0-submission` by A), and this branch merged it back. Checked section by section against Spec C:
+`main` has the final B, A and C merge (tagged `v1.0-submission`), and this branch merged it back. Checked section by section against Spec C:
 
-- **Done:** §3 shell, §4 components, §5.1–5.4 department portal, §6.1–6.10 admin, §7 public, §8 charts (every chart now has a table view), §9 en/te/hi (541 keys each, none missing), §10 tests 1–7.
-- **Added in this pass:** S8 asset page `/admin/assets/:id` with history and citizen QR code, a printable ward QR sheet `/admin/assets/sheet`, the case page links its asset for admins, export menus on the inbox and analytics, and table views for the department-drawer trend and the spike mini-chart.
+- **Done:** §3 shell, §4 components, §5.1–5.4, §6.1–6.10, §7 public, §8 charts (every chart now has a table view), §9 en/te/hi (no missing keys), §10 tests 1–7, and stretch S1, S2, S8 (see above).
+- **Added in this pass:** export menus on the inbox and analytics; table views for the department-drawer trend and the spike mini-chart; the case page links its asset to `/admin/assets/:id` for admins.
 - **Not done, with reasons:**
-  - Urdu for most gov screens (about 478 strings). Spec §9 marks it optional; the public portal, nav, charts and map are in Urdu.
-  - Stretch S1 Surge Mode, S2 root-cause graph, S6 monthly AI report and S9 field visits need endpoints B never built.
-  - The QR sheet starts from assets named in complaints, because there is no endpoint that lists assets.
+  - Urdu for most gov screens. Spec §9 marks it optional; the public portal, nav, charts and map are in Urdu.
+  - S6 monthly AI report and S9 field visits need endpoints B never built.
   - Real virtualization: tables are server-paged with `content-visibility` instead.
   - "Verify sample of 50" verifies every chain instead.
-- After the merge, all tests on Chromium, Edge and mobile Chrome: 511 passed, 146 skipped, 3 failed, then fixed. The 3 were a wrong assertion in the new asset test. A's smoke tests now pass.
+- A second S8 implementation from another session was dropped in favour of the one already on this branch, to avoid two asset pages.
+
+### Stretch after the final merge (S1, S2, S8)
+
+Built after the H42 merge, at the integrator's request, in C's folders only:
+
+- **S1 Disaster Surge Mode.**
+  - A red banner on the Command Center appears when the alert feed holds a surge: a critical spike, or a spike with ≥ 10 complaints.
+  - **Open war room** goes to `/admin/surge/:alertId` (admin + supervisor; every spike in `/admin/alerts` also links there).
+  - The war room shows live counts (complaints in 48 h, open, critical open, unassigned, resolved), a map of the affected complaints with ward chips, and a team assignment board (one column per assigned officer, unassigned last).
+  - Data: #49 + #28 + #6, under `qk.admin`, so live events refresh it.
+- **S2 root-cause graph** (`RootCauseGraph`, used in the war room): complaints → incident → suspected root cause, in a deterministic radial SVG.
+  - Stable across live refetches; nodes link to cases; there is a list view.
+  - The cause is **rule-based and labelled "Suggested by rules … not by AI"**: a shared asset named by ≥ 2 complaints, else the dominant sub-department (≥ 40%), else the department, plus the dominant ward.
+- **S8 assets.**
+  - `/admin/assets/:id`: asset, open issues, complaint history, citizen QR (`/r/:id`), print.
+  - `/admin/assets`: printable QR sheet. It defaults to the assets citizens actually reported, or takes typed ids. Admin nav: "Assets & QR".
+- **i18n:** en/te/hi complete; Urdu for the banner and titles (other strings fall back to English, as allowed).
+- **Tests:** `e2e/gov/p8-stretch.spec.ts` (banner → war room, root-cause graph + list + node navigation, QR sheet + asset page).
+- **Checked against B's API run locally (hybrid):** banner + war room for "Spike: 10 water complaints in 24 h (W-CHR-01)" show 19 complaints in 48 h, cause "contamination in Charminar", 0 mock fallbacks. B mismatches are in `docs/contract-notes/C.md`.
+- **Not built:** S9 (field visits, SLA policy editor, civic scores) and S6 (monthly AI report). Both need B endpoints that don't exist.
 
 ### P8 rehearsal
 
@@ -48,7 +67,7 @@ UI in `live` mode on B's latest code, run locally with no AI keys. Times are one
 
 - **Do not reset on stage.** Reset before the demo.
 - **Retrain moves with corrections, but can go down.** 20 deliberately wrong corrections took synthetic accuracy from 77.8% to 69.4% and human-set accuracy from 75.0% to 79.2%. Step 7 needs genuine corrections, and the outcome of one real correction is untested. Rehearse the exact correction, or do not promise a rise.
-- Stretch (Surge Mode, root-cause graph) was not built. B has no endpoints for them, and client-only versions would show invented data.
+- Stretch (Surge Mode, root-cause graph) was not built in P7; they were built after the final merge from existing data only (see "Stretch after the final merge").
 
 ### Known issues (P6)
 

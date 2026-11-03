@@ -93,9 +93,19 @@ function SpikeDetail({ alert, trends }: { alert: Alert; trends?: TrendPoint[] })
           )}
         </ul>
       </div>
-      <Link to={alertTarget(alert)} className="text-signal text-xs font-medium hover:underline">
-        {t('alerts.open_incident')}
-      </Link>
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <Link to={alertTarget(alert)} className="text-signal text-xs font-medium hover:underline">
+          {t('alerts.open_incident')}
+        </Link>
+        {/* S1: every spike can be worked as a war room (Surge Mode when it qualifies). */}
+        <Link
+          to={`/admin/surge/${encodeURIComponent(alert.id)}`}
+          className="text-danger text-xs font-medium hover:underline"
+          data-testid="alert-war-room"
+        >
+          {t('surge.open_war_room')}
+        </Link>
+      </div>
     </div>
   );
 }

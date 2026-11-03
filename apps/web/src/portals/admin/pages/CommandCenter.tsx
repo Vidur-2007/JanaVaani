@@ -23,6 +23,7 @@ import { GovMap } from '@/portals/gov-shared/components/GovMap';
 import { KPIStatGov } from '@/portals/gov-shared/components/KPIStatGov';
 import { useFreshIds } from '@/portals/gov-shared/hooks/useFreshIds';
 import { Panel } from '@/portals/gov-shared/components/Panel';
+import { SurgeBanner } from '@/portals/gov-shared/components/SurgeBanner';
 
 // Outside qk.admin so live events never re-run the LLM; only Regenerate does.
 const insightsKey = (days: number) => ['jv-insights', days] as const;
@@ -138,6 +139,8 @@ export default function CommandCenter() {
         </div>
         <DaysSelector />
       </header>
+
+      <SurgeBanner />
 
       {kpis.isError ? (
         <ErrorState error={kpis.error} onRetry={() => kpis.refetch()} />
