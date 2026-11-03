@@ -78,6 +78,7 @@ def test_keyword_rule_routes_a_live_wire_to_power_despite_the_classifier():
 def test_chat_live_wire_in_telugu_routes_to_power_offline(client, seeded):
     r = client.post("/api/v1/chat/turn", json={"text": "మా బడి దగ్గర కరెంటు తీగ తెగి రోడ్డు మీద పడింది, కూకట్‌పల్లి", "ui_lang": "te", "input_mode": "text"}).json()
     r = client.post("/api/v1/chat/turn", json={"session_id": r["session_id"], "action": "continue_after_emergency", "ui_lang": "te", "input_mode": "text"}).json()
+    r = client.post("/api/v1/chat/turn", json={"session_id": r["session_id"], "text": "anthe", "ui_lang": "te", "input_mode": "text"}).json()
     assert r["draft"]["category"] == "power" and r["draft"]["routing_preview"]["confidence"] >= 0.75
 
 

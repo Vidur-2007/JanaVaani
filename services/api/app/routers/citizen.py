@@ -16,9 +16,9 @@ from ..core.db import get_db
 from ..core.errors import err
 from ..core.ratelimit import limiter
 from ..core.security import User, current_user, require
-from ..ml import embeddings
+from ..ml import classifier, embeddings
 from ..models import Appeal, ChatSession, Grievance, Media, Message, Notification, Profile
-from ..pipeline import analyze as an, audit, duplicates, safety, workflow
+from ..pipeline import analyze as an, audit, duplicates, intake, safety, workflow
 from ..ai.localize import localize
 from ..refdata import emergency_contacts
 from ..serialize import appeal_dict, detail_dict, grievance_dict, media_dict, message_dict, paged
@@ -107,8 +107,8 @@ def get_grievance_for(db: Session, gid: str, user: User, pin: str | None = None,
     if not g:
         raise err(404, "not_found", "Grievance not found.")
     if user.is_gov:
-        if user.role == "officer" and g.category != user.department_id and g.assigned_officer_id != user.id:
-            raise err(403, "forbidden", "This grievance belongs to another department.")
+        if not workflow.in_scope(user, g):
+            raise err(403, "forbidden", "This grievance belongs to another department or ward.")
         return g
     if user.authenticated and g.citizen_id == user.id:
         return g
@@ -156,6 +156,26 @@ def _support_target(db, target_id: str | None) -> Grievance:
     return g
 
 
+def _track_reply(reply, db, user: User, gid: str | None = None, query: str | None = None):
+    """track_status (Spec B §6 step 3): the caller's own grievances (or, for government users, ones in scope),
+    by ticket number or ranked by similarity to the citizen's words. Never someone else's complaint."""
+    q = select(Grievance)
+    if gid:
+        q = q.where(Grievance.id == gid)
+    elif user.authenticated and not user.is_gov:
+        q = q.where(Grievance.citizen_id == user.id)
+    else:
+        q = q.where(False)
+    rows = [g for g in db.execute(q.order_by(Grievance.created_at.desc()).limit(50)).scalars()
+            if (user.authenticated and g.citizen_id == user.id) or (user.is_gov and workflow.in_scope(user, g))]
+    if query and not gid and len(rows) > 1:
+        qv, kw = embeddings.embed(safety.mask_pii(query), "query"), query.lower()
+        rows.sort(key=lambda g: -(embeddings.cosine(qv, g.embedding) + (0.3 if g.category in kw or kw in (g.summary_en or "").lower() else 0)))
+    tracked = [grievance_dict(g, db, user) for g in rows[:5]]
+    msg = "Here is the latest status of your complaint." if tracked else "I could not find a complaint with that number."
+    return reply("answered", "track_status", msg, tracked=tracked)
+
+
 # ---------------- #1 chat ----------------
 @router.post("/chat/turn")
 @limiter.limit("30/minute")
@@ -168,11 +188,13 @@ def chat_turn(request: Request, body: ChatTurnRequest, db: Session = Depends(get
     lang = st.get("language") or body.lang_hint or body.ui_lang
 
     def reply(stage, intent, text_en, **extra):
+        msg = text_en if isinstance(text_en, dict) else localize(text_en, lang)     # str = English to localize
+        st["history"] = (st.get("history", []) + [{"from": "bot", "text": msg.get("en", "")[:300]}])[-8:]
         s.state = st | {"stage": stage}
-        db.add(Message(session_id=s.id, sender="bot", text=localize(text_en, lang)))
+        db.add(Message(session_id=s.id, sender="bot", text=msg))
         db.commit()
         return {"session_id": s.id, "intent": intent, "stage": stage, "detected_language": lang,
-                "is_code_mixed": st.get("is_code_mixed", False), "reply": localize(text_en, lang),
+                "is_code_mixed": st.get("is_code_mixed", False), "reply": msg,
                 "quick_replies": extra.pop("quick_replies", []), "missing_fields": extra.pop("missing_fields", []), **extra}
 
     act = body.action
@@ -207,6 +229,10 @@ def chat_turn(request: Request, body: ChatTurnRequest, db: Session = Depends(get
         return reply("submitted", "new_complaint", "Your complaint has been submitted.", submitted=submitted)
     if act in ("confirm", "file_new_anyway", "split_confirm"):
         res = st.get("analysis_result")
+        if not res and st.get("texts") and act != "split_confirm":   # confirmed mid-intake: file what is known (§5.2)
+            res = an.analyze(" ".join(st["texts"]), st.get("location"), _imgs(db, st.get("media_ids", [])))
+            res["analysis"]["fields"] = {**(res["analysis"].get("fields") or {}), **st.get("fields", {})}
+            st["analysis_result"], st["draft"] = res, an.to_draft(res, st.get("media_ids", []), _officer_preview(db, res))
         if not res:
             raise err(409, "nothing_to_confirm", "No draft to confirm in this session.")
         loc = res["location"]
@@ -236,6 +262,10 @@ def chat_turn(request: Request, body: ChatTurnRequest, db: Session = Depends(get
     resuming = st.get("texts") and (act in ("continue_after_emergency", "edit") or body.location or body.media_ids)
     if not text and not resuming:
         return reply("collecting", "smalltalk", "Please tell me about the problem you are facing.")
+    st["media_ids"] = list(dict.fromkeys(st.get("media_ids", []) + (body.media_ids or [])))
+    st["asset_id"] = body.asset_id or st.get("asset_id")
+    if body.location:
+        st["location"] = body.location.model_dump()
     if text:
         db.add(Message(session_id=s.id, sender="citizen", text={"original": safety.mask_pii(text), "en": "", "lang": lang}))
         em = safety.detect_emergency(text)
@@ -259,30 +289,49 @@ def chat_turn(request: Request, body: ChatTurnRequest, db: Session = Depends(get
             lang = lid["language"] if lid["language"] in ("en", "te", "hi", "ur") else lang
             st["language"] = lang
             return emergency_reply(em["matched_terms"])
-        # track status intent: explicit ticket id or status words
         m = re.search(r"GRV-\d{4}-\d{6}", text, re.I)
-        if m or re.search(r"\b(status|track|where is my complaint|naa complaint|meri shikayat)\b", text, re.I):
-            q = select(Grievance)
-            q = q.where(Grievance.id == m.group(0).upper()) if m else q.where(Grievance.citizen_id == user.id) if user.authenticated else q.where(False)
-            tracked = [grievance_dict(g, db, user) for g in db.execute(q.order_by(Grievance.created_at.desc()).limit(5)).scalars()
-                       if user.is_gov or g.citizen_id == user.id or (m and not g.is_private)]
-            msg = "Here is the latest status of your complaint." if tracked else "I could not find a complaint with that number."
-            return reply("answered", "track_status", msg, tracked=tracked)
+        if m:       # an explicit ticket number needs no AI
+            return _track_reply(reply, db, user, gid=m.group(0).upper())
+        st["history"] = (st.get("history", []) + [{"from": "citizen", "text": safety.mask_pii(text)[:300]}])[-8:]
+        if not st.get("language"):
+            lid = safety.identify_language(text)
+            lang = lid["language"] if lid["language"] in ("en", "te", "hi", "ur") else lang
+            st["is_code_mixed"] = lid["is_code_mixed"]
+
+    # Conversational intake (Spec B §5.2): intent, fields, one follow-up question at a time
+    full = " ".join(st.get("texts", []) + ([text] if text else []))
+    masked_full = safety.mask_pii(full)
+    hazards = safety.detect_emergency(masked_full)["hazards"]
+    dep = ((st.get("draft") or {}).get("category") or next((d for h, d in an.HAZARD_DEPARTMENT.items() if h in hazards), None)
+           or classifier.predict(masked_full)["department"])
+    has_location = bool(st.get("location")) or an.resolve_location(None, [], masked_full) is not None
+    turn = intake.run(st, text or None, dep=dep, has_location=has_location, has_photo=bool(st["media_ids"]), lang=lang)
+    if turn.get("is_emergency") and not st.get("emergency_ack"):     # the LLM saw danger the keyword list missed
+        st.update(emergency=True, emergency_ack=True, texts=st.get("texts", []) + ([text] if text else []), language=lang)
+        return emergency_reply(turn.get("hazards") or [])
+    if turn["intent"] == "track_status":
+        return _track_reply(reply, db, user, query=turn["track_query"])
+    if turn["intent"] == "ask_info":
+        g = _guide(text, lang)
+        return reply("answered", "ask_info", {**g["answer"], "lang": g["answer"].get("lang", lang)})
+    if turn["intent"] == "smalltalk":
+        return reply("collecting", "smalltalk", turn["reply"])
+    if text:
         st["texts"] = st.get("texts", []) + [text]
+    st["language"] = lang
+    if not turn["ready_to_confirm"]:
+        return reply("collecting", "new_complaint", turn["reply"], missing_fields=turn["missing_fields"],
+                     quick_replies=turn["quick_replies"])
 
     texts = st["texts"]
-    st["media_ids"] = list(dict.fromkeys(st.get("media_ids", []) + (body.media_ids or [])))
-    st["asset_id"] = body.asset_id or st.get("asset_id")
     st.pop("split", None)
     full = " ".join(texts)
     # An AI-flagged emergency already holds its analysis; continuing must not pay for a second LLM call.
     unchanged = act == "continue_after_emergency" and not text and not body.location and not body.media_ids
-    res = (unchanged and st.get("analysis_result")) or \
-        an.analyze(full, body.location.model_dump() if body.location else st.get("location"), _imgs(db, st["media_ids"]))
+    res = (unchanged and st.get("analysis_result")) or an.analyze(full, st.get("location"), _imgs(db, st["media_ids"]))
+    res["analysis"]["fields"] = {**(res["analysis"].get("fields") or {}), **st.get("fields", {})}
     if st.get("emergency"):
         res["analysis"]["is_emergency"] = True
-    if body.location:
-        st["location"] = body.location.model_dump()
     lang = res["analysis"]["language"] if res["analysis"]["language"] in ("en", "te", "hi", "ur") else body.ui_lang
     st.update(language=lang, is_code_mixed=res["analysis"]["is_code_mixed"])
     if res["analysis"].get("is_emergency") and not st.get("emergency_ack"):   # the LLM saw what the keyword list missed
@@ -290,12 +339,11 @@ def chat_turn(request: Request, body: ChatTurnRequest, db: Session = Depends(get
         return emergency_reply(res["emergency"]["matched_terms"] or res["analysis"].get("hazards", []))
     draft = an.to_draft(res, st["media_ids"], _officer_preview(db, res))
     st["analysis_result"], st["draft"] = res, draft
-    if not res["location"] and len(texts) <= 4:
-        from ..refdata import department
-        q = next((f["question"] for f in department(draft["category"])["required_fields"] if f["key"] in ("location_detail", "address")),
-                 {"en": "Where exactly is it? Please share a landmark or your location."})
-        return reply("collecting", "new_complaint", q.get("en"), draft=draft, missing_fields=["location_detail"],
-                     quick_replies=[{"label": "Share my location", "value": "share_location"}])
+    asked = st.get("asked", [])
+    if not res["location"] and "location_detail" not in asked and len(asked) < intake.MAX_QUESTIONS:
+        st.update(asked=asked + ["location_detail"], pending="location_detail")   # the one thing a draft cannot lack
+        return reply("collecting", "new_complaint", intake.question("location_detail", draft["category"], lang), draft=draft,
+                     missing_fields=["location_detail"], quick_replies=intake.quick_replies("location_detail"))
     drafts = None
     issues = res["analysis"].get("issues") or []
     if len(issues) > 1:
@@ -335,6 +383,9 @@ def create_ep(request: Request, body: CreateIn, db: Session = Depends(get_db), u
             raise err(422, "draft_expired", "Draft not found; send the original text again via /grievances/analyze.")
         res = an.analyze(text, body.location.model_dump() if body.location else body.draft.get("location"))
     loc = an.resolve_location(body.location.model_dump(), [], "") if body.location and body.location.lat is not None else None
+    if isinstance(body.draft.get("fields"), dict):     # values the citizen filled in on the quick form
+        res = {**res, "analysis": {**res["analysis"], "fields": {**(res["analysis"].get("fields") or {}),
+                                                                 **{k: str(v) for k, v in body.draft["fields"].items()}}}}
     cat = body.draft.get("category")
     if cat and cat != res["routing"]["department"]:   # citizen edited category: record as human vote, keep review
         res = {**res, "routing": {**res["routing"], "department": cat,
@@ -470,8 +521,10 @@ async def upload(request: Request, file: UploadFile = File(...), purpose: str = 
     webp = io.BytesIO()
     im.save(webp, "WEBP", quality=82)
     geo = {"lat": lat, "lng": lng} if lat is not None and lng is not None else exif_geo
-    if grievance_id and not db.get(Grievance, grievance_id):
-        raise err(404, "not_found", "grievance_id not found.")
+    if purpose == "resolution_proof" and not user.is_gov:
+        raise err(403, "forbidden", "Only officers can upload resolution proof.")
+    if grievance_id:     # attaching needs the same access as viewing: owner, or a government user in scope
+        get_grievance_for(db, grievance_id, user)
     try:
         stored = storage.save(storage.object_name(mid, now), webp.getvalue())
     except OSError:
@@ -604,7 +657,7 @@ def search(q: str, scope: str = "public", lang: str = "en", db: Session = Depend
     gs = [grievance_dict(g, db, viewer) for s_, g in scored[:10] if s_ > 0.2]
     if scope == "public":
         for d in gs:
-            d.pop("description", None); d.pop("citizen_display_name", None)
+            d.pop("description", None); d.pop("citizen_display_name", None); d.pop("fields", None)
     return {"grievances": gs, "guide": _guide_hits(q)[:3]}
 
 
@@ -651,6 +704,11 @@ class GuideIn(BaseModel):
 
 @router.post("/guide/ask")
 def guide_ask(body: GuideIn):
+    return _guide(body.question, body.ui_lang)
+
+
+def _guide(question: str, ui_lang: str) -> dict:
+    """Guide answer grounded on service_guide.md; also used for the chat's ask_info intent."""
     from pydantic import BaseModel as BM
 
     from ..ai import gateway, prompts
@@ -661,17 +719,17 @@ def guide_ask(body: GuideIn):
         sources: list[str] = []
         department_id: str | None = None
     secs = _guide_sections()
-    hits = _guide_hits(body.question)[:3]
+    hits = _guide_hits(question)[:3]
     ctx = "\n\n".join(f"[{s_['anchor']}] {s_['title']}\n{s_['text'][:1200]}" for s_ in secs if s_["anchor"] in {h["anchor"] for h in hits}) or \
         "\n\n".join(f"[{s_['anchor']}] {s_['title']}\n{s_['text'][:400]}" for s_ in secs)
-    r, _ = gateway.run("guide_answer", prompts.GUIDE.format(lang=body.ui_lang, cats="roads|...|other", guide=ctx,
-                                                            q=safety.mask_pii(body.question)), G)
+    r, _ = gateway.run("guide_answer", prompts.GUIDE.format(lang=ui_lang, cats="roads|...|other", guide=ctx,
+                                                            q=safety.mask_pii(question)), G)
     if r:
         srcs = [{"title": next((s_["title"] for s_ in secs if s_["anchor"] == a), a), "anchor": a} for a in r["sources"]]
-        return {"answer": {"original": r["answer_original"], "en": r["answer_en"], "lang": body.ui_lang},
+        return {"answer": {"original": r["answer_original"], "en": r["answer_en"], "lang": ui_lang},
                 "sources": srcs, "department_id": r.get("department_id")}
     if not hits:
-        return {"answer": localize("Sorry, I could not find this in the service guide.", body.ui_lang), "sources": []}
+        return {"answer": localize("Sorry, I could not find this in the service guide.", ui_lang), "sources": []}
     top = hits[0]
     return {"answer": {"original": top["snippet"], "en": top["snippet"], "lang": "en"},
             "sources": [{"title": h["title"], "anchor": h["anchor"]} for h in hits]}

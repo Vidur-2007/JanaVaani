@@ -132,3 +132,14 @@ def test_retry_and_groq_fallback(keys, monkeypatch, failures, expected_hosts):
     assert meta["provider"] == expected_hosts[-1] and meta["fallback_used"] is (expected_hosts[-1] == "groq")
     assert res["department"] == ("roads" if expected_hosts[-1] == "groq" else "water")
     assert all(r.headers["x-goog-api-key"] == KEY and KEY not in str(r.url) for r in t.gemini_requests())
+
+
+# ---------- access log: guest PINs and photo-link signatures are not written out
+def test_access_log_redacts_ticket_pins_and_photo_signatures(caplog):
+    import app.main  # noqa: F401  (installs the filter)
+    caplog.set_level(logging.INFO, logger="uvicorn.access")
+    access = logging.getLogger("uvicorn.access")
+    access.info('%s - "%s %s HTTP/%s" %d', "10.0.0.1:5555", "GET", "/api/v1/grievances/GRV-2026-000001?pin=482913&lang=te", "1.1", 200)
+    access.info('%s - "%s %s HTTP/%s" %d', "10.0.0.1:5555", "GET", "/api/v1/uploads/abc?exp=1790000000&sig=0123456789abcdef", "1.1", 307)
+    assert "482913" not in caplog.text and "0123456789abcdef" not in caplog.text
+    assert "pin=***&lang=te" in caplog.text and "exp=1790000000&sig=***" in caplog.text

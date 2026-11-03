@@ -1,5 +1,6 @@
 """JanaVaani API — FastAPI app, CORS, routers, startup warm-up, scheduler."""
 import logging
+import re
 import sys
 import threading
 from contextlib import asynccontextmanager
@@ -17,6 +18,19 @@ from .core.ratelimit import limiter
 
 logging.basicConfig(level=logging.INFO, format='{"t":"%(asctime)s","lvl":"%(levelname)s","log":"%(name)s","msg":"%(message)s"}')
 logging.getLogger("httpx").setLevel(logging.WARNING)     # its INFO lines carry full request URLs
+
+
+class _RedactQuerySecrets(logging.Filter):
+    """Access log lines carry the full path: hide guest ticket PINs (?pin=) and photo-link signatures (&sig=)."""
+    SECRET = re.compile(r"\b((?:pin|sig)=)[^&\s\"]+")
+
+    def filter(self, record):
+        if isinstance(record.args, tuple):
+            record.args = tuple(self.SECRET.sub(r"\1***", a) if isinstance(a, str) else a for a in record.args)
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(_RedactQuerySecrets())
 log = logging.getLogger("janavaani")
 
 

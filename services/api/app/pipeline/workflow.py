@@ -42,12 +42,23 @@ def notify(db: Session, user_id: str | None, gid: str | None, type_: str, title_
 
 
 def alert(db: Session, kind: str, severity: str, title: str, detail: str, gids: list[str], dedupe: str,
-          ward_id=None, category=None):
+          ward_id=None, category=None) -> bool:
+    """True when a new alert was created (False: one with this dedupe key exists)."""
     if db.execute(select(AlertRow).where(AlertRow.dedupe_key == dedupe)).scalar_one_or_none():
-        return
+        return False
     db.add(AlertRow(kind=kind, severity=severity, title_en=title, detail_en=detail, grievance_ids=gids,
                     dedupe_key=dedupe, ward_id=ward_id, category=category))
     live(db, "role:admin", "alert", gids[0] if gids else None)
+    return True
+
+
+# ---------- access ----------
+def in_scope(user, g: Grievance) -> bool:
+    """Spec B §10: officers act on their department's grievances in their wards, or on ones assigned to them;
+    supervisors and admins see every department. Same rule as the officer inbox query."""
+    if user.role != "officer" or g.assigned_officer_id == user.id:
+        return True
+    return g.category == user.department_id and (not user.ward_ids or g.ward_id in user.ward_ids)
 
 
 # ---------- ids, assignment ----------
@@ -92,7 +103,8 @@ def create_from_analysis(db: Session, res: dict, user, *, media_ids=None, asset_
         id=gid, citizen_id=user.id if user and user.authenticated else None, language=a["language"],
         script=a["script"], is_code_mixed=a["is_code_mixed"], description_original=res["text"],
         description_masked=res["masked"], description_en=a.get("text_en") or "", title=a["title"],
-        formal_text=a["formal_text"], summary_en=issue_text or a.get("summary_en", ""), category=routing["department"],
+        formal_text=a["formal_text"], fields={k: str(v)[:200] for k, v in (a.get("fields") or {}).items() if str(v).strip()},
+        summary_en=issue_text or a.get("summary_en", ""), category=routing["department"],
         sub_department=routing.get("sub_department"), secondary_departments=routing.get("secondary_departments", []),
         routing=routing, status="registered", priority=prio["level"], priority_score=prio["score"],
         priority_factors=prio["factors"],
@@ -202,6 +214,36 @@ def _maybe_incident(db: Session, g: Grievance):
     g.incident_id = inc.id
 
 
+INCIDENT_OPEN_ORDER = ("reopened", "in_progress", "assigned", "needs_review", "registered")
+RESOLVED = ("resolved_pending_verification", "closed")
+
+
+def sync_incident(db: Session, incident_id: str | None):
+    """Incident status follows its members (merged and rejected ones excluded). When the whole incident becomes
+    resolved, each merged member's citizen gets one community_update in their language (Spec B §6.1 fan-out).
+    Open members are resolved one by one through /resolve and get their own verification request."""
+    inc = db.get(Incident, incident_id) if incident_id else None
+    if not inc:
+        return
+    members = db.execute(select(Grievance).where(Grievance.incident_id == incident_id)).scalars().all()
+    active = [m.status for m in members if m.status not in ("merged", "rejected")]
+    if not active:
+        return
+    if all(s == "closed" for s in active):
+        new = "closed"
+    elif all(s in RESOLVED for s in active):
+        new = "resolved_pending_verification"
+    else:
+        new = next(s for s in INCIDENT_OPEN_ORDER if s in active)
+    newly_resolved = new in RESOLVED and inc.status not in RESOLVED
+    inc.status = new
+    if newly_resolved:
+        for m in members:
+            if m.status == "merged":
+                notify(db, m.citizen_id, m.id, "community_update", "The issue you reported is fixed",
+                       f"The issue linked to incident {inc.id} was marked resolved.", m.language)
+
+
 # ---------- status ----------
 def change_status(db: Session, g: Grievance, new: str, actor, note: str | None = None, delay_reason: dict | None = None):
     if new not in TRANSITIONS.get(g.status, set()) and new != g.status:
@@ -223,21 +265,41 @@ def change_status(db: Session, g: Grievance, new: str, actor, note: str | None =
     if g.citizen_id:
         notify(db, g.citizen_id, g.id, "status", "Status updated", f"Your complaint {g.id} is now: {new.replace('_', ' ')}.", g.language)
     live(db, f"dept:{g.category}", "grievance_updated", g.id)
+    sync_incident(db, g.incident_id)
 
 
 # ---------- resolution verification ----------
+def _proof_media(db: Session, g: Grievance, media_ids: list[str]) -> list[Media]:
+    """Proofs must be resolution_proof uploads; citizen evidence can never be relabelled as proof. One proof can be
+    reused across an incident's members (the gov portal does this): a photo already attached to another grievance is
+    copied, sharing the stored file, so every grievance keeps its own proof."""
+    out = []
+    for mid in media_ids:
+        m = db.get(Media, mid)
+        if not m:
+            continue
+        if m.purpose != "resolution_proof":
+            raise err(422, "bad_proof", "Proof photos must be uploaded with purpose resolution_proof.")
+        if m.grievance_id not in (None, g.id):
+            m = Media(grievance_id=g.id, storage_path=m.storage_path, uploaded_by_role=m.uploaded_by_role,
+                      uploaded_by=m.uploaded_by, purpose="resolution_proof", quality=m.quality, ai=m.ai, geo=m.geo,
+                      phash=m.phash)
+            db.add(m)
+            db.flush()
+        out.append(m)
+    return out
+
+
 def resolve(db: Session, g: Grievance, actor, media_ids: list[str], note: str, lat=None, lng=None) -> dict:
     if g.status not in ("in_progress", "assigned", "reopened"):
         raise err(409, "invalid_transition", f"Cannot resolve a grievance in status {g.status}.")
-    proofs = [db.get(Media, m) for m in media_ids]
-    proofs = [m for m in proofs if m]
+    proofs = _proof_media(db, g, media_ids)
     if not proofs:
         raise err(422, "proof_required", "At least one resolution proof photo is required.")
     citizen_photos = [m for m in g.media if m.purpose == "evidence"]
     v = verify_resolution(g, proofs, citizen_photos, lat, lng)
     for m in proofs:
         m.grievance_id = g.id
-        m.purpose = "resolution_proof"
     if g.status == "assigned":
         g.first_response_at = g.first_response_at or clock.now()
     g.ai_verification = v
@@ -245,16 +307,19 @@ def resolve(db: Session, g: Grievance, actor, media_ids: list[str], note: str, l
     old = g.status
     g.status = "resolved_pending_verification"
     audit.add_event(db, g.id, "resolution_submitted", f"Resolution submitted: {note}", actor_role=actor.role,
-                    actor_id=actor.id, actor_name=actor.name, payload={"from": old, "media_ids": media_ids})
+                    actor_id=actor.id, actor_name=actor.name, payload={"from": old, "media_ids": [m.id for m in proofs]})
     audit.add_event(db, g.id, "ai_verification", f"AI verification: {v['verdict']} ({v['assessment']})", actor_role="ai",
                     payload=v)
     if g.citizen_id:
         notify(db, g.citizen_id, g.id, "verification_request", "Please confirm the fix",
                f"The officer marked {g.id} as resolved. Please confirm or reopen.", g.language)
     if v["verdict"] == "suspicious":
-        alert(db, "suspicious_closure", "warning", f"Suspicious resolution on {g.id}",
-              "; ".join(v["reasons_en"]), [g.id], f"susp:{g.id}:{g.reopen_count}", g.ward_id, g.category)
+        if alert(db, "suspicious_closure", "warning", f"Suspicious resolution on {g.id}",
+                 "; ".join(v["reasons_en"]), [g.id], f"susp:{g.id}:{g.reopen_count}", g.ward_id, g.category):
+            _notify_role(db, "supervisor", g, "Suspicious resolution",
+                         f"{g.id}: {(v['reasons_en'] or ['the AI check flagged the proof photo'])[0]}", "alert")
     live(db, f"dept:{g.category}", "grievance_updated", g.id)
+    sync_incident(db, g.incident_id)
     return v
 
 
@@ -329,6 +394,40 @@ def citizen_feedback(db: Session, g: Grievance, actor, accepted: bool, rating=No
     else:
         reopen(db, g, actor, comment or "Citizen says the issue is not fixed")
     live(db, f"dept:{g.category}", "grievance_updated", g.id)
+    sync_incident(db, g.incident_id)
+
+
+DISPUTE_ACTIONS = ("demand_new_proof", "close_disputed")
+
+
+def is_disputed(g: Grievance) -> bool:
+    """Same rule as review-queue?kind=disputed, limited to resolutions still waiting for a decision."""
+    flagged = g.status == "reopened" or g.reopen_count > 0 or (g.ai_verification or {}).get("verdict") == "suspicious"
+    return flagged and g.status in ("resolved_pending_verification", "reopened")
+
+
+def decide_dispute(db: Session, g: Grievance, actor, action: str, note: str):
+    """Supervisor decision on a disputed resolution (Spec C §5.3; master rule 10: humans decide disputed closures).
+    demand_new_proof: back to in_progress, the officer must resolve again with new proof.
+    close_disputed: closed with closure_type 'disputed'."""
+    old, now = g.status, clock.now()
+    if action == "demand_new_proof":
+        g.status, g.resolved_at = "in_progress", None
+        audit.add_event(db, g.id, "status_changed", f"Supervisor asked for new resolution proof: {note}", actor_role=actor.role,
+                        actor_id=actor.id, actor_name=actor.name, payload={"from": old, "to": "in_progress", "dispute": action})
+        officer = db.get(Profile, g.assigned_officer_id) if g.assigned_officer_id else None
+        if officer:
+            notify(db, officer.id, g.id, "alert", "New resolution proof required", f"{g.id}: {note}", officer.preferred_language)
+        notify(db, g.citizen_id, g.id, "status", "Status updated",
+               f"A supervisor reviewed {g.id} and asked the officer for new proof of the fix.", g.language)
+    else:
+        g.status, g.closure_type, g.closed_at = "closed", "disputed", now
+        audit.add_event(db, g.id, "closed", f"Closed as disputed after supervisor review: {note}", actor_role=actor.role,
+                        actor_id=actor.id, actor_name=actor.name, payload={"from": old, "closure_type": "disputed", "dispute": action})
+        notify(db, g.citizen_id, g.id, "status", "Status updated",
+               f"A supervisor reviewed the dispute on {g.id} and closed it.", g.language)
+    live(db, f"dept:{g.category}", "grievance_updated", g.id)
+    sync_incident(db, g.incident_id)
 
 
 def reopen(db: Session, g: Grievance, actor, reason: str):
@@ -343,6 +442,7 @@ def reopen(db: Session, g: Grievance, actor, reason: str):
         alert(db, "repeated_reopen", "warning", f"{g.id} reopened {g.reopen_count} times",
               f"Citizen rejected the resolution {g.reopen_count} times; supervisor review needed.", [g.id],
               f"reopen:{g.id}:{g.reopen_count}", g.ward_id, g.category)
+    sync_incident(db, g.incident_id)
 
 
 # ---------- scheduler: escalation / auto-close ----------
@@ -364,10 +464,11 @@ def run_escalations(db: Session) -> dict:
             audit.add_event(db, g.id, "escalated", "Escalated to administrator (level 2)", actor_role="system",
                             payload={"level": 2, "overdue_hours": round(over_h, 1)})
             _notify_role(db, "admin", g, "Escalated to admin", f"{g.id} is {round(over_h)} h overdue.")
-            if g.priority == "critical":
-                alert(db, "overdue_critical", "critical", f"Critical {g.id} overdue", f"{round(over_h, 1)} h past SLA.",
-                      [g.id], f"crit:{g.id}", g.ward_id, g.category)
-                stats["alerts"] += 1
+        # independent of the level change: a case can already be at level 2 (e.g. after reopens) before it is overdue
+        if g.priority == "critical" and over_h >= 2 and alert(
+                db, "overdue_critical", "critical", f"Critical {g.id} overdue", f"{round(over_h, 1)} h past SLA.",
+                [g.id], f"crit:{g.id}", g.ward_id, g.category):
+            stats["alerts"] += 1
         if g.is_emergency and g.emergency_confirmed is None and (now - g.created_at) > timedelta(minutes=30):
             alert(db, "emergency_unconfirmed", "critical", f"Emergency {g.id} unconfirmed",
                   "Flagged by safety rules more than 30 minutes ago and not yet confirmed by a supervisor.",
@@ -378,17 +479,18 @@ def run_escalations(db: Session) -> dict:
         g.status, g.closure_type, g.closed_at = "closed", "auto_closed_unverified", now
         audit.add_event(db, g.id, "closed", "Auto-closed: no citizen response in 7 days", actor_role="system")
         stats["auto_closed"] += 1
+        sync_incident(db, g.incident_id)
     from .analytics import scan_spikes
     stats["alerts"] += scan_spikes(db)
     return stats
 
 
-def _notify_role(db: Session, role: str, g: Grievance, title: str, body: str):
+def _notify_role(db: Session, role: str, g: Grievance, title: str, body: str, type_: str = "escalation"):
     q = select(Profile).where(Profile.role == role, Profile.is_active.is_(True))
     if role == "supervisor":   # department supervisors + city-wide supervisors (no department)
         q = q.where((Profile.department_id == g.category) | (Profile.department_id.is_(None)))
     for p in db.execute(q).scalars():
-        notify(db, p.id, g.id, "escalation", title, body, p.preferred_language)
+        notify(db, p.id, g.id, type_, title, body, p.preferred_language)
     live(db, "role:admin", "alert", g.id)
 
 

@@ -166,7 +166,7 @@ def scan_spikes(db: Session) -> int:
             alert(db, "spike", "critical" if len(last) >= 10 else "warning",
                   f"Spike: {len(last)} {cat} complaints in 24 h ({where})",
                   f"Baseline {mu:.1f}/day (σ {sd:.1f}). Languages: {', '.join(langs)}.",
-                  [g.id for g in last[:3]], f"spike:{cat}:{where}:{now.date()}", wid, cat)
+                  [g.id for g in last], f"spike:{cat}:{where}:{now.date()}", wid, cat)   # all members; the API shows 3
             made += 1
     return made
 

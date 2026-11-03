@@ -81,6 +81,7 @@ class Grievance(Base):
     description_en: Mapped[str] = mapped_column(Text)
     title: Mapped[dict] = mapped_column(JSONB)
     formal_text: Mapped[dict] = mapped_column(JSONB)
+    fields: Mapped[dict] = mapped_column(JSONB, default=dict)    # department required fields (intake + analysis)
     summary_en: Mapped[str] = mapped_column(Text)
     category: Mapped[str] = mapped_column(String(32))
     sub_department: Mapped[str | None] = mapped_column(String(80), nullable=True)

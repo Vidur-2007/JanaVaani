@@ -9,6 +9,7 @@ def _load(name: str) -> str:
     return (_DIR / f"{name}.md").read_text(encoding="utf-8")
 
 
+INTAKE = _load("intake_turn")
 ANALYZE = _load("analyze_complaint")
 SECOND_OPINION = _load("route_second_opinion")
 TRANSLATE = _load("translate")

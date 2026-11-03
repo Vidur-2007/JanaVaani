@@ -36,7 +36,7 @@ def grievance_dict(g: Grievance, db: Session, viewer=None) -> dict:
         "id": g.id, "title": {**(g.title or {}), "lang": g.language} if g.title else _loc("", g.language),
         "summary_en": g.summary_en,
         "description": {"original": desc_orig, "en": g.description_en or "", "lang": g.language},
-        "formal_text": {**(g.formal_text or {}), "lang": g.language},
+        "formal_text": {**(g.formal_text or {}), "lang": g.language}, "fields": g.fields or {},
         "language": g.language, "script": g.script, "is_code_mixed": g.is_code_mixed,
         "category": g.category, "routing": {**g.routing, "sub_department": g.sub_department,
                                              "secondary_departments": g.secondary_departments or []},
