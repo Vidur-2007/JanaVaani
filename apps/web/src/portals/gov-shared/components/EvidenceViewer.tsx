@@ -16,7 +16,8 @@ export function EvidenceViewer({ media }: { media: Media[] }) {
   const { t } = useTranslation('gov');
   const [open, setOpen] = useState<Media | null>(null);
   const { before, after } = beforeAfter(media);
-  if (media.length === 0) return <EmptyState icon={ImageOff} title={t('case.no_evidence')} className="py-6" />;
+  if (media.length === 0)
+    return <EmptyState icon={ImageOff} title={t('case.no_evidence')} className="py-6" />;
   return (
     <div className="space-y-3">
       {before && after && (
@@ -33,7 +34,9 @@ export function EvidenceViewer({ media }: { media: Media[] }) {
             <button
               type="button"
               onClick={() => setOpen(m)}
-              aria-label={t('case.open_photo', { description: m.ai?.description_en ?? t(`case.purpose.${m.purpose}`) })}
+              aria-label={t('case.open_photo', {
+                description: m.ai?.description_en ?? t(`case.purpose.${m.purpose}`),
+              })}
               className="relative block aspect-[4/3] w-full overflow-hidden rounded-[var(--radius-sm)] border"
             >
               <img src={mediaUrl(m.url)} alt="" className="size-full object-cover" loading="lazy" />

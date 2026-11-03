@@ -66,7 +66,12 @@ export function ResolveForm({ grievance: g }: { grievance: Grievance }) {
     g.id,
     async () => {
       const small = await compress(file!);
-      const media = await api.upload({ file: small, purpose: 'resolution_proof', grievance_id: g.id, ...gps });
+      const media = await api.upload({
+        file: small,
+        purpose: 'resolution_proof',
+        grievance_id: g.id,
+        ...gps,
+      });
       return api.resolve(g.id, { media_ids: [media.id], note: note.trim(), ...gps });
     },
     () => toast.success(t('resolve.submitted')),
@@ -110,7 +115,11 @@ export function ResolveForm({ grievance: g }: { grievance: Grievance }) {
         ) : (
           <LocateFixed className="size-4" aria-hidden />
         )}
-        {gps ? t('resolve.gps_captured') : gpsState === 'denied' ? t('resolve.gps_denied') : t('resolve.capture_gps')}
+        {gps
+          ? t('resolve.gps_captured')
+          : gpsState === 'denied'
+            ? t('resolve.gps_denied')
+            : t('resolve.capture_gps')}
       </Button>
       <div className="space-y-1">
         <Label htmlFor="resolve-note" className="text-xs">

@@ -297,7 +297,7 @@ export default function Analytics() {
                 <li key={g.id} className="flex items-center gap-2 py-1.5 text-sm">
                   <PriorityChip priority={g.priority} size="sm" />
                   <Link to={`/officer/case/${g.id}`} className="hover:text-primary min-w-0 flex-1 truncate">
-                    {g.title.en}
+                    <bdi lang="en">{g.title.en}</bdi>
                   </Link>
                   <SLACountdownGov grievance={g} className="shrink-0" />
                 </li>

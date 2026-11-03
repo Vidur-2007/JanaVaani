@@ -12,7 +12,6 @@ export function SLACountdownGov({
   compact?: boolean;
   className?: string;
 }) {
-  const stopped =
-    !isOpenStatus(grievance.status) || grievance.status === 'resolved_pending_verification';
+  const stopped = !isOpenStatus(grievance.status) || grievance.status === 'resolved_pending_verification';
   return <SLACountdown sla={grievance.sla} stopped={stopped} compact={compact} className={className} />;
 }

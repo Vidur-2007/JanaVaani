@@ -87,13 +87,25 @@ export function KPIStatGov({
         {Icon && <Icon className="size-4" aria-hidden />}
       </div>
       <div className="mt-1 flex items-baseline gap-2">
-        <span className="font-display tabular text-3xl font-semibold tracking-tight" aria-label={`${render(value)}${suffix}`}>
+        <span
+          className="font-display tabular text-3xl font-semibold tracking-tight"
+          aria-label={`${render(value)}${suffix}`}
+        >
           {render(shown)}
           {suffix}
         </span>
         {!!delta && (
-          <span className={cn('tabular inline-flex items-center text-xs font-medium', good ? 'text-success' : 'text-danger')}>
-            {delta > 0 ? <ArrowUpRight className="size-3.5" aria-hidden /> : <ArrowDownRight className="size-3.5" aria-hidden />}
+          <span
+            className={cn(
+              'tabular inline-flex items-center text-xs font-medium',
+              good ? 'text-success' : 'text-danger',
+            )}
+          >
+            {delta > 0 ? (
+              <ArrowUpRight className="size-3.5" aria-hidden />
+            ) : (
+              <ArrowDownRight className="size-3.5" aria-hidden />
+            )}
             {fmt.number(Math.abs(delta))}
           </span>
         )}

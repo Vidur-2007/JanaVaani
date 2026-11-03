@@ -20,7 +20,9 @@ export function PriorityFactorList({
         {factors.map((f) => (
           <li key={f.key} className="text-sm">
             <div className="flex items-baseline justify-between gap-3">
-              <span className="min-w-0">{f.label_en}</span>
+              <span className="min-w-0">
+                <bdi lang="en">{f.label_en}</bdi>
+              </span>
               <span className="tabular font-mono text-xs font-medium">+{f.points}</span>
             </div>
             <div className="bg-surface-2 mt-1 h-1 overflow-hidden rounded-full" aria-hidden>

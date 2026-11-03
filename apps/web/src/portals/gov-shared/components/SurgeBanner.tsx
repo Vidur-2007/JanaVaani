@@ -38,7 +38,7 @@ export function SurgeBanner() {
         <p className="text-danger font-semibold">{t('surge.banner_title')}</p>
         <p className="text-muted-foreground truncate text-sm">
           {/* The alert title carries the real count (B lists only example ids). */}
-          {s.title_en}
+          <bdi lang="en">{s.title_en}</bdi>
           {surges.length > 1 && ` · ${t('surge.more', { count: surges.length - 1 })}`}
         </p>
       </div>

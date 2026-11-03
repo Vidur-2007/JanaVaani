@@ -58,7 +58,9 @@ function ClusterLayer({
     const source = new WeakMap<object, MapPoint>();
     if (onCluster) {
       group.on('clusterclick', (e) => {
-        const children = (e as unknown as L.LeafletEvent & { layer: L.MarkerCluster }).layer.getAllChildMarkers();
+        const children = (
+          e as unknown as L.LeafletEvent & { layer: L.MarkerCluster }
+        ).layer.getAllChildMarkers();
         onCluster(children.flatMap((m: L.Marker) => source.get(m) ?? []));
       });
     }
@@ -208,7 +210,8 @@ export default function GovMapLayers({
     };
   }, []);
   const critical = useMemo(
-    () => points.filter((p) => p.priority === 'critical' && !['closed', 'rejected', 'merged'].includes(p.status)),
+    () =>
+      points.filter((p) => p.priority === 'critical' && !['closed', 'rejected', 'merged'].includes(p.status)),
     [points],
   );
   if (!ready) return null;

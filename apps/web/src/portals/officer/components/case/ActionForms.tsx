@@ -64,7 +64,10 @@ export function StatusControl({ grievance: g }: { grievance: Grievance }) {
       {delaying && (
         <div className="space-y-2">
           <Select value={reason} onValueChange={setReason}>
-            <SelectTrigger aria-label={t('status_control.delay_reason')} className="min-h-11 w-full md:min-h-9">
+            <SelectTrigger
+              aria-label={t('status_control.delay_reason')}
+              className="min-h-11 w-full md:min-h-9"
+            >
               <SelectValue placeholder={t('status_control.delay_reason')} />
             </SelectTrigger>
             <SelectContent>
@@ -93,7 +96,11 @@ export function StatusControl({ grievance: g }: { grievance: Grievance }) {
 export function NoteForm({ id }: { id: string }) {
   const { t } = useTranslation('gov');
   const [text, setText] = useState('');
-  const add = useCaseAction(id, (note: string) => api.addNote(id, { text: note }), () => setText(''));
+  const add = useCaseAction(
+    id,
+    (note: string) => api.addNote(id, { text: note }),
+    () => setText(''),
+  );
   return (
     <Panel title={t('note.title')}>
       <p className="text-warning flex items-center gap-1.5 text-xs font-medium">

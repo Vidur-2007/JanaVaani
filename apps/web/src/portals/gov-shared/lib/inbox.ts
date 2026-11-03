@@ -38,8 +38,7 @@ export function isDueToday(g: Grievance, now = Date.now()) {
 export const isSuspiciousClosure = (g: Grievance) => g.ai_verification?.verdict === 'suspicious';
 
 /** Offline API deployments return host-relative media paths; everything else is already absolute. */
-export const mediaUrl = (url: string) =>
-  url.startsWith('/api/') ? new URL(url, API_BASE).toString() : url;
+export const mediaUrl = (url: string) => (url.startsWith('/api/') ? new URL(url, API_BASE).toString() : url);
 
 /** Case states B accepts for #38. */
 export const canResolve = (s: Status) => s === 'assigned' || s === 'in_progress' || s === 'reopened';

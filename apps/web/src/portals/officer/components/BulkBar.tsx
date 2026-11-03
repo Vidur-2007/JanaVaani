@@ -25,13 +25,7 @@ const BULK_STATUSES: Status[] = ['assigned', 'in_progress'];
 
 type Action = 'status' | 'assign' | 'merge';
 
-export function BulkBar({
-  selected,
-  onClear,
-}: {
-  selected: Grievance[];
-  onClear: () => void;
-}) {
+export function BulkBar({ selected, onClear }: { selected: Grievance[]; onClear: () => void }) {
   const { t } = useTranslation('gov');
   const { t: tc } = useTranslation('common');
   const qc = useQueryClient();
@@ -53,8 +47,7 @@ export function BulkBar({
   });
 
   const incidentId = selected[0]?.incident_id;
-  const canMerge =
-    selected.length > 1 && !!incidentId && selected.every((g) => g.incident_id === incidentId);
+  const canMerge = selected.length > 1 && !!incidentId && selected.every((g) => g.incident_id === incidentId);
 
   const close = () => {
     setAction(null);
@@ -102,16 +95,31 @@ export function BulkBar({
         <span className="tabular px-1 text-sm font-medium" aria-live="polite">
           {t('bulk.selected', { count: selected.length })}
         </span>
-        <Button variant="outline" size="sm" className="min-h-11 min-w-11 md:min-h-9 md:min-w-0" onClick={() => setAction('status')}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="min-h-11 min-w-11 md:min-h-9 md:min-w-0"
+          onClick={() => setAction('status')}
+        >
           <ListChecks className="size-4" aria-hidden />
           {t('bulk.set_status')}
         </Button>
-        <Button variant="outline" size="sm" className="min-h-11 min-w-11 md:min-h-9 md:min-w-0" onClick={() => setAction('assign')}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="min-h-11 min-w-11 md:min-h-9 md:min-w-0"
+          onClick={() => setAction('assign')}
+        >
           <UserRoundCheck className="size-4" aria-hidden />
           {t('bulk.assign')}
         </Button>
         {canMerge && (
-          <Button variant="outline" size="sm" className="min-h-11 min-w-11 md:min-h-9 md:min-w-0" onClick={() => setAction('merge')}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="min-h-11 min-w-11 md:min-h-9 md:min-w-0"
+            onClick={() => setAction('merge')}
+          >
             <GitMerge className="size-4" aria-hidden />
             {t('bulk.merge')}
           </Button>

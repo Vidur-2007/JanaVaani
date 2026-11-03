@@ -110,10 +110,7 @@ export function FilterBar({
     enabled: has('ward'),
   });
   const others = controls.filter((c) => c !== 'q').length;
-  const zones = useMemo(
-    () => [...new Set((wards.data ?? []).map((w) => w.zone))].sort(),
-    [wards.data],
-  );
+  const zones = useMemo(() => [...new Set((wards.data ?? []).map((w) => w.zone))].sort(), [wards.data]);
 
   const urlText = filters.q ?? '';
   const [text, setText] = useState(urlText);
@@ -128,10 +125,7 @@ export function FilterBar({
   return (
     <section
       aria-label={t('filters.label')}
-      className={cn(
-        'grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center',
-        className,
-      )}
+      className={cn('grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center', className)}
     >
       {has('q') && (
         <div className="relative col-span-2 md:min-w-64 md:flex-1">

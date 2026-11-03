@@ -6,7 +6,7 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 - **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P4: alerts, audit explorer and block chain, AI model page, demo controls, CSV/Excel/PDF exports, report builder, `e2e/gov/p4-trust.spec.ts`. P5: public portal, realtime highlights, gov.json (en/te/hi complete; Urdu for the public portal, nav and charts), accessibility pass, `e2e/gov/p5-public.spec.ts`. P6 (except the merge and deployed API): §16 run on B's local API, bug fixes, `e2e/gov/p6-suite.spec.ts`, chart memoization, KPI tween, error-state gaps. P7: polish (alert cascade, staggered map pulses, audit walk timing, palette legend, skyline empty states), demo shortcuts, `e2e/gov/p7-demo.spec.ts`. P8 partly: `docs/demo-script.md` and `docs/slides-outline.md` drafted; the deployed click-through is not done. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
 - **In progress:** P3 Step 1 is unfinished: B has no deployed URL, so `.env.local` is not set and the UI has not run in hybrid mode.
-- **Next:** open the gov PR. After the merge and deployment: click through every gov route in Chrome and Edge on desktop and phone, fill in the blanks in `docs/demo-script.md`, and do two full run-throughs.
+- **Next:** deploy (Vercel, HF Space, Supabase, backup mock site). Then click through every gov route in Chrome and Edge on desktop and phone, fill in the blanks in `docs/demo-script.md`, and do two full run-throughs.
 - **Blockers:**
   - **The H30 merge has not happened.** `origin/main` is still the scaffold, PRs #1 (B) and #2 (A) are open, and there is no gov PR. `git merge origin/main` was a no-op, so this branch still has `v0-scaffold` shared code.
   - **B's API is not deployed** (needs Supabase project, keys and HF Space, per B's handover).
@@ -19,9 +19,8 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 `main` has the final B, A and C merge (tagged `v1.0-submission`), and this branch merged it back. Checked section by section against Spec C:
 
 - **Done:** §3 shell, §4 components, §5.1–5.4, §6.1–6.10, §7 public, §8 charts (every chart now has a table view), §9 en/te/hi (no missing keys), §10 tests 1–7, and stretch S1, S2, S8 (see above).
-- **Added in this pass:** export menus on the inbox and analytics; table views for the department-drawer trend and the spike mini-chart; the case page links its asset to `/admin/assets/:id` for admins.
+- **Added in this pass:** full Urdu for every gov screen (540 strings, placeholders checked) with Urdu in the gov language switcher; English API text isolated with `<bdi>` so it reads correctly in right-to-left; export menus on the inbox and analytics; table views for the department-drawer trend and the spike mini-chart; the case page links its asset to `/admin/assets/:id` for admins.
 - **Not done, with reasons:**
-  - Urdu for most gov screens. Spec §9 marks it optional; the public portal, nav, charts and map are in Urdu.
   - S6 monthly AI report and S9 field visits need endpoints B never built.
   - Real virtualization: tables are server-paged with `content-visibility` instead.
   - "Verify sample of 50" verifies every chain instead.

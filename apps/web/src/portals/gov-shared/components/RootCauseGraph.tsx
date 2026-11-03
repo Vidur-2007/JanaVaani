@@ -96,7 +96,9 @@ export function RootCauseGraph({
               >
                 {g.id}
               </Link>
-              <span className="min-w-0 flex-1 truncate">{g.title.en}</span>
+              <span className="min-w-0 flex-1 truncate">
+                <bdi lang="en">{g.title.en}</bdi>
+              </span>
               <span className="text-muted-foreground text-xs">
                 {g.incident_id ?? t('rootcause.no_incident')}
               </span>

@@ -29,13 +29,15 @@ const csvCell = (v: string | number) => {
 export function exportCsv(sheets: ExportSheet[], filename: string) {
   const body = sheets
     .map((s) =>
-      [...(sheets.length > 1 ? [s.name] : []), s.columns.map(csvCell).join(','), ...s.rows.map((r) => r.map(csvCell).join(','))].join(
-        '\n',
-      ),
+      [
+        ...(sheets.length > 1 ? [s.name] : []),
+        s.columns.map(csvCell).join(','),
+        ...s.rows.map((r) => r.map(csvCell).join(',')),
+      ].join('\n'),
     )
     .join('\n\n');
   // The byte order mark makes Excel read Telugu, Hindi and Urdu as UTF-8.
-  download(new Blob(['﻿', body], { type: 'text/csv;charset=utf-8' }), `${filename}.csv`);
+  download(new Blob(['\uFEFF', body], { type: 'text/csv;charset=utf-8' }), `${filename}.csv`);
 }
 
 export async function exportExcel(sheets: ExportSheet[], filename: string) {

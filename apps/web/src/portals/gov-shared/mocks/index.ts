@@ -99,7 +99,12 @@ async function register() {
     const timeline = id === TAMPERED ? find(id)?.timeline : undefined;
     if (timeline) {
       const broken = timeline[Math.floor(timeline.length / 2)];
-      return { grievance_id: id, events_checked: timeline.indexOf(broken) + 1, valid: false, first_broken_event_id: broken.id };
+      return {
+        grievance_id: id,
+        events_checked: timeline.indexOf(broken) + 1,
+        valid: false,
+        first_broken_event_id: broken.id,
+      };
     }
     return verify(ctx);
   });

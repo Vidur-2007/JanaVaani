@@ -71,7 +71,10 @@ export function GovLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onSearch={() => setPaletteOpen(true)} onMenu={() => setMenuOpen(true)} />
-        <main id="main" className={cn('min-w-0 flex-1 overflow-y-auto p-3 md:p-6', DEMO_MODE && 'pb-20 md:pb-20')}>
+        <main
+          id="main"
+          className={cn('min-w-0 flex-1 overflow-y-auto p-3 md:p-6', DEMO_MODE && 'pb-20 md:pb-20')}
+        >
           <Suspense fallback={<PageSkeleton />}>
             <AnimatedOutlet />
           </Suspense>

@@ -40,19 +40,31 @@ function Heatmap() {
     queryFn: ({ signal }) => api.publicMap({ category }, signal),
     placeholderData: (prev) => prev,
   });
-  const chip = (active: boolean) =>
-    cn('min-h-11 md:min-h-9', active && 'border-primary text-primary');
+  const chip = (active: boolean) => cn('min-h-11 md:min-h-9', active && 'border-primary text-primary');
   return (
     <section aria-labelledby="public-map" className="space-y-3">
       <h2 id="public-map" className="font-display text-xl font-semibold">
         {t('public.map_title')}
       </h2>
       <div className="flex flex-wrap gap-1" role="group" aria-label={t('filters.department')}>
-        <Button variant="outline" size="sm" className={chip(!category)} aria-pressed={!category} onClick={() => setCategory(undefined)}>
+        <Button
+          variant="outline"
+          size="sm"
+          className={chip(!category)}
+          aria-pressed={!category}
+          onClick={() => setCategory(undefined)}
+        >
           {t('filters.all')}
         </Button>
         {FILTERS.map((d) => (
-          <Button key={d} variant="outline" size="sm" className={chip(category === d)} aria-pressed={category === d} onClick={() => setCategory(d)}>
+          <Button
+            key={d}
+            variant="outline"
+            size="sm"
+            className={chip(category === d)}
+            aria-pressed={category === d}
+            onClick={() => setCategory(d)}
+          >
             {tc(`departments.${d}`)}
           </Button>
         ))}
@@ -60,7 +72,13 @@ function Heatmap() {
       {q.isError ? (
         <ErrorState error={q.error} onRetry={() => q.refetch()} />
       ) : (
-        <GovMap points={q.data} defaultLayers={['heat']} availableLayers={['heat']} height="min(55dvh, 460px)" scrollWheelZoom={false} />
+        <GovMap
+          points={q.data}
+          defaultLayers={['heat']}
+          availableLayers={['heat']}
+          height="min(55dvh, 460px)"
+          scrollWheelZoom={false}
+        />
       )}
       <p className="text-muted-foreground flex items-start gap-2 text-sm">
         <ShieldCheck className="text-success mt-0.5 size-4 shrink-0" aria-hidden />
@@ -96,7 +114,10 @@ export default function PublicPortal() {
         <PageTransition className="mx-auto max-w-6xl space-y-10 px-4 py-8">
           <section aria-labelledby="public-title" className="space-y-4">
             <div className="space-y-2">
-              <h1 id="public-title" className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+              <h1
+                id="public-title"
+                className="font-display text-3xl font-semibold tracking-tight md:text-4xl"
+              >
                 {t('public.title')}
               </h1>
               <p className="text-muted-foreground max-w-2xl">{t('public.subtitle')}</p>
@@ -109,8 +130,18 @@ export default function PublicPortal() {
                   [0, 1, 2].map((i) => <StatSkeleton key={i} />)
                 ) : (
                   <>
-                    <KPIStat label={t('public.resolution_rate')} value={stats.resolution_rate_pct} decimals={1} suffix="%" />
-                    <KPIStat label={t('public.avg_time')} value={stats.avg_resolution_hours} decimals={1} suffix={` ${t('public.hours')}`} />
+                    <KPIStat
+                      label={t('public.resolution_rate')}
+                      value={stats.resolution_rate_pct}
+                      decimals={1}
+                      suffix="%"
+                    />
+                    <KPIStat
+                      label={t('public.avg_time')}
+                      value={stats.avg_resolution_hours}
+                      decimals={1}
+                      suffix={` ${t('public.hours')}`}
+                    />
                     <KPIStat label={t('public.total_resolved')} value={stats.resolved} />
                   </>
                 )}
@@ -127,11 +158,18 @@ export default function PublicPortal() {
               </h2>
               <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {stats.by_department.map((d) => (
-                  <li key={d.department_id} data-testid="report-card" className="bg-surface space-y-2 rounded-[var(--radius-lg)] border p-4">
+                  <li
+                    key={d.department_id}
+                    data-testid="report-card"
+                    className="bg-surface space-y-2 rounded-[var(--radius-lg)] border p-4"
+                  >
                     <DepartmentBadge department={d.department_id} size="sm" />
-                    <p className="font-display tabular text-2xl font-semibold">{fmt.percent(d.resolved_pct)}</p>
+                    <p className="font-display tabular text-2xl font-semibold">
+                      {fmt.percent(d.resolved_pct)}
+                    </p>
                     <p className="text-muted-foreground text-xs">
-                      {t('public.resolved_of', { count: d.total })} · {t('public.avg_hours', { value: fmt.number(d.avg_resolution_hours) })}
+                      {t('public.resolved_of', { count: d.total })} ·{' '}
+                      {t('public.avg_hours', { value: fmt.number(d.avg_resolution_hours) })}
                     </p>
                     <Sparkline
                       data={stats.trend.map((p) => p.by_category?.[d.department_id] ?? 0)}
@@ -160,7 +198,13 @@ export default function PublicPortal() {
                   <XAxis dataKey="zone" tick={axisTick} tickLine={false} interval={0} />
                   <YAxis domain={[0, 100]} tick={axisTick} tickLine={false} axisLine={false} />
                   <Tooltip cursor={{ fill: 'var(--surface-2)' }} contentStyle={tooltipStyle} />
-                  <Bar dataKey="resolved_pct" name={t('public.resolution_rate')} fill="var(--accent)" radius={[4, 4, 0, 0]} animationDuration={CHART_ANIMATION_MS} />
+                  <Bar
+                    dataKey="resolved_pct"
+                    name={t('public.resolution_rate')}
+                    fill="var(--accent)"
+                    radius={[4, 4, 0, 0]}
+                    animationDuration={CHART_ANIMATION_MS}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
@@ -184,7 +228,9 @@ export default function PublicPortal() {
                       {r.before_url && r.after_url && (
                         <BeforeAfterSlider before={mediaUrl(r.before_url)} after={mediaUrl(r.after_url)} />
                       )}
-                      <p className="text-sm font-medium">{r.title_en}</p>
+                      <p className="text-sm font-medium">
+                        <bdi lang="en">{r.title_en}</bdi>
+                      </p>
                       <p className="text-muted-foreground flex items-center gap-2 text-xs">
                         {tc(`departments.${r.category}`)} · {r.zone} · {fmt.date(r.resolved_at)}
                       </p>
@@ -195,12 +241,18 @@ export default function PublicPortal() {
             </section>
           )}
 
-          <section aria-labelledby="public-method" className="bg-surface space-y-3 rounded-[var(--radius-lg)] border p-5" data-testid="methodology">
+          <section
+            aria-labelledby="public-method"
+            className="bg-surface space-y-3 rounded-[var(--radius-lg)] border p-5"
+            data-testid="methodology"
+          >
             <h2 id="public-method" className="font-display text-xl font-semibold">
               {t('public.method_title')}
             </h2>
             <ul className="list-disc space-y-1.5 ps-5 text-sm">
-              {(['method_counts', 'method_time', 'method_location', 'method_no_people', 'method_ai'] as const).map((k) => (
+              {(
+                ['method_counts', 'method_time', 'method_location', 'method_no_people', 'method_ai'] as const
+              ).map((k) => (
                 <li key={k}>{t(`public.${k}`)}</li>
               ))}
             </ul>

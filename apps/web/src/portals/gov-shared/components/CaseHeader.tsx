@@ -4,7 +4,15 @@ import type { Grievance } from '@contracts/types';
 import { DepartmentBadge, PriorityChip } from '@/design/components';
 import { GovStatusChip } from './GovStatusChip';
 
-export function CaseHeader({ grievance: g, flags, asHeading = true }: { grievance: Grievance; flags?: ReactNode; asHeading?: boolean }) {
+export function CaseHeader({
+  grievance: g,
+  flags,
+  asHeading = true,
+}: {
+  grievance: Grievance;
+  flags?: ReactNode;
+  asHeading?: boolean;
+}) {
   const Title = asHeading ? 'h1' : 'h3';
   return (
     <header className="space-y-1.5">
@@ -14,8 +22,14 @@ export function CaseHeader({ grievance: g, flags, asHeading = true }: { grievanc
         <DepartmentBadge department={g.category} size="sm" />
         {flags}
       </div>
-      <Title className={asHeading ? 'font-display text-xl font-semibold tracking-tight md:text-2xl' : 'font-display text-sm font-semibold'}>
-        {g.title.en}
+      <Title
+        className={
+          asHeading
+            ? 'font-display text-xl font-semibold tracking-tight md:text-2xl'
+            : 'font-display text-sm font-semibold'
+        }
+      >
+        <bdi lang="en">{g.title.en}</bdi>
       </Title>
       <p className="text-muted-foreground tabular font-mono text-xs">
         {g.id}

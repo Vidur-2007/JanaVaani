@@ -11,7 +11,8 @@ import { GovStatusChip } from '@/portals/gov-shared/components/GovStatusChip';
 import { SLACountdownGov } from '@/portals/gov-shared/components/SLACountdownGov';
 import { isSuspiciousClosure } from '@/portals/gov-shared/lib/inbox';
 
-const flagCls = 'inline-flex h-5 items-center gap-1 rounded-full px-1.5 text-[11px] font-medium whitespace-nowrap';
+const flagCls =
+  'inline-flex h-5 items-center gap-1 rounded-full px-1.5 text-[11px] font-medium whitespace-nowrap';
 
 export function CaseFlags({ g }: { g: Grievance }) {
   const { t } = useTranslation('gov');
@@ -76,7 +77,7 @@ export function CaseTitle({ g }: { g: Grievance }) {
           onClick={(e) => e.stopPropagation()}
           className="hover:text-primary truncate font-medium"
         >
-          {g.title.en}
+          <bdi lang="en">{g.title.en}</bdi>
         </Link>
         {g.language !== 'en' && <LangBadge lang={g.language} codeMixed={g.is_code_mixed} />}
       </div>

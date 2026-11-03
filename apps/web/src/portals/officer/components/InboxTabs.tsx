@@ -8,7 +8,9 @@ export function InboxTabs() {
   const tab = ({ isActive }: { isActive: boolean }) =>
     cn(
       'inline-flex min-h-11 items-center border-b-2 px-3 text-sm transition-colors md:min-h-9',
-      isActive ? 'border-primary text-text font-medium' : 'text-muted-foreground hover:text-text border-transparent',
+      isActive
+        ? 'border-primary text-text font-medium'
+        : 'text-muted-foreground hover:text-text border-transparent',
     );
   return (
     <nav aria-label={t('inbox.views')} className="flex gap-1 border-b">

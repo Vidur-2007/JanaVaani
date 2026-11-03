@@ -34,7 +34,12 @@ export function EmergencyDecision({ id }: { id: string }) {
           placeholder={t('emergency.deny_reason')}
         />
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" className="min-h-11 flex-1 md:min-h-9" onClick={() => setDenying(false)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="min-h-11 flex-1 md:min-h-9"
+            onClick={() => setDenying(false)}
+          >
             {t('emergency.back')}
           </Button>
           <Button
@@ -62,7 +67,12 @@ export function EmergencyDecision({ id }: { id: string }) {
         <ShieldAlert className="size-4" aria-hidden />
         {t('emergency.confirm')}
       </Button>
-      <Button variant="outline" size="sm" className="min-h-11 flex-1 md:min-h-9" onClick={() => setDenying(true)}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="min-h-11 flex-1 md:min-h-9"
+        onClick={() => setDenying(true)}
+      >
         <ShieldOff className="size-4" aria-hidden />
         {t('emergency.deny')}
       </Button>

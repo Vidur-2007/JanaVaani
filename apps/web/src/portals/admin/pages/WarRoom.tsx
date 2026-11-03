@@ -147,8 +147,12 @@ export default function WarRoom() {
             <Siren className="size-3.5" aria-hidden />
             {isSurge ? t('surge.mode') : t('surge.incident_view')}
           </p>
-          <h1 className="font-display text-2xl font-semibold">{alert.title_en}</h1>
-          <p className="text-muted-foreground text-sm">{alert.detail_en}</p>
+          <h1 className="font-display text-2xl font-semibold">
+            <bdi lang="en">{alert.title_en}</bdi>
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            <bdi lang="en">{alert.detail_en}</bdi>
+          </p>
           {!!alert.languages?.length && (
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="text-muted-foreground text-xs">{t('surge.languages')}</span>
@@ -252,7 +256,9 @@ export default function WarRoom() {
                           >
                             <PriorityChip priority={g.priority} size="sm" />
                             <span className="tabular font-mono text-xs">{g.id.slice(-6)}</span>
-                            <span className="min-w-0 flex-1 truncate">{g.title.en}</span>
+                            <span className="min-w-0 flex-1 truncate">
+                              <bdi lang="en">{g.title.en}</bdi>
+                            </span>
                             <GovStatusChip status={g.status} />
                           </Link>
                         </li>

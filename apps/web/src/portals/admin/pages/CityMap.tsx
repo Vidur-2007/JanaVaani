@@ -144,7 +144,9 @@ function WardPanel({
         {incidents.data?.length ? (
           <ul className="space-y-1 text-sm">
             {incidents.data.map((i) => (
-              <li key={i.id}>{i.title_en}</li>
+              <li key={i.id}>
+                <bdi lang="en">{i.title_en}</bdi>
+              </li>
             ))}
           </ul>
         ) : (
@@ -175,7 +177,9 @@ function ClusterPanel({ points, onClose }: { points: MapPoint[]; onClose: () => 
           <li key={shown[i]} className="py-2" data-testid="cluster-case">
             {c.data ? (
               <Link to={`/officer/case/${c.data.id}`} className="hover:text-primary block space-y-1">
-                <span className="block text-sm font-medium">{c.data.title.en}</span>
+                <span className="block text-sm font-medium">
+                  <bdi lang="en">{c.data.title.en}</bdi>
+                </span>
                 <GovStatusChip status={c.data.status} />
               </Link>
             ) : c.isError ? (

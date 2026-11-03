@@ -176,7 +176,7 @@ function DepartmentDrawer({ id, days, onClose }: { id: DepartmentId; days: numbe
               {overdue.map((g) => (
                 <li key={g.id} className="flex items-center justify-between gap-2 text-sm">
                   <Link to={`/officer/case/${g.id}`} className="hover:text-primary truncate">
-                    {g.title.en}
+                    <bdi lang="en">{g.title.en}</bdi>
                   </Link>
                   <SLACountdownGov grievance={g} className="shrink-0" />
                 </li>

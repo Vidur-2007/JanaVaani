@@ -97,7 +97,10 @@ export function ReplyComposer({ grievance: g }: { grievance: Grievance }) {
         />
       </div>
       {showPreview && (
-        <div className="border-ai/35 bg-ai/5 space-y-1 rounded-[var(--radius-sm)] border p-2" data-testid="citizen-preview">
+        <div
+          className="border-ai/35 bg-ai/5 space-y-1 rounded-[var(--radius-sm)] border p-2"
+          data-testid="citizen-preview"
+        >
           <div className="flex items-center justify-between gap-2">
             <AIBadge variant="suggested" label={t('reply.citizen_sees')} />
             <ListenButton text={draft.draft_citizen.original} lang={g.language} size="icon" />

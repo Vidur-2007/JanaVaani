@@ -103,8 +103,12 @@ export function DeptLeaderboard({
               <td className="px-2 py-1.5 text-end">{fmt.percent(d.sla_compliance_pct)}</td>
               {!limit && (
                 <>
-                  <td className="px-2 py-1.5 text-end">{d.resolved ? `${fmt.number(d.avg_resolution_hours)} h` : '–'}</td>
-                  <td className="px-2 py-1.5 text-end">{d.satisfaction_avg ? fmt.number(d.satisfaction_avg) : '–'}</td>
+                  <td className="px-2 py-1.5 text-end">
+                    {d.resolved ? `${fmt.number(d.avg_resolution_hours)} h` : '–'}
+                  </td>
+                  <td className="px-2 py-1.5 text-end">
+                    {d.satisfaction_avg ? fmt.number(d.satisfaction_avg) : '–'}
+                  </td>
                   <td className="px-2 py-1.5 text-end">{fmt.percent(d.reopen_rate)}</td>
                   <td className="px-2 py-1.5 text-end">{fmt.number(d.open)}</td>
                   <td className="px-2 py-1.5 text-end">{fmt.number(d.overdue)}</td>

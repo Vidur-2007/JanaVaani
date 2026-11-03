@@ -99,12 +99,16 @@ export function AlertCard({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h4 className="text-sm leading-snug font-medium">{alert.title_en}</h4>
+            <h4 className="text-sm leading-snug font-medium">
+              <bdi lang="en">{alert.title_en}</bdi>
+            </h4>
             <time className="text-muted-foreground shrink-0 text-[11px]" dateTime={alert.created_at}>
               {fmt.relative(alert.created_at)}
             </time>
           </div>
-          <p className="text-muted-foreground mt-0.5 text-xs">{alert.detail_en}</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            <bdi lang="en">{alert.detail_en}</bdi>
+          </p>
           {(alert.category || alert.languages?.length) && (
             <div className="mt-2 flex flex-wrap items-center gap-1">
               {alert.category && <DepartmentBadge department={alert.category} size="sm" />}

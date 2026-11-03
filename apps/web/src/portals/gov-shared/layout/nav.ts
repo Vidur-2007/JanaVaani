@@ -60,9 +60,7 @@ const GROUPS: NavGroup[] = [
       { to: '/admin/ai', labelKey: 'nav.ai', icon: BrainCircuit, roles: ADMIN },
       { to: '/admin/reports', labelKey: 'nav.reports', icon: FileChartColumn, roles: ADMIN },
       { to: '/admin/assets', labelKey: 'nav.assets', icon: QrCode, roles: ADMIN },
-      ...(DEMO_MODE
-        ? [{ to: '/admin/demo', labelKey: 'nav.demo', icon: FlaskConical, roles: ADMIN }]
-        : []),
+      ...(DEMO_MODE ? [{ to: '/admin/demo', labelKey: 'nav.demo', icon: FlaskConical, roles: ADMIN }] : []),
     ],
   },
   {

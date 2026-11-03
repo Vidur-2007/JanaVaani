@@ -37,13 +37,7 @@ const TILES: Tile[] = [
   },
 ];
 
-export function SummaryStrip({
-  filters,
-  onSelect,
-}: {
-  filters: Filters;
-  onSelect: (f: Filters) => void;
-}) {
+export function SummaryStrip({ filters, onSelect }: { filters: Filters; onSelect: (f: Filters) => void }) {
   const { t } = useTranslation('gov');
   const fmt = useLangFormat();
   const results = useQueries({
@@ -55,7 +49,8 @@ export function SummaryStrip({
         queryKey: qk.officer.inbox({ sort: 'sla', page_size: 100 }),
         queryFn: ({ signal }: { signal: AbortSignal }) =>
           api.officerInbox({ sort: 'sla', page_size: 100 }, signal),
-        select: (d: Awaited<ReturnType<typeof api.officerInbox>>) => d.items.filter((g) => isDueToday(g)).length,
+        select: (d: Awaited<ReturnType<typeof api.officerInbox>>) =>
+          d.items.filter((g) => isDueToday(g)).length,
       },
       count({ status: 'resolved_pending_verification' }),
     ],

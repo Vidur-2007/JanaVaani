@@ -79,7 +79,10 @@ export function ChartCard({
     <section
       ref={capture}
       aria-label={title}
-      className={cn('bg-surface flex min-w-0 flex-col gap-3 rounded-[var(--radius-lg)] border p-4', className)}
+      className={cn(
+        'bg-surface flex min-w-0 flex-col gap-3 rounded-[var(--radius-lg)] border p-4',
+        className,
+      )}
     >
       <header className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -89,7 +92,12 @@ export function ChartCard({
         <div className="flex shrink-0 items-center" data-no-export>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className="min-h-11 min-w-11 md:min-h-8 md:min-w-8" aria-label={t('chart.how_computed')}>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="min-h-11 min-w-11 md:min-h-8 md:min-w-8"
+                aria-label={t('chart.how_computed')}
+              >
                 <Info className="size-4" aria-hidden />
               </Button>
             </PopoverTrigger>
@@ -140,7 +148,11 @@ export function ChartCard({
               <thead>
                 <tr>
                   {table.columns.map((c) => (
-                    <th key={c} scope="col" className="text-muted-foreground border-b px-2 py-1.5 text-start text-xs font-medium">
+                    <th
+                      key={c}
+                      scope="col"
+                      className="text-muted-foreground border-b px-2 py-1.5 text-start text-xs font-medium"
+                    >
                       {c}
                     </th>
                   ))}
