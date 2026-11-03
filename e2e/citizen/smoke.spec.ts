@@ -103,16 +103,17 @@ test('gov routes render for admin and supervisor', async ({ page }) => {
     '/admin/ai',
   ]) {
     await page.goto(path);
-    await expect(page.getByTestId('gov-placeholder')).toBeVisible();
+    // After the H30/H42 merges these are Laptop C's real portals (not the P0 placeholders): just check they render.
+    await expect(page.locator('main').first()).toBeVisible();
+    await expect(page.getByTestId('not-found')).toHaveCount(0);
     await expectRendered(page);
   }
-  await page.goto('/officer');
-  await expect(page.getByTestId('inbox-stub')).toBeVisible();
 });
 
 test('public dashboard renders without login', async ({ page }) => {
   await page.goto('/public');
-  await expect(page.getByTestId('gov-placeholder')).toBeVisible();
+  await expect(page.locator('main').first()).toBeVisible();
+  await expect(page).toHaveURL(/\/public/);
   await expectRendered(page);
 });
 

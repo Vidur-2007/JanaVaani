@@ -126,6 +126,8 @@ test('report builder exports CSV, Excel and PDF', async ({ page }, info) => {
     expect(bytes.length).toBeGreaterThan(100);
     if (ext === '.pdf') expect(bytes.subarray(0, 4).toString()).toBe('%PDF');
     if (ext === '.xlsx') expect(bytes.subarray(0, 2).toString()).toBe('PK');
+    // Integrator (H42): let the menu finish closing before reopening it; reopening mid-exit-animation toggled it shut.
+    await expect(page.getByRole('menu')).toHaveCount(0);
   }
 });
 
