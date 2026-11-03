@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { CloudOff, History, MapPin, QrCode, Users } from 'lucide-react';
 import { Button } from '@/design/ui/button';
-import type { DeepLang, Lang, Location } from '@contracts/types';
+import type { DeepLang, Lang, Location, Media } from '@contracts/types';
 import { PageTransition } from '@/design/components';
 import { api, qk } from '@/lib/api/endpoints';
 import { replyLang, usePrefs } from '@/lib/prefs/store';
@@ -31,6 +31,7 @@ import { clearDraft, loadDraft, saveDraft, userText, type SavedDraft } from './d
 import { queueOutbox } from './outbox';
 import { VoiceMode } from './voice/VoiceMode';
 import { DEMO_KUKATPALLY, DEMO_MIYAPUR, DEMO_PHRASES, DemoChips, type DemoPhraseKey } from '../demo/demoKit';
+import { DocButton, DocCard, useDocumentReader } from './DocumentExtract';
 
 /** Quick-reply values that mean "share my location" (B's API sends `share_location`). */
 const LOCATION_VALUES = new Set(['share_location', 'location', 'use_location']);
@@ -112,6 +113,15 @@ export default function ReportPage() {
   // P7 demo mode: a chip pre-fills the rehearsed phrase (and its place) — the presenter still presses Send.
   const [demoText, setDemoText] = useState<string>();
   const [composerKey, setComposerKey] = useState(0);
+  // S5: read a photographed notice/bill; "Use this" pre-fills the composer and keeps the photo attached.
+  const docReader = useDocumentReader(uiLang);
+  const applyDoc = (text: string, media: Media) => {
+    chat.attachMedia(media);
+    setDemoText(text);
+    setComposerKey((n) => n + 1);
+    docReader.clear();
+  };
+
   const pickDemo = (k: DemoPhraseKey) => {
     setDemoText(DEMO_PHRASES[k].text);
     setComposerKey((n) => n + 1);
@@ -388,6 +398,10 @@ export default function ReportPage() {
           }}
         />
         {photo.inputEl}
+        {docReader.inputEl}
+        {docReader.result && (
+          <DocCard result={docReader.result} uiLang={uiLang} onUse={applyDoc} onDiscard={docReader.clear} />
+        )}
         {stage !== 'submitted' && !queued && !hasUserTurn && (
           <DemoChips keys={['live_wire', 'pothole', 'water']} onPick={pickDemo} className="pb-1" />
         )}
@@ -404,6 +418,7 @@ export default function ReportPage() {
             tools={
               <>
                 <PhotoButton onClick={photo.open} busy={photo.busy} />
+                <DocButton onClick={docReader.open} busy={docReader.busy} />
                 <LocationButton onClick={() => setLocOpen(true)} active={!!chat.snap.location} />
               </>
             }

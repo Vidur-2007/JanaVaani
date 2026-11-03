@@ -193,3 +193,20 @@ test.describe('demo helpers (VITE_DEMO_MODE)', () => {
     await expect(page.getByTestId('duplicate-sheet')).toBeVisible();
   });
 });
+
+test('S5: read a photographed bill → AI summary + fields → "use this" drafts the complaint with the photo attached', async ({ page }) => {
+  await signIn(page, LAKSHMI);
+  await page.goto('/app/report?mode=text');
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByTestId('doc-button').click();
+  await (await chooser).setFiles({ name: 'bill.png', mimeType: 'image/png', buffer: png(320, 240) });
+  const card = page.getByTestId('doc-card');
+  await expect(card).toBeVisible();
+  await expect(card).toContainText(/[ఀ-౿]/); // summary in the UI language (Telugu)
+  await expect(card).toContainText('HMW-23-118842');
+  await page.getByTestId('doc-use').click();
+  await expect(page.getByTestId('doc-card')).toHaveCount(0);
+  await expect(page.getByTestId('composer-input')).toHaveValue(/HMW-23-118842/);
+  await page.getByTestId('composer-input').press('Enter');
+  await expect(page.locator('[data-role="bot"]').nth(1)).toBeVisible();
+});

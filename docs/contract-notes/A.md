@@ -2,6 +2,18 @@
 
 Additive changes, assumptions and requests about the shared contract (master §8/§9). Newest first.
 
+## P7
+
+### Request to B (additive, stretch S5 / feature 29)
+- **`POST /api/v1/documents/extract`** `{media_id, ui_lang}` → `DocumentExtractResponse` (see `apps/web/src/portals/citizen/types-ext.ts`):
+  - `doc_type`: `bill` | `notice` | `letter` | `receipt` | `other`
+  - `summary`: Localized, in `ui_lang`
+  - `fields`: e.g. `consumer_no`, `amount`, `period`, `due_date`
+  - `suggested_text`: Localized
+  - `department_hint?`, `confidence`
+- Gemini vision on the uploaded evidence photo. Mask personal data in `fields` the same way as complaint text.
+- Until it exists, the citizen UI falls back to a mock (synthetic water bill) on 404.
+
 ## P6 (integration QA against B's API, offline mode, run locally from `origin/feat/ai-engine`)
 
 ### Frontend changes (additive, in `src/lib`; nothing renamed)

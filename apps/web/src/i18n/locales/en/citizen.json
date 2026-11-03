@@ -629,5 +629,25 @@
     "place": "Miyapur X Roads",
     "voice_phrase": "Say the demo phrase",
     "case": "Demo: suspicious streetlight case"
+  },
+  "doc": {
+    "read": "Read a notice or bill",
+    "photo_alt": "Your document",
+    "discard": "Discard",
+    "use": "Use this in my complaint",
+    "check_note": "AI read this from your photo. Check the details before you send.",
+    "type": {
+      "bill": "Bill",
+      "notice": "Notice",
+      "letter": "Letter",
+      "receipt": "Receipt",
+      "other": "Document"
+    },
+    "fields": {
+      "consumer_no": "Consumer no.",
+      "amount": "Amount",
+      "period": "Period",
+      "due_date": "Due date"
+    }
   }
 }
