@@ -1,0 +1,10 @@
+{
+  "levels": {
+    "critical": {"min_score": 80, "sla_hours": 24},
+    "high": {"min_score": 60, "sla_hours": 48},
+    "medium": {"min_score": 35, "sla_hours": 96},
+    "low": {"min_score": 0, "sla_hours": 168}
+  },
+  "emergency_confirmed_hours": 4,
+  "auto_close_days": 7
+}

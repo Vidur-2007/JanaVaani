@@ -1,0 +1,375 @@
+{
+  "model_version": "v20261102-065449",
+  "trained_at": "2026-11-02T06:54:49Z",
+  "embedding_model": "tfidf-char2-5+word1-2",
+  "algorithm": "LogisticRegression(class_weight=balanced) + CalibratedClassifierCV(cv=3)",
+  "split": "group split by phrase_id (no phrase shared between train and test)",
+  "dataset": "synthetic template dataset (ml/generate_dataset.py); see limitations",
+  "n_train": 2052,
+  "n_test": 392,
+  "corrections_used": 0,
+  "lexicon_terms_used": 166,
+  "lexicon_terms_dropped_overlap_with_human_test": 58,
+  "accuracy": 0.7781,
+  "macro_f1": 0.7818,
+  "per_language": {
+    "code_mixed": {
+      "accuracy": 0.9216,
+      "n": 102
+    },
+    "en": {
+      "accuracy": 0.9412,
+      "n": 102
+    },
+    "hi": {
+      "accuracy": 0.6875,
+      "n": 64
+    },
+    "te": {
+      "accuracy": 0.7077,
+      "n": 65
+    },
+    "ur": {
+      "accuracy": 0.4237,
+      "n": 59
+    }
+  },
+  "per_class": {
+    "roads": {
+      "precision": 0.625,
+      "recall": 0.7317,
+      "f1-score": 0.6742,
+      "support": 41.0
+    },
+    "sanitation": {
+      "precision": 0.58,
+      "recall": 0.6905,
+      "f1-score": 0.6304,
+      "support": 42.0
+    },
+    "water": {
+      "precision": 0.7576,
+      "recall": 0.5952,
+      "f1-score": 0.6667,
+      "support": 42.0
+    },
+    "streetlights": {
+      "precision": 0.82,
+      "recall": 1.0,
+      "f1-score": 0.9011,
+      "support": 41.0
+    },
+    "power": {
+      "precision": 0.8611,
+      "recall": 0.7381,
+      "f1-score": 0.7949,
+      "support": 42.0
+    },
+    "drainage": {
+      "precision": 0.8723,
+      "recall": 1.0,
+      "f1-score": 0.9318,
+      "support": 41.0
+    },
+    "traffic": {
+      "precision": 0.6857,
+      "recall": 0.8,
+      "f1-score": 0.7385,
+      "support": 30.0
+    },
+    "health": {
+      "precision": 0.9375,
+      "recall": 0.5,
+      "f1-score": 0.6522,
+      "support": 30.0
+    },
+    "education": {
+      "precision": 0.9565,
+      "recall": 0.7333,
+      "f1-score": 0.8302,
+      "support": 30.0
+    },
+    "town_planning": {
+      "precision": 0.7667,
+      "recall": 0.7931,
+      "f1-score": 0.7797,
+      "support": 29.0
+    },
+    "other": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 24.0
+    }
+  },
+  "human_test": {
+    "accuracy": 0.75,
+    "macro_f1": 0.7755,
+    "n": 48,
+    "per_language": {
+      "code_mixed": {
+        "accuracy": 0.9,
+        "n": 10
+      },
+      "en": {
+        "accuracy": 0.7143,
+        "n": 14
+      },
+      "hi": {
+        "accuracy": 0.625,
+        "n": 8
+      },
+      "te": {
+        "accuracy": 0.7778,
+        "n": 9
+      },
+      "ur": {
+        "accuracy": 0.7143,
+        "n": 7
+      }
+    },
+    "errors": [
+      {
+        "text": "Sir the road near Kukatpally Y junction has become like a pond, two wheelers are falling every day",
+        "true": "roads",
+        "pred": "traffic"
+      },
+      {
+        "text": "Lamp post number 42 on 3rd cross Madhapur dead for 10 days, very dark",
+        "true": "streetlights",
+        "pred": "sanitation"
+      },
+      {
+        "text": "TGSPDCL cut our supply at 9am and still not restored, fridge food spoiled",
+        "true": "power",
+        "pred": "health"
+      },
+      {
+        "text": "Classroom ceiling plaster fell in ZPHS Alwal, luckily no child was hurt",
+        "true": "education",
+        "pred": "health"
+      },
+      {
+        "text": "Mehdipatnam mein machhar ka aatank hai, har ghar mein bukhar",
+        "true": "health",
+        "pred": "drainage"
+      },
+      {
+        "text": "మల్కాజ్‌గిరిలో తాగునీరు రంగు మారి వస్తోంది",
+        "true": "water",
+        "pred": "drainage"
+      },
+      {
+        "text": "అక్రమంగా ప్రభుత్వ స్థలంలో షెడ్డు వేశారు",
+        "true": "town_planning",
+        "pred": "health"
+      },
+      {
+        "text": "हमारे मोहल्ले में नल से बिल्कुल पानी नहीं आ रहा",
+        "true": "water",
+        "pred": "drainage"
+      },
+      {
+        "text": "गटर का ढक्कन टूटा है, कोई भी गिर सकता है",
+        "true": "drainage",
+        "pred": "roads"
+      },
+      {
+        "text": "फलकनुमा में सड़क पर कचरे का ढेर लगा है",
+        "true": "sanitation",
+        "pred": "roads"
+      },
+      {
+        "text": "نلوں میں گدلا پانی آ رہا ہے، بچے بیمار ہو گئے",
+        "true": "water",
+        "pred": "drainage"
+      },
+      {
+        "text": "اسپتال میں صفائی نہیں ہے اور مریض پریشان ہیں",
+        "true": "health",
+        "pred": "sanitation"
+      }
+    ]
+  },
+  "confusion": {
+    "labels": [
+      "roads",
+      "sanitation",
+      "water",
+      "streetlights",
+      "power",
+      "drainage",
+      "traffic",
+      "health",
+      "education",
+      "town_planning",
+      "other"
+    ],
+    "matrix": [
+      [
+        30,
+        0,
+        2,
+        0,
+        0,
+        4,
+        5,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        6,
+        29,
+        0,
+        7,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        12,
+        25,
+        0,
+        2,
+        2,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        41,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        4,
+        5,
+        0,
+        2,
+        31,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        41,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        1,
+        0,
+        0,
+        3,
+        0,
+        24,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        6,
+        15,
+        0,
+        6,
+        0
+      ],
+      [
+        0,
+        0,
+        6,
+        0,
+        0,
+        0,
+        0,
+        1,
+        22,
+        1,
+        0
+      ],
+      [
+        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        23,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        24
+      ]
+    ]
+  },
+  "limitations": [
+    "Training data is template-generated, not real citizen complaints; synthetic-test accuracy is optimistic.",
+    "human_test.jsonl (48 rows) was written independently of the templates but is small; treat per-language numbers as indicative.",
+    "Replace/extend with the team's own human-written complaints and LLM-generated data when keys are available."
+  ],
+  "history": [
+    {
+      "model_version": "v20261102-063659",
+      "accuracy": 0.6122,
+      "macro_f1": 0.6172,
+      "trained_at": "2026-11-02T06:36:59Z",
+      "corrections_used": 0
+    },
+    {
+      "model_version": "v20261102-063738",
+      "accuracy": 0.7781,
+      "macro_f1": 0.7818,
+      "trained_at": "2026-11-02T06:37:38Z",
+      "corrections_used": 0
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+[
+  {"number": "112", "label_en": "All emergencies", "label": {"en": "All emergencies", "te": "అన్ని అత్యవసరాలు", "hi": "सभी आपात स्थितियाँ", "ur": "تمام ہنگامی حالات"}},
+  {"number": "108", "label_en": "Ambulance", "label": {"en": "Ambulance", "te": "అంబులెన్స్", "hi": "एम्बुलेंस", "ur": "ایمبولینس"}},
+  {"number": "101", "label_en": "Fire", "label": {"en": "Fire", "te": "అగ్నిమాపక", "hi": "अग्निशमन", "ur": "فائر بریگیڈ"}},
+  {"number": "1912", "label_en": "Electricity complaints", "label": {"en": "Electricity complaints", "te": "విద్యుత్ ఫిర్యాదులు", "hi": "बिजली शिकायतें", "ur": "بجلی کی شکایات"}}
+]
