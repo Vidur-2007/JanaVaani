@@ -1,32 +1,56 @@
-"""Loads the trained department classifier (ml/models/classifier.joblib) and serves predictions.
-Hot-swappable after retraining. Raises nothing at import; `available()` reports readiness."""
+"""Loads the trained department classifier and serves predictions. Two artefacts: the e5 embedding model, and a TF-IDF
+fallback for when the embedding model cannot load. Hot-swappable after retraining. Raises nothing at import; `available()` reports readiness."""
 import json
 import logging
 import threading
 
 import joblib
 
-from ..core.config import MODELS_DIR
+from ..core.config import MODELS_DIR, get_settings
+from . import embeddings
 
 log = logging.getLogger("janavaani.classifier")
 _lock = threading.Lock()
 _model = None
 _metrics: dict = {}
+_features: str | None = None
+MODEL_FILES = {"e5": ("classifier.joblib", "metrics.json"), "tfidf": ("classifier_tfidf.joblib", "metrics_tfidf.json")}
+
+
+def _choose_features() -> str:
+    """e5 only when its encoder runs here and is the one the head was trained on; a different model's vectors would be meaningless."""
+    if embeddings.mode() != "semantic":
+        return "tfidf"
+    model_file, metrics_file = MODEL_FILES["e5"]
+    trained_on = None
+    if (MODELS_DIR / model_file).exists() and (MODELS_DIR / metrics_file).exists():
+        trained_on = json.loads((MODELS_DIR / metrics_file).read_text()).get("embedding_model")
+    if trained_on == get_settings().embedding_model:
+        return "e5"
+    log.warning("classifier was trained on %s but EMBEDDING_MODEL is %s; using TF-IDF", trained_on, get_settings().embedding_model)
+    return "tfidf"
+
+
+def active_features() -> str:
+    load()
+    return _features or "tfidf"
 
 
 def load(force: bool = False):
-    global _model, _metrics
+    global _model, _metrics, _features
     with _lock:
         if _model is not None and not force:
             return _model
-        path = MODELS_DIR / "classifier.joblib"
+        _features = _choose_features()
+        model_file, metrics_file = MODEL_FILES[_features]
+        path = MODELS_DIR / model_file
         if not path.exists():
             log.error("classifier not found at %s — run ml/train_classifier.py", path)
             return None
         _model = joblib.load(path)
-        mp = MODELS_DIR / "metrics.json"
+        mp = MODELS_DIR / metrics_file
         _metrics = json.loads(mp.read_text()) if mp.exists() else {}
-        log.info("classifier loaded: %s", _metrics.get("model_version"))
+        log.info("classifier loaded: %s (%s)", _metrics.get("model_version"), _features)
         return _model
 
 

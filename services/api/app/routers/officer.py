@@ -1,4 +1,5 @@
 """Officer / supervisor endpoints #28–#42."""
+import re
 from collections import defaultdict
 from datetime import timedelta
 
@@ -27,8 +28,8 @@ def scoped(db: Session, gid: str, user: User) -> Grievance:
     g = db.get(Grievance, gid)
     if not g:
         raise err(404, "not_found", "Grievance not found.")
-    if user.role == "officer" and g.category != user.department_id and g.assigned_officer_id != user.id:
-        raise err(403, "forbidden", "This grievance belongs to another department.")
+    if not workflow.in_scope(user, g):
+        raise err(403, "forbidden", "This grievance belongs to another department or ward.")
     return g
 
 
@@ -229,7 +230,7 @@ def brief(gid: str, body: BriefIn, db: Session = Depends(get_db), user: User = D
     g = scoped(db, gid, user)
     similar = _similar_resolved(db, g)
     evs = db.execute(select(TimelineEvent).where(TimelineEvent.grievance_id == g.id).order_by(TimelineEvent.seq.desc()).limit(10)).scalars()
-    facts = {"summary": g.summary_en, "category": g.category, "priority": g.priority, "hazards": g.hazards,
+    facts = {"summary": g.summary_en, "category": g.category, "fields": g.fields or {}, "priority": g.priority, "hazards": g.hazards,
              "location": (g.location or {}).get("ward_name"), "status": g.status, "support_count": g.support_count,
              "images": [m.ai.get("description_en") for m in g.media if m.ai], "recent_events": [e.message_en for e in evs],
              "similar_resolved": similar}
@@ -253,6 +254,7 @@ class DraftIn(BaseModel):
     extra_en: str | None = None
 
 
+DRAFT_MAX_WORDS = 80
 TEMPLATES = {"acknowledge": "We have received your complaint {id} and our team is reviewing it.",
              "request_info": "To act on complaint {id}, please share more details or a photo of the exact spot.",
              "schedule_visit": "Our team will visit the site for complaint {id} before {due}.",
@@ -274,8 +276,22 @@ def draft_reply(gid: str, body: DraftIn, db: Session = Depends(get_db), user: Us
     due = clock.iso(g.sla_due_at)
     r, _ = gateway.run("draft_reply", prompts.DRAFT_REPLY.format(intent=body.intent, due=due, facts=g.summary_en,
                                                                  extra=body.extra_en or ""), D, cache=False)
-    en = r["draft_en"] if r else TEMPLATES[body.intent].format(id=g.id, due=g.sla_due_at.strftime("%d %b %Y")) + (f" {body.extra_en}" if body.extra_en else "")
+    en = (_cap_words(r["draft_en"]) if r else None) or \
+        TEMPLATES[body.intent].format(id=g.id, due=g.sla_due_at.strftime("%d %b %Y")) + (f" {body.extra_en}" if body.extra_en else "")
     return {"intent": body.intent, "draft_en": en, "draft_citizen": localize(en, g.language)}
+
+
+def _cap_words(text: str, limit: int = DRAFT_MAX_WORDS) -> str | None:
+    """Whole sentences up to `limit` words (Spec B §8: drafts are ≤ 80 words); None if the first sentence is too long."""
+    text = (text or "").strip()
+    if len(text.split()) <= limit:
+        return text or None
+    kept = []
+    for sentence in re.split(r"(?<=[.!?।])\s+", text):
+        if len(" ".join(kept + [sentence]).split()) > limit:
+            break
+        kept.append(sentence)
+    return " ".join(kept) or None
 
 
 class OfficerMsgIn(BaseModel):
@@ -305,13 +321,7 @@ class ResolveIn(BaseModel):
 @router.post("/grievances/{gid}/resolve")
 def resolve(gid: str, body: ResolveIn, db: Session = Depends(get_db), user: User = Depends(require("officer"))):
     g = scoped(db, gid, user)
-    workflow.resolve(db, g, user, body.media_ids, body.note, body.lat, body.lng)
-    if g.incident_id:   # incident fan-out: merged members follow the parent, community_update in each language
-        for m in db.execute(select(Grievance).where(Grievance.incident_id == g.incident_id, Grievance.id != g.id)).scalars():
-            if m.status == "merged" or m.status in OPEN:
-                if m.citizen_id:
-                    workflow.notify(db, m.citizen_id, m.id, "community_update", "The issue you reported is fixed",
-                                    f"The issue linked to incident {g.incident_id} was marked resolved.", m.language)
+    workflow.resolve(db, g, user, body.media_ids, body.note, body.lat, body.lng)   # incident fan-out: workflow.sync_incident
     db.commit()
     return detail_dict(g, db, user)
 
@@ -335,6 +345,24 @@ def appeal_decision(gid: str, body: AppealDecisionIn, db: Session = Depends(get_
     if body.decision == "upheld" and g.status in ("closed", "resolved_pending_verification"):
         workflow.reopen(db, g, user, "Appeal upheld by supervisor")
     workflow.notify(db, g.citizen_id, g.id, "status", "Appeal decided", f"Your appeal on {g.id} was {body.decision}.", g.language)
+    db.commit()
+    return detail_dict(g, db, user)
+
+
+class DisputeIn(BaseModel):
+    action: str
+    note: str = Field(..., min_length=3, max_length=2000)
+
+
+@router.post("/grievances/{gid}/dispute")
+def dispute(gid: str, body: DisputeIn, db: Session = Depends(get_db), user: User = Depends(require("supervisor"))):
+    """Additive endpoint for the supervisor's disputed-closure actions: demand new proof, or close as disputed."""
+    if body.action not in workflow.DISPUTE_ACTIONS:
+        raise err(422, "bad_action", "action must be demand_new_proof or close_disputed.")
+    g = scoped(db, gid, user)
+    if not workflow.is_disputed(g):
+        raise err(409, "not_disputed", "Only a disputed resolution that is still awaiting a decision can be decided here.")
+    workflow.decide_dispute(db, g, user, body.action, body.note)
     db.commit()
     return detail_dict(g, db, user)
 
@@ -410,6 +438,8 @@ def incidents(ward: str | None = None, category: str | None = None, db: Session 
                     "languages": sorted({m.language for m in members}), "status": inc.status,
                     "created_at": clock.iso(inc.created_at), "repeated": False})
     out += recurring(db, category or (user.department_id if user.role == "officer" else None), ward)
+    if user.role == "officer" and user.ward_ids:      # same scope as the inbox, so every listed member can be opened
+        out = [i for i in out if i["ward_id"] in user.ward_ids]
     return out
 
 

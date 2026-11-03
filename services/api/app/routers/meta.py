@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from .. import __version__
 from ..ai import gateway
-from ..core import clock
+from ..core import clock, storage
 from ..core.db import get_db
 from ..core.errors import err
 from ..core.ratelimit import limiter
@@ -40,7 +40,7 @@ def health(db: Session = Depends(get_db)):
         except Exception:
             dbs = "down"
         return {"status": "ok" if dbs == "ok" and classifier.available() else "degraded", "version": __version__,
-                "providers": {**gateway.status(), "db": dbs,
+                "providers": {**gateway.status(), "db": dbs, "storage": storage.mode(),
                               "embeddings": embeddings.mode() if embeddings._mode else "not_loaded",
                               "classifier": "loaded" if classifier.available() else "missing"}}
     return cached("health", 60, compute)
@@ -69,16 +69,41 @@ def meta_contacts():
     return emergency_contacts()
 
 
+def _asset_dict(a: Asset, gs: list) -> dict:
+    return {"id": a.id, "type": a.type, "label_en": a.label_en, "ward_id": a.ward_id, "location": {"lat": a.lat, "lng": a.lng},
+            "open_grievance_ids": [g.id for g in gs if g.status in analytics.OPEN and not g.is_private],
+            "history": [{"grievance_id": g.id, "category": g.category, "created_at": clock.iso(g.created_at),
+                         "closed_at": clock.iso(g.closed_at)} for g in gs if not g.is_private]}
+
+
+ASSET_LIST_MAX = 500
+
+
+@router.get("/meta/assets")
+def meta_assets(ward: str | None = None, type: str | None = None, db: Session = Depends(get_db)):
+    """Additive: assets by ward and type, same `Asset` shape as #24 (Spec C S8: a printable QR sheet for a ward's
+    streetlights needs the list; #24 only answers one id). Public reference data, at most 500 rows."""
+    q = select(Asset)
+    if ward:
+        q = q.where(Asset.ward_id == ward)
+    if type:
+        q = q.where(Asset.type == type)
+    assets = db.execute(q.order_by(Asset.id).limit(ASSET_LIST_MAX)).scalars().all()
+    by = {a.id: [] for a in assets}
+    if assets:
+        for g in db.execute(select(Grievance).where(Grievance.asset_id.in_(list(by)))
+                            .order_by(Grievance.created_at.desc())).scalars():
+            by[g.asset_id].append(g)
+    return [_asset_dict(a, by[a.id]) for a in assets]
+
+
 @router.get("/meta/assets/{asset_id}")
 def meta_asset(asset_id: str, db: Session = Depends(get_db)):
     a = db.get(Asset, asset_id)
     if not a:
         raise err(404, "not_found", "Asset not found.")
     gs = db.execute(select(Grievance).where(Grievance.asset_id == a.id).order_by(Grievance.created_at.desc())).scalars().all()
-    return {"id": a.id, "type": a.type, "label_en": a.label_en, "ward_id": a.ward_id, "location": {"lat": a.lat, "lng": a.lng},
-            "open_grievance_ids": [g.id for g in gs if g.status in analytics.OPEN and not g.is_private],
-            "history": [{"grievance_id": g.id, "category": g.category, "created_at": clock.iso(g.created_at),
-                         "closed_at": clock.iso(g.closed_at)} for g in gs if not g.is_private]}
+    return _asset_dict(a, gs)
 
 
 # ---------------- public (#25–#27): aggregates only, private excluded ----------------
@@ -100,7 +125,7 @@ def public_stats(request: Request, db: Session = Depends(get_db)):
         for g in sorted((g for g in res if g.rating and g.rating >= 4 and g.status == "closed"), key=lambda g: g.resolved_at, reverse=True)[:6]:
             proof = next((m for m in g.media if m.purpose == "resolution_proof"), None)
             recent.append({"title_en": (g.title or {}).get("en") or g.summary_en[:80], "category": g.category,
-                           "zone": g.zone or "", "after_url": f"/api/v1/uploads/{proof.id}" if proof else None,
+                           "zone": g.zone or "", "after_url": storage.media_url(proof.id) if proof else None,
                            "resolved_at": clock.iso(g.resolved_at)})   # proof photos only, never citizen photos
         return {"total": len(rows), "resolved": len(res), "resolution_rate_pct": pct(rows),
                 "avg_resolution_hours": round(statistics.mean(hrs), 1) if hrs else 0.0,

@@ -9,6 +9,7 @@
 Usage: python ml/seed_db.py [--n 600]
 """
 import argparse
+import io
 import json
 import math
 import random
@@ -22,7 +23,7 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from sqlalchemy import delete, text  # noqa: E402
 
-from app.core import clock  # noqa: E402
+from app.core import clock, storage  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
 from app.core.db import create_all, engine, session_scope  # noqa: E402
 from app.ml import classifier, embeddings  # noqa: E402
@@ -67,20 +68,54 @@ def supabase_user(email, role, name=None):
     """Create (or update) the auth user via the Supabase admin API when configured; else a deterministic local uuid.
     Sets app_metadata.role (server-controlled, read by the frontend before /me) and user_metadata.name/role."""
     s = get_settings()
-    key = s.supabase_service_role_key
-    if not (s.supabase_url and key):
+    if not (s.supabase_url and s.supabase_service_role_key):
         return str(uuid.uuid5(uuid.NAMESPACE_DNS, email))
     import httpx
-    h = {"apikey": key, "Authorization": f"Bearer {key}"}
+    h = s.service_key_headers()
     meta = {"app_metadata": {"role": role}, "user_metadata": {"name": name or email.split("@")[0], "role": role}}
     r = httpx.post(f"{s.supabase_url}/auth/v1/admin/users", headers=h, timeout=20,
                    json={"email": email, "password": PASSWORD, "email_confirm": True, **meta})
     if r.status_code in (200, 201):
         return r.json()["id"]
-    lst = httpx.get(f"{s.supabase_url}/auth/v1/admin/users", headers=h, params={"per_page": 1000}, timeout=20).json()
-    uid = next(u["id"] for u in lst.get("users", []) if u.get("email") == email)
-    httpx.put(f"{s.supabase_url}/auth/v1/admin/users/{uid}", headers=h, timeout=20, json=meta)   # re-seed keeps metadata current
+    if not _already_exists(r):
+        raise SupabaseSeedError(_describe(r, f"creating demo user {email}"))
+    lst = httpx.get(f"{s.supabase_url}/auth/v1/admin/users", headers=h, params={"per_page": 1000}, timeout=20)
+    if lst.status_code != 200:
+        raise SupabaseSeedError(_describe(lst, "listing auth users"))
+    uid = next((u["id"] for u in lst.json().get("users", []) if u.get("email") == email), None)
+    if uid is None:
+        raise SupabaseSeedError(f"Supabase says {email} already exists but it is not in the first 1000 auth users.")
+    up = httpx.put(f"{s.supabase_url}/auth/v1/admin/users/{uid}", headers=h, timeout=20, json=meta)   # re-seed keeps metadata current
+    if up.status_code != 200:
+        raise SupabaseSeedError(_describe(up, f"updating demo user {email}"))
     return uid
+
+
+class SupabaseSeedError(RuntimeError):
+    pass
+
+
+def _already_exists(r) -> bool:
+    """Supabase Auth answers 422 (code email_exists / user_already_exists) for an email it already has."""
+    if r.status_code == 422:
+        return True
+    try:
+        return r.json().get("error_code") in ("email_exists", "user_already_exists")
+    except ValueError:
+        return False
+
+
+def _describe(r, action: str) -> str:
+    """Status and Supabase's own message only; never request headers or keys."""
+    try:
+        body = r.json()
+        msg = body.get("msg") or body.get("message") or body.get("error_description") or body.get("error") or ""
+    except ValueError:
+        msg = ""
+    hint = {401: " Check that SUPABASE_SERVICE_ROLE_KEY is this project's secret (sb_secret_...) or service_role key.",
+            403: " The key is valid but lacks admin rights: use the secret / service_role key, not the publishable / anon key.",
+            404: " Check SUPABASE_URL (https://<project-ref>.supabase.co)."}.get(r.status_code, "")
+    return f"Supabase Auth admin API failed while {action}: HTTP {r.status_code} {str(msg)[:200]}".rstrip() + "." + hint
 
 
 def wipe(db):
@@ -237,7 +272,8 @@ class Ids:
         return f"GRV-{clock.now().year}-{self.n:06d}"
 
 
-def _img(path, seed, color):
+def _img(name, seed, color):
+    """Stores a generated WebP; returns (storage_path, phash)."""
     from PIL import Image, ImageDraw
     r = random.Random(seed)
     im = Image.new("RGB", (640, 480), color)
@@ -245,10 +281,10 @@ def _img(path, seed, color):
     for _ in range(40):
         x, y = r.randint(0, 600), r.randint(0, 440)
         d.rectangle([x, y, x + r.randint(10, 80), y + r.randint(10, 60)], fill=(r.randint(0, 255), r.randint(0, 255), r.randint(0, 255)))
-    path.parent.mkdir(parents=True, exist_ok=True)
-    im.save(path, "WEBP")
+    buf = io.BytesIO()
+    im.save(buf, "WEBP")
     import imagehash
-    return str(imagehash.phash(im))
+    return storage.save(name, buf.getvalue()), str(imagehash.phash(im))
 
 
 def seed_stories(db, rng, rows, people, nid):
@@ -277,6 +313,10 @@ def seed_stories(db, rng, rows, people, nid):
         lat, lng = plat + rng.uniform(-0.0006, 0.0006), plng + rng.uniform(-0.0006, 0.0006)
         members.append(make_grievance(db, nid(), r, now - timedelta(days=rng.uniform(1, 9)), "assigned", rng, w=mi, lat=lat, lng=lng))
     parent = max(members, key=lambda x: x.created_at)
+    # Merged members are not duplicate candidates, so the parent must describe the story itself for new reports to find it.
+    story_en = "Big pothole on the road at Miyapur X Roads; bikes are falling."
+    parent.description_en, parent.summary_en, parent.embedding = story_en, story_en, embeddings.embed(story_en)
+    parent.title = {**parent.title, "en": "Big pothole at Miyapur X Roads"}
     inc = Incident(id=f"INC-{now.year}-MYP001", title_en="Pothole cluster at Miyapur X Roads", category="roads", ward_id=mi["id"],
                    lat=plat, lng=plng, status="assigned", created_at=min(m.created_at for m in members))
     db.add(inc)
@@ -304,12 +344,11 @@ def seed_stories(db, rng, rows, people, nid):
     am = ward_by_name("Ameerpet")
     sl = next(r for r in by("streetlights", "en"))
     g4 = make_grievance(db, nid(), {**sl, "ward_id": am["id"]}, now - timedelta(days=4), "in_progress", rng, citizen=lak, w=am)
-    up = Path(get_settings().upload_dir) / "seed"
-    ph = _img(up / "streetlight_citizen.webp", 4, (20, 20, 40))
-    db.add(Media(id=str(uuid.uuid4()), grievance_id=g4.id, storage_path=str(up / "streetlight_citizen.webp"), uploaded_by_role="citizen",
+    photo, ph = _img("seed/streetlight_citizen.webp", 4, (20, 20, 40))
+    db.add(Media(id=str(uuid.uuid4()), grievance_id=g4.id, storage_path=photo, uploaded_by_role="citizen",
                  purpose="evidence", quality={"ok": True, "issue": "none"}, phash=ph, geo={"lat": g4.lat, "lng": g4.lng},
                  created_at=g4.created_at))
-    db.add(Media(id=str(uuid.uuid4()), grievance_id=g4.id, storage_path=str(up / "streetlight_citizen.webp"), uploaded_by_role="officer",
+    db.add(Media(id=str(uuid.uuid4()), grievance_id=g4.id, storage_path=photo, uploaded_by_role="officer",
                  purpose="resolution_proof", quality={"ok": True, "issue": "none"}, phash=ph, created_at=now - timedelta(hours=5)))
     g4.status, g4.resolved_at = "resolved_pending_verification", now - timedelta(hours=5)
     g4.ai_verification = {"verdict": "suspicious", "confidence": 0.9, "assessment": "rejected_evidence",

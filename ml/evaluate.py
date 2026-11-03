@@ -1,6 +1,6 @@
 """Evaluate the saved classifier on the frozen synthetic group-split test set and the human-written test set.
 Prints accuracy, macro-F1, per-class P/R/F1, per-language accuracy (incl. code_mixed) and the confusion matrix.
-Usage: python ml/evaluate.py"""
+Usage: python ml/evaluate.py [e5|tfidf]"""
 import json
 import sys
 from pathlib import Path
@@ -11,11 +11,12 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "ml"))
 sys.path.insert(0, str(ROOT / "services" / "api"))
+from app.ml.classifier import MODEL_FILES  # noqa: E402
 from train_classifier import LABELS, group_split, load_jsonl, per_bucket  # noqa: E402
 
 
 def main():
-    model = joblib.load(ROOT / "ml" / "models" / "classifier.joblib")
+    model = joblib.load(ROOT / "ml" / "models" / MODEL_FILES[sys.argv[1] if len(sys.argv) > 1 else "e5"][0])
     rows = load_jsonl(ROOT / "data" / "seed" / "complaints.jsonl")
     _, test = group_split(rows)
     human = load_jsonl(ROOT / "data" / "eval" / "human_test.jsonl")

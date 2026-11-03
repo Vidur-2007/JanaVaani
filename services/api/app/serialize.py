@@ -3,7 +3,7 @@ anonymous grievances hide citizen identity from government users."""
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .core import clock
+from .core import clock, storage
 from .models import Appeal, Grievance, Media, Message, Profile, TimelineEvent
 from .pipeline import scoring, workflow
 
@@ -18,7 +18,7 @@ def officer_dict(p: Profile, db: Session | None = None) -> dict:
 
 
 def media_dict(m: Media) -> dict:
-    return {"id": m.id, "url": f"/api/v1/uploads/{m.id}", "kind": "image",
+    return {"id": m.id, "url": storage.media_url(m.id), "kind": "image",
             "uploaded_by": "officer" if m.uploaded_by_role in ("officer", "supervisor", "admin") else "citizen",
             "purpose": m.purpose, "quality": m.quality or {"ok": True, "issue": "none"}, "ai": m.ai, "geo": m.geo,
             "created_at": clock.iso(m.created_at)}
@@ -36,7 +36,7 @@ def grievance_dict(g: Grievance, db: Session, viewer=None) -> dict:
         "id": g.id, "title": {**(g.title or {}), "lang": g.language} if g.title else _loc("", g.language),
         "summary_en": g.summary_en,
         "description": {"original": desc_orig, "en": g.description_en or "", "lang": g.language},
-        "formal_text": {**(g.formal_text or {}), "lang": g.language},
+        "formal_text": {**(g.formal_text or {}), "lang": g.language}, "fields": g.fields or {},
         "language": g.language, "script": g.script, "is_code_mixed": g.is_code_mixed,
         "category": g.category, "routing": {**g.routing, "sub_department": g.sub_department,
                                              "secondary_departments": g.secondary_departments or []},

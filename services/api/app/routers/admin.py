@@ -74,11 +74,17 @@ def alerts(db: Session = Depends(get_db), user: User = Depends(require("supervis
         db.commit()
     out = []
     for a in db.execute(select(AlertRow).order_by(AlertRow.created_at.desc()).limit(200)).scalars():
-        langs = sorted({g.language for g in (db.get(Grievance, i) for i in a.grievance_ids) if g}) if a.grievance_ids else None
+        ids = a.grievance_ids or []
+        langs = sorted(set(db.execute(select(Grievance.language).where(Grievance.id.in_(ids))).scalars())) if ids else None
+        # grievance_ids: up to 3 examples (Spec B §9). member_count / member_ids (additive): everything the alert
+        # counted, so a spike's numbers match its title; ids are capped to keep the payload small.
         out.append({"id": a.id, "kind": a.kind, "severity": a.severity, "title_en": a.title_en, "detail_en": a.detail_en,
-                    "ward_id": a.ward_id, "category": a.category, "grievance_ids": a.grievance_ids, "languages": langs,
-                    "created_at": clock.iso(a.created_at)})
+                    "ward_id": a.ward_id, "category": a.category, "grievance_ids": ids[:3], "languages": langs,
+                    "member_count": len(ids), "member_ids": ids[:ALERT_MEMBER_IDS_MAX], "created_at": clock.iso(a.created_at)})
     return out
+
+
+ALERT_MEMBER_IDS_MAX = 200
 
 
 @router.get("/admin/insights")
@@ -116,7 +122,17 @@ def audit_list(grievance_id: str | None = None, type: str | None = None, page: i
 
 
 @router.get("/admin/audit/verify")
-def audit_verify(grievance_id: str | None = None, db: Session = Depends(get_db), user: User = Depends(require("supervisor"))):
+def audit_verify(grievance_id: str | None = None, db: Session = Depends(get_db), user: User = Depends(require("officer"))):
+    """Supervisors and admins verify any chain or all of them. Officers verify one grievance's chain, and only for a
+    grievance they can act on (department, wards or assignment), so the case page can show "Verify chain"."""
+    if user.role == "officer":
+        if not grievance_id:
+            raise err(403, "forbidden", "Officers can verify one grievance's chain: pass grievance_id.")
+        g = db.get(Grievance, grievance_id)
+        if not g:
+            raise err(404, "not_found", "Grievance not found.")
+        if not workflow.in_scope(user, g):
+            raise err(403, "forbidden", "This grievance belongs to another department or ward.")
     return audit.verify(db, grievance_id)
 
 
@@ -177,7 +193,7 @@ def retrain(db: Session = Depends(get_db), user: User = Depends(require("admin")
         result = {}
 
         def work():   # worker thread so the event loop/threadpool is not starved; join with a timeout
-            result["model"], result["metrics"] = tc.train("tfidf", corr)
+            result["model"], result["metrics"] = tc.train(classifier.active_features(), corr)
         t = threading.Thread(target=work)
         t.start()
         t.join(timeout=300)

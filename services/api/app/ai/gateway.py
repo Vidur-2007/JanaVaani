@@ -37,6 +37,7 @@ def _call_groq(model, prompt, timeout):
 log = logging.getLogger("janavaani.ai")
 
 TASKS = {
+    "intake_turn": [("gemini", "main"), ("groq", "main")],
     "analyze_complaint": [("gemini", "main"), ("groq", "main")],
     "route_second_opinion": [("groq", "main"), ("gemini", "lite")],
     "translate": [("gemini", "main"), ("groq", "main")],

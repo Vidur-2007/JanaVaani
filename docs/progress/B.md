@@ -72,7 +72,7 @@
 - Fixed: `0003_asset_incident_coords.sql` (lat/lng on assets and incidents, geom/centroid kept in sync); `UTCDateTime` column type (timestamptz on Postgres, naive UTC in the app); `seed_db` and `/admin/demo/reset` can re-seed over existing data (append-only trigger bypassed for that transaction only); `SUPABASE_SERVICE_ROLE_KEY` read through Settings, so `.env` works; empty `DATABASE_URL` means SQLite, so `cp .env.example .env` starts.
 - Security: an unset or placeholder `APP_JWT_SECRET` now uses a random per-process secret (demo tokens end on restart; guest PIN hashes are unaffected); app tokens accepted only with `DEMO_MODE=true`; `/auth/demo-login` closed when Supabase is configured unless `ALLOW_DEMO_LOGIN=true`.
 - Tests: `tests/test_p6_live_mode.py`. **71 passed on SQLite; 71 passed on a throwaway Postgres 16 + pgvector with the real migrations and session TZ Asia/Kolkata.** PostGIS and pgcrypto were stubbed there, so Supabase itself is still untested.
-- Open, found by verification (Fix Phases 3-5): `intake_turn`/`ask_info`/`smalltalk` not implemented; semantic duplicate threshold 0.78 too loose with real e5 (unrelated complaints score 0.80-0.88); relative media URLs and no Supabase Storage; Dockerfile not built and likely not Space-ready. Benchmark on a scratch copy: TF-IDF human accuracy 0.750, e5 0.854, LaBSE 0.917 (n=48).
+- Open, found by verification (Fix Phases 3-5): `intake_turn`/`ask_info`/`smalltalk` not implemented; Dockerfile not yet built or deployed.
 
 ### Fix Phase 2 (citizen flow)
 - Fixed: `continue_after_emergency` continues without retyping; AI-flagged emergencies show the emergency screen once, with no rule floor (a human confirms); `split_confirm` files one linked grievance per selected draft, each draft with its own title, summary, routing and officer; `edit` applies new text or location; support accepts incident ids (A's quick report sends them); `check-duplicates` titles carry `lang`.
@@ -80,11 +80,78 @@
 - Added `data/geo/locality_aliases.json`: Telugu, Hindi and Urdu names for all 30 wards, so native-script place names resolve.
 - Tests: `tests/test_p7_citizen_flow.py`. LLM paths use fake provider responses; real Gemini/Groq output is still untested. Not done: duplicate check on `split_confirm`; offline splitting (needs the LLM's `issues`).
 
+### Fix Phase 3 (model and duplicates)
+- **Classifier is now e5** (`intfloat/multilingual-e5-small` + calibrated LR, C=64 chosen by group CV on the training split). `classifier.joblib` holds only the head (59 KB) and shares the encoder with duplicate detection. TF-IDF stays as `classifier_tfidf.joblib` for when the encoder cannot load or `EMBEDDING_MODEL` differs from what the head was trained on. Retrain keeps whichever is active (1.8 s on a laptop).
+- **Measured:** e5 synthetic 0.867 (macro-F1 0.878), human-written 0.896 (n=48). TF-IDF fallback 0.806 / 0.771. Previous TF-IDF: 0.778 / 0.750. Confidence bands (classifier only): auto 97.9 % (n=290), flagged 65.2 % (n=69), review 33.3 % (n=33). LaBSE scored 0.857 / 0.917 in the benchmark but needs vector(768) and a much larger model: not adopted. Caveats: Telugu is the weak spot on synthetic (0.646) despite 59 new hand-written everyday sentences in `lexicon.json`; C and the sentences were chosen after seeing some held-out results, so these numbers are slightly optimistic.
+- **Duplicates:** e5 cosines sit near 0.8 even for unrelated complaints, so text is rescaled from base 0.80; threshold 0.48 (`ml/tune_thresholds.py`, 5,805 labelled pairs on English text: F1 0.85, recall 0.829, false positives 13.1 %, vs 45 % at similar recall before). Deviation from the Spec B §6.1 formula, on purpose. Native-script text only reaches the threshold via the LLM's English translation; with providers down it mostly files a new complaint.
+- `live_wire` and `open_manhole` keyword hits add a `rule` routing vote (power, drainage). Two LLMs plus the model can still overrule it.
+- Seeded Miyapur parent now describes the story, and incident members report the incident total: "32 people" appears in duplicate matches. Pinned `scikit-learn==1.9.1` (pickled artefacts).
+- Verified with real e5 on throwaway Postgres; LLM responses were fake (real text_en may score differently).
+
+### Fix Phase 4A (photos, storage, deployment packaging)
+- `app/core/storage.py`: photos go to the private Supabase `evidence` bucket when configured, otherwise local disk; a Supabase failure falls back to disk. `Media.url` is an absolute API link with a 24 h signature; `GET /uploads/{id}` redirects to a cached Supabase signed URL (deviation from Spec B §4: no signed URL inside `Media.url`, which would cost one network call per photo on every list). The same-photo check uses the hash saved at upload.
+- Space image: runs as uid 1000, writes only to `/app/runtime` and `ml/models`, `--proxy-headers` for HTTPS links, SQLite + `AUTO_SEED` by default. `scripts/deploy_space.py` stages and pushes it, because Spaces need a root Dockerfile and the repo root belongs to A.
+- Verified by simulation only: staged folder with read-only code and the Dockerfile's env and command (seeded itself in 18 s; black box 236 passed, 4 known failures); fake Supabase Storage + Auth with Postgres and real migrations (black box 235 passed, same 4). **Not run: `docker build`, a real Space, real Supabase.** Tests: `tests/test_p9_storage_deploy.py`, 140 passed on SQLite and Postgres.
+- Known limits: uploads and retrained models are lost on restart without Supabase; retrained models revert on restart in any mode; each re-seed makes about 3 Supabase admin calls per seeded user.
+
+### Fix Phase 4B (Supabase compatibility, from the config audit)
+- New `sb_secret_` keys are sent on `apikey` only (they are not JWTs); legacy `service_role` JWTs keep `apikey` + `Authorization: Bearer`. One rule, `Settings.service_key_headers()`, used by every Auth admin and Storage call.
+- `ml/apply_migrations.py` reads `DATABASE_URL` through Settings (inline `.env` comments no longer leak into it) and hands psycopg a plain `postgresql://` URL.
+- `SUPABASE_URL` loses trailing slashes.
+- Seeding raises `SupabaseSeedError` with the HTTP status, Supabase's message and a hint for 401, 403 and 404, never the key. The already-exists path (422 or `email_exists`) is unchanged.
+- Tests: `tests/test_p10_supabase_compat.py` (mocked). 166 passed on SQLite and on a local Postgres. Not yet tried against a real project; JWT signing type (audit N1), `sslmode`, pool limits and the `live_events` grant are still open.
+
+### AI stabilization after the Render deployment (2026-11-03)
+Production checks on `https://janavaani-gnbo.onrender.com` found two AI problems and one secret leak. The fixes:
+- **Groq defaults:** `GROQ_MODEL_MAIN=openai/gpt-oss-120b` and `GROQ_MODEL_SMALL=openai/gpt-oss-20b` in `config.py` and `.env.example`. Groq shut down `llama-3.3-70b-versatile` and `llama-3.1-8b-instant` on 2026-08-16, so every Groq chat call was failing. In production (Render env set to the new models), Groq main answered complaint analysis and translation with valid JSON. Groq small passes the mocked tests only.
+- **Translation `source_lang`:** `/translate` reported the target language as the source (English text sent to Telugu came back `te`). Native-script and romanised Telugu/Hindi detection now decides; for plain Latin text the LLM's answer is used unless it names the target.
+- **Gemini key:** sent in the `x-goog-api-key` header instead of `?key=` in the URL. httpx logs request URLs at INFO, so the key was written to the Render logs on every Gemini call. The `httpx` logger is now at WARNING in `main.py`. **The key in use must be rotated.**
+- Tests: `tests/test_p11_ai_stabilization.py` (Groq models through the real provider code, JSON mode, Gemini timeout → Groq fallback, `source_lang`) and `tests/test_p12_secret_handling.py` (header only, nothing in URLs, logs or exceptions, retry and fallback unchanged). HTTP is faked; no live calls. **200 passed.**
+- Still open at the time: in production, Gemini main (`gemini-flash-latest`) timed out twice at 12 s, so analysis and translation took about 25–30 s via Groq. The likely cause is the alias now pointing at a Flash model that thinks at high effort by default; this is not confirmed. A candidate benchmark is ready but has not been run (no key locally). Pin `GEMINI_MODEL_MAIN` once a model passes. Also still open: production DB not seeded; `ALLOWED_ORIGINS` has no Vercel origin; Supabase sign-in, `/me`, Storage upload and full submission not yet tested in production.
+
+### Production verification, Phase 4 re-verification, cross-phase access fixes (2026-11-03)
+- **Production (`2bc0d9d` on Render), `scripts/smoke_prod.py`: 41/41 passed.** Covered: health, metadata, public stats/map/nearby/search, 404 and 422 handling, 26 auth-rejection probes (no token, garbage token, demo-login closed), English and Telugu analysis, translation both ways, guide answer. Timings: public reads 0.1–0.4 s, analysis 7–12 s, translation 3–6.5 s, guide 1.9 s. The `source_lang` fix is live. **Gemini main failed on every analysis** (no `gemini` routing vote); Groq answered through the fallback, so the Gemini→Groq fallback is verified in production. The Gemini error code is only in the Render logs. The production DB is still empty (not seeded).
+- **Phase 4 re-checked clause by clause against Spec B §8–§9** (`tests/test_p13_phase4.py`, 19 tests; 7 of them fail on the previous code). Fixed:
+  - **Suspicious resolution** now notifies supervisors (type `alert`), as Spec B §8 and C's "Supervisor has been notified" banner say.
+  - **Proof photos** must be `resolution_proof` uploads, so a citizen's evidence photo can no longer be relabelled as proof.
+  - **One proof shared across an incident** (C's resolve-all) is copied per grievance. Before, each `/resolve` moved the photo to the latest member, so earlier members lost their proof.
+  - **Incident status** now follows its members.
+  - **"Fixed" fan-out** goes once to each merged member when the whole incident resolves. Before, every `/resolve` re-notified every member, including still-open ones.
+  - **`overdue_critical`** fires even when the case was already at level 2.
+  - **Draft replies** are capped at 80 words in whole sentences (template otherwise).
+- **Cross-phase (Spec B §10), `tests/test_p14_access.py` (10):**
+  - **Officer ward scope** now applies to every case endpoint and to `GET /grievances/{id}`, not only the inbox; the officers' incident list is filtered the same way.
+  - **`POST /uploads` with `grievance_id`** needs owner or in-scope government access; `resolution_proof` uploads need a government role.
+  - **Legacy HS256 Supabase tokens** are now verified through `GET /auth/v1/user` (spec fallback, audit N1). Only tokens issued by this project are sent; answers are cached 60 s.
+- **Logging:** uvicorn access lines no longer show guest ticket PINs (`?pin=`) or photo-link signatures (`&sig=`); checked against a real uvicorn server.
+- **Tests: 230 passed** locally (SQLite, providers faked).
+
+### Phase 4 completion and B/C contract closure (2026-11-03)
+- **`intake_turn` (Spec B §5.2), `app/pipeline/intake.py`.** One LLM turn per citizen message (Gemini main → Groq main) decides the intent (new complaint, track status, service question, small talk), extracts the department's required fields and asks one question in the citizen's language.
+  - **Rules enforced on every LLM answer:** never re-ask a given field (GPS/pin or a known place counts as location), one photo request for roads/sanitation/drainage/streetlights, at most 4 questions, "that's all" in any language ends intake.
+  - **Offline:** the same rules run without the LLM, using the 4-language questions in `field_questions.json`.
+  - **Emergencies:** the intake turn can flag one the keyword list missed, before any question.
+  - **Tracking** now ranks only the caller's own complaints. It used to show anyone's complaint for a typed ticket number.
+- **Fields persisted (spec conflict resolved).** §8 lists `fields` as a brief input, but §4 had no column for them, so migration `0004_grievance_fields.sql` adds `grievances.fields jsonb`. They are filled from chat and the quick form, used by the brief, and returned as optional `Grievance.fields`.
+- **B2:** officers verify one in-scope grievance's chain (#52).
+- **B3:** new supervisor endpoint `POST /officer/grievances/{id}/dispute`, `demand_new_proof` or `close_disputed` (`closure_type: "disputed"`).
+- **Spike alerts** store every member; `member_count` and `member_ids` match the title.
+- **`GET /meta/assets?ward=&type=`** for C's QR sheet (Spec C S8).
+- **Seed plan** documented without touching Supabase: `docs/LAPTOP_B_SEED_PLAN.md`, with exact counts from a throwaway local SQLite run.
+- **Disputed closures** need migration `0005_closure_type_disputed.sql`: schema 0001's CHECK on `closure_type` rejected `'disputed'`. Found by running the suite on Postgres.
+- **Tests:** `test_p15_intake.py` (19) and `test_p16_contract_closure.py` (11). Six older chat tests updated where the spec changes the flow (a question before the draft; continue after emergency → collecting). **260 passed on SQLite and 260 on a throwaway local Postgres 16** with migrations 0001–0005 applied twice (idempotent); PostGIS was stubbed there.
+
 ## In progress
 Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys / HF Space.
 
 ## Next
-1. Push `feat/ai-engine` (from Cursor) and open the PR. 2. Fill `services/api/.env`, run migrations + seed against Supabase. 3. Deploy the HF Space; run record_demo + latency. 4. With keys: prompt-quality pass, `--features benchmark`, LLM data augmentation for Urdu.
+1. Apply migrations `0004_grievance_fields.sql` and `0005_closure_type_disputed.sql` to Supabase **before** deploying this branch, then rerun `python scripts/smoke_prod.py`.
+2. Find the Gemini main error in the Render logs (`provider=gemini failed code=`) and pin `GEMINI_MODEL_MAIN` after a benchmark run.
+3. Add the Vercel origin to `ALLOWED_ORIGINS`.
+4. With approval: seed the production DB using the server's embedding mode (`USE_EMBEDDINGS=false`).
+5. With a test account: verify Supabase sign-in → `/me` → submission → officer resolve in production.
+6. C reruns its e2e suite against the deployed backend; A checks the chat's new follow-up questions.
+7. Read-only realtime check in the Supabase SQL editor: `select has_table_privilege('authenticated','public.live_events','select'), has_table_privilege('anon','public.live_events','select');`
 
 ## Blockers / deviations (honest list)
 - **No Supabase project, Gemini or Groq keys were available in the build session.** The API runs in *offline mode* (SQLite file DB, deterministic AI fallbacks) until `services/api/.env` is filled. Migrations were NOT run against Supabase; run `python ml/apply_migrations.py` with `DATABASE_URL` set.
@@ -95,7 +162,7 @@ Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys
 - Hugging Face Space not deployed (needs the team's HF account) — no public API URL yet.
 
 ## API URL / live endpoints
-- URL: _not deployed yet_ (local: `http://localhost:8000/api/v1`).
+- URL: `https://janavaani-gnbo.onrender.com/api/v1` (Render, Docker; docs at `/docs`). Local: `http://localhost:8000/api/v1`.
 - Live after P5: all 57 endpoints (#1–#57).
 - Live after P4: #35–#40, #43–#49, #55, #56.
 - Live after P3: #7–#11, #14–#19, #28–#34, #41, #42.

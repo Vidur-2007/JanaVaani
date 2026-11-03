@@ -68,8 +68,10 @@ def test_chat_flow_both_providers_down_creates_grievance(client, seeded):
     h = token(client, "lakshmi@janavaani.test")
     r = client.post("/api/v1/chat/turn", headers=h, json={"text": "Kukatpally lo street light work avvadam ledu ma galli lo, chala dark ga undi",
                                                           "ui_lang": "te", "input_mode": "text"}).json()
-    assert r["stage"] == "confirming", r
+    assert r["stage"] == "collecting" and r["quick_replies"], r           # Spec B §5.2: a follow-up question first
     assert r["detected_language"] == "te" and r["is_code_mixed"] is True
+    r = client.post("/api/v1/chat/turn", headers=h, json={"session_id": r["session_id"], "text": "anthe", "ui_lang": "te"}).json()
+    assert r["stage"] == "confirming", r                                     # "that's all" -> draft with what is known
     d = r["draft"]
     assert d["category"] == "streetlights" and d["location"]["ward_id"] == "W-KKP-01"
     assert d["routing_preview"]["votes"][0]["source"] == "classifier" and d["priority_preview"]["sla_hours"] > 0
@@ -89,7 +91,7 @@ def test_chat_emergency_then_continue(client, seeded):
     assert r["reply"]["lang"] == "te"
     r2 = client.post("/api/v1/chat/turn", json={"session_id": r["session_id"], "text": "school daggara", "ui_lang": "te",
                                                 "action": "continue_after_emergency"}).json()
-    assert r2["stage"] == "confirming" and r2["draft"]["priority_preview"]["score"] >= 80
+    assert r2["stage"] == "collecting"           # Spec B §6: continue_after_emergency -> collecting, flag kept
     r3 = client.post("/api/v1/chat/turn", json={"session_id": r["session_id"], "action": "file_new_anyway", "ui_lang": "te"}).json()
     assert r3["submitted"][0].get("guest_pin") and len(r3["submitted"][0]["guest_pin"]) == 6   # guest gets a PIN
     gid, pin = r3["submitted"][0]["grievance_id"], r3["submitted"][0]["guest_pin"]

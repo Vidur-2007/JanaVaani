@@ -41,7 +41,12 @@ def load_jsonl(p: Path):
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "api"))
-from app.ml.textnorm import normalize  # noqa: E402  (importable => pickled model loads inside the API)
+from app.ml.classifier import MODEL_FILES  # noqa: E402
+from app.ml.features import EmbeddingFeatures  # noqa: E402  (importable => pickled model loads inside the API)
+from app.ml.textnorm import normalize  # noqa: E402
+
+EMBEDDING_NAMES = {"e5": "intfloat/multilingual-e5-small", "labse": "sentence-transformers/LaBSE"}
+EMBEDDING_C = 64.0   # normalised vectors need weak regularisation: group 4-fold on the training split gave C=4 0.866, 16 0.878, 64 0.882, 256 0.887
 
 
 def make_tfidf_pipeline(C: float = 4.0):
@@ -52,20 +57,6 @@ def make_tfidf_pipeline(C: float = 4.0):
     ])
     clf = CalibratedClassifierCV(LogisticRegression(C=C, class_weight="balanced", max_iter=3000), cv=3)
     return Pipeline([("features", feats), ("clf", clf)])
-
-
-class E5Features:
-    """Optional: multilingual-e5-small embeddings (needs sentence-transformers + model download)."""
-    def __init__(self, name="intfloat/multilingual-e5-small"):
-        from sentence_transformers import SentenceTransformer
-        self.name, self.m = name, SentenceTransformer(name)
-
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X):
-        pre = "query: " if "e5" in self.name else ""
-        return self.m.encode([pre + x for x in X], normalize_embeddings=True, batch_size=32)
 
 
 def group_split(rows, test_frac=0.25, seed=13):
@@ -117,11 +108,10 @@ def train(features="tfidf", corrections: list | None = None, version: str | None
     for c in corrections or []:            # human routing corrections weighted x3
         X.append(c["text"]); y.append(c["category"]); w.append(3.0); n_corr += 1
 
-    if features in ("e5", "labse"):
-        feat = E5Features("intfloat/multilingual-e5-small" if features == "e5" else "sentence-transformers/LaBSE")
-        model = Pipeline([("features", feat), ("clf", CalibratedClassifierCV(
-            LogisticRegression(C=4.0, class_weight="balanced", max_iter=3000), cv=3))])
-        emb_name = feat.name
+    if features in EMBEDDING_NAMES:
+        emb_name = EMBEDDING_NAMES[features]
+        model = Pipeline([("features", EmbeddingFeatures(emb_name)), ("clf", CalibratedClassifierCV(
+            LogisticRegression(C=EMBEDDING_C, class_weight="balanced", max_iter=3000), cv=3))])
     else:
         model = make_tfidf_pipeline()
         emb_name = "tfidf-char2-5+word1-2"
@@ -144,7 +134,7 @@ def train(features="tfidf", corrections: list | None = None, version: str | None
     metrics = {
         "model_version": version,
         "trained_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "embedding_model": emb_name,
+        "embedding_model": emb_name, "features": features,
         "algorithm": "LogisticRegression(class_weight=balanced) + CalibratedClassifierCV(cv=3)",
         "split": "group split by phrase_id (no phrase shared between train and test)",
         "dataset": "synthetic template dataset (ml/generate_dataset.py); see limitations",
@@ -171,9 +161,10 @@ def train(features="tfidf", corrections: list | None = None, version: str | None
 
 
 def save(model, metrics):
-    joblib.dump(model, MODELS / "classifier.joblib")
+    model_file, metrics_file = MODEL_FILES[metrics["features"]]
+    joblib.dump(model, MODELS / model_file)
     (MODELS / "labels.json").write_text(json.dumps(metrics["confusion"]["labels"]))
-    hist_path = MODELS / "metrics.json"
+    hist_path = MODELS / metrics_file
     history = []
     if hist_path.exists():
         try:
@@ -188,24 +179,26 @@ def save(model, metrics):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--features", default="tfidf", choices=["tfidf", "e5", "labse", "benchmark"])
+    ap.add_argument("--features", default="all", choices=["all", "e5", "tfidf", "benchmark"],
+                    help="all = the e5 model and the TF-IDF fallback; benchmark = compare with LaBSE, saves nothing")
     ap.add_argument("--corrections", default=None)
     a = ap.parse_args()
     corr = load_jsonl(Path(a.corrections)) if a.corrections else None
-    if a.features == "benchmark":   # Spec B §7.3: e5-small vs LaBSE (+ our TF-IDF baseline); keep the best, log all
-        results = {}
+    if a.features == "benchmark":   # Spec B §7.3: e5-small vs LaBSE (+ our TF-IDF baseline). LaBSE needs vector(768), so it is not saved.
         for f in ("tfidf", "e5", "labse"):
             try:
-                results[f] = train(f, corr)
-                print(f"{f:6s} synthetic acc={results[f][1]['accuracy']} human acc={results[f][1]['human_test']['accuracy']}")
+                _, m = train(f, corr)
+                print(f"{f:6s} synthetic acc={m['accuracy']} f1={m['macro_f1']} human acc={m['human_test']['accuracy']}")
             except Exception as e:
                 print(f"{f:6s} unavailable: {type(e).__name__}: {e}")
-        best = max(results, key=lambda k: results[k][1]["macro_f1"])
-        print("best:", best)
-        model, m = results[best]
-    else:
-        model, m = train(a.features, corr)
-    save(model, m)
+        return
+    for f in ("e5", "tfidf") if a.features == "all" else (a.features,):
+        model, m = train(f, corr)
+        save(model, m)
+        report(m)
+
+
+def report(m):
     print(f"model {m['model_version']}  features={m['embedding_model']}  n_train={m['n_train']} n_test={m['n_test']}")
     print(f"synthetic held-out (unseen phrases): accuracy={m['accuracy']}  macro_f1={m['macro_f1']}")
     print(f"human-written test (n={m['human_test']['n']}): accuracy={m['human_test']['accuracy']}  macro_f1={m['human_test']['macro_f1']}")

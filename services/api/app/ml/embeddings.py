@@ -17,6 +17,22 @@ _lock = threading.Lock()
 _model = None
 _mode = None  # "semantic" | "lexical"
 _hasher = None
+_encoders: dict = {}
+_encoders_lock = threading.Lock()
+
+
+def _encoder(name: str):
+    with _encoders_lock:
+        if name not in _encoders:
+            from sentence_transformers import SentenceTransformer
+            _encoders[name] = SentenceTransformer(name)
+        return _encoders[name]
+
+
+def encode(texts: list[str], name: str | None = None) -> np.ndarray:
+    """Normalised vectors from a sentence-transformers model (prefixes are the caller's choice)."""
+    model = _encoder(name or get_settings().embedding_model)
+    return model.encode(texts, normalize_embeddings=True, batch_size=32, show_progress_bar=False)
 
 
 def _norm(t: str) -> str:
@@ -31,9 +47,8 @@ def load():
         s = get_settings()
         if s.use_embeddings:
             try:
-                from sentence_transformers import SentenceTransformer
-                _model = SentenceTransformer(s.embedding_model)
-                _model.encode(["query: warm up"], normalize_embeddings=True)
+                _model = _encoder(s.embedding_model)
+                _model.encode(["query: warm up"], normalize_embeddings=True, show_progress_bar=False)
                 _mode = "semantic"
                 log.info("embeddings: semantic (%s)", s.embedding_model)
                 return _mode
@@ -53,7 +68,7 @@ def mode() -> str:
 def embed(text: str, kind: str = "passage") -> list[float]:
     m = load()
     if m == "semantic":
-        v = _model.encode([f"{kind}: {text}"], normalize_embeddings=True)[0]
+        v = encode([f"{kind}: {text}"])[0]
     else:
         v = _hasher.transform([text]).toarray()[0]
     return [round(float(x), 5) for x in v]

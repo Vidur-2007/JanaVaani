@@ -8,7 +8,7 @@ sqlalchemy>=2.0.30
 psycopg[binary,pool]>=3.2
 pgvector>=0.3
 sentence-transformers>=3.0
-scikit-learn>=1.4
+scikit-learn==1.9.1   # ml/models/*.joblib are pickled with this version; retrain when changing it
 numpy>=1.26
 pandas>=2.2
 joblib>=1.4

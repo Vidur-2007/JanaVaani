@@ -1,21 +1,26 @@
 """Apply supabase/migrations/*.sql in order to DATABASE_URL (Supabase Session pooler). Idempotent.
+DATABASE_URL comes from the environment or services/api/.env, read through the API's Settings so both parse it the same way.
 Usage: DATABASE_URL=postgresql://... python ml/apply_migrations.py"""
-import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "services" / "api"))
+
+from app.core.config import Settings  # noqa: E402
+
+
+def libpq_url(url: str) -> str:
+    """psycopg.connect takes plain postgresql:// URLs; the API's SQLAlchemy form names its driver."""
+    for prefix in ("postgresql+psycopg://", "postgres+psycopg://"):
+        if url.startswith(prefix):
+            return "postgresql://" + url[len(prefix):]
+    return url
 
 
 def main():
-    url = os.environ.get("DATABASE_URL")
-    if not url:
-        env = ROOT / "services" / "api" / ".env"
-        if env.exists():
-            for line in env.read_text().splitlines():
-                if line.startswith("DATABASE_URL="):
-                    url = line.split("=", 1)[1].strip()
-    if not url or not url.startswith("postgres"):
+    url = libpq_url(Settings().database_url)
+    if not url.startswith(("postgresql://", "postgres://")):
         sys.exit("DATABASE_URL (postgresql://…) is required. SQLite offline mode creates tables automatically at API startup.")
     import psycopg
     with psycopg.connect(url, autocommit=True) as conn:

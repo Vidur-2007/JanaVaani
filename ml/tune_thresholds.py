@@ -3,8 +3,11 @@
 2. Routing-confidence bands vs accuracy on the frozen synthetic test split (classifier-only confidence).
 3. Duplicate threshold that maximises F1 on the seeded story clusters (Miyapur potholes, Charminar water) vs
    nearby non-story grievances. Requires a seeded DB (python ml/seed_db.py).
+4. Semantic duplicate threshold on labelled pairs from the dataset (needs the embedding model): same category + sub-department
+   vs a different sub-department in the same or a related category, on the English text the live pipeline embeds.
 Usage: python ml/tune_thresholds.py"""
 import json
+import random
 import sys
 from collections import Counter
 from pathlib import Path
@@ -78,10 +81,43 @@ def duplicate_threshold():
             "best_threshold": best[1], "best_f1": round(best[0], 3), "curve": table[::3]}
 
 
+def semantic_duplicate_threshold(rows, n=3000):
+    if embeddings.mode() != "semantic":
+        return None
+    from app.pipeline import duplicates
+    rng = random.Random(7)
+    by_issue = {}
+    for r in rows:
+        by_issue.setdefault((r["category"], r.get("sub_department")), []).append(r)
+    keys = sorted(by_issue, key=str)
+    vec = {t: embeddings.embed(t) for t in {r["text_en"] for r in rows}}
+    pairs = []
+    for _ in range(n):
+        k = rng.choice(keys)
+        if len(by_issue[k]) > 1:
+            pairs.append((*rng.sample(by_issue[k], 2), True))
+        a = rng.choice(rows)
+        near = {a["category"]} | duplicates.RELATED.get(a["category"], set())
+        other = next((r for r in rng.sample(rows, 60) if r["category"] in near and r.get("sub_department") != a.get("sub_department")), None)
+        if other:
+            pairs.append((a, other, False))
+    scored = [(duplicates.score(embeddings.cosine(vec[a["text_en"]], vec[b["text_en"]]), rng.uniform(0, duplicates.RADIUS_M),
+                                a["category"] == b["category"], "semantic"), y) for a, b, y in pairs]
+    table = []
+    for t in [x / 100 for x in range(30, 95, 2)]:
+        tp = sum(s >= t and y for s, y in scored); fp = sum(s >= t and not y for s, y in scored)
+        fn = sum(s < t and y for s, y in scored); neg = sum(not y for _, y in scored)
+        table.append({"threshold": t, "f1": round(2 * tp / max(1, 2 * tp + fp + fn), 3), "recall": round(tp / max(1, tp + fn), 3),
+                      "false_positive_rate": round(fp / max(1, neg), 3)})
+    current = min(table, key=lambda r: abs(r["threshold"] - duplicates.STRONG["semantic"]))
+    return {"pairs": len(scored), "cosine_base": duplicates.COSINE_BASE["semantic"], "current": current,
+            "best": max(table, key=lambda r: r["f1"]), "curve": table[::4]}
+
+
 def main():
     rows = load_jsonl(ROOT / "data" / "seed" / "complaints.jsonl")
     out = {"emergency_keywords": emergency_precision(rows), "routing_bands": routing_bands(rows),
-           "duplicates": duplicate_threshold()}
+           "duplicates": duplicate_threshold(), "duplicates_semantic": semantic_duplicate_threshold(rows)}
     print(json.dumps(out, ensure_ascii=False, indent=1))
     (ROOT / "ml" / "models" / "tuning.json").write_text(json.dumps(out, ensure_ascii=False, indent=1))
 

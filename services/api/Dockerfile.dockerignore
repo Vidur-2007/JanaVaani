@@ -1,0 +1,11 @@
+**/__pycache__
+**/.pytest_cache
+**/*.pyc
+**/.env
+**/.env.*
+!services/api/.env.example
+services/api/uploads
+services/api/.ai_cache
+services/api/janavaani.db*
+services/api/tests
+ml/notebooks
