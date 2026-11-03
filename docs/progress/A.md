@@ -89,6 +89,10 @@
   - Hybrid suite 8/8 (chromium + mobile-chrome).
   - The report/voice/tracker specs ×3 on mobile-chrome: 69/69 (no flakes).
 
+- **Quality (end of P7):**
+  - Playwright **223 passed, 0 failed, 65 skipped** (chromium + mobile-chrome; the skips are the chromium-only matrices and the opt-in hybrid suite).
+  - Lint 0/0, `test:mocks`, `test:voice` (24 + 19 nav), `test:i18n` pass.
+
 ## Known issues / remaining (after P7)
 - **Integration:** the H30 merge is still pending (`main` = `v0-scaffold`; PRs Vidur-2007/JanaVaani#1 and Vidur-2007/JanaVaani#2 open). Merge B → A → C, then `git merge origin/main` once on `feat/citizen`.
 - **B endpoints Laptop A now relies on (with mock fallback):** `POST /documents/extract` (S5), and localized quick-reply labels (see `docs/contract-notes/A.md`).
