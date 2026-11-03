@@ -1,5 +1,7 @@
 # Laptop A: top 40 UI strings for native-speaker review (P7)
 
+> **Status (P7):** native-speaker review skipped at the team's request. Claude self-reviewed all 40 in te/hi/ur for meaning, terminology consistency (ఫిర్యాదు / शिकायत / شکایت) and placeholders; one fix applied: **#39 te** `లేదు, కాలేదు` → `లేదు, పరిష్కారం కాలేదు` ("No, not fixed" was ambiguous). A native-speaker pass is still recommended before real use.
+
 Reply with corrections like `12 te: <new text>` (number, language, new text). Keep `{{placeholders}}` as they are. Only list the ones that need changing.
 
 ### 1. `landing:hero.greetings`
