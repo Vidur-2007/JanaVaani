@@ -154,3 +154,20 @@ def test_auto_seed_only_touches_an_empty_sqlite_database(client, seeded, monkeyp
     monkeypatch.setattr(get_settings(), "auto_seed", True)
     m._auto_seed()              # profiles exist
     assert calls == []
+
+
+# ---------- Postgres schema comes only from supabase/migrations
+def test_postgres_startup_never_creates_tables_and_reports_missing_ones(monkeypatch, caplog):
+    import sqlalchemy
+
+    from app.core import db
+    monkeypatch.setattr(db.engine.dialect, "name", "postgresql")
+    monkeypatch.setattr(db.Base.metadata, "create_all", lambda *a, **k: pytest.fail("create_all must not run on Postgres"))
+    monkeypatch.setattr(sqlalchemy, "inspect", lambda eng: type("I", (), {"get_table_names": lambda self: ["grievances"]})())
+    db.create_all()
+    assert "run ml/apply_migrations.py" in caplog.text and "'profiles'" in caplog.text
+
+
+def test_migrations_include_the_realtime_grant():
+    sql = (REPO_DIR / "supabase" / "migrations" / "0006_live_events_grants.sql").read_text()
+    assert "grant select on public.live_events to anon, authenticated" in sql
