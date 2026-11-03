@@ -1,14 +1,21 @@
-// PLACEHOLDER routes created by Laptop A in P0 — Laptop C owns this file (Spec C §6). Mounted at /admin/*.
+// Admin portal routes (Spec C §6). Mounted at /admin/*. Supervisors get the overview and alerts only (Spec C §3).
 import { lazy } from 'react';
 import { Route, Routes } from 'react-router';
+import { DEMO_MODE } from '@/lib/api/client';
 import { RequireRole } from '@/lib/auth/RequireRole';
 import NotFound from '@/app/NotFound';
 import { GovLayout } from '@/portals/gov-shared/layout/GovLayout';
-import { GovPlaceholder } from '@/portals/gov-shared/components/GovPlaceholder';
 
-const CommandCenter = lazy(() => import('./pages/CommandCenterStub'));
-
-const PAGES = ['map', 'departments', 'officers', 'analytics', 'alerts', 'audit', 'ai', 'reports', 'demo'];
+const CommandCenter = lazy(() => import('./pages/CommandCenter'));
+const CityMap = lazy(() => import('./pages/CityMap'));
+const Departments = lazy(() => import('./pages/Departments'));
+const Officers = lazy(() => import('./pages/Officers'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Alerts = lazy(() => import('./pages/Alerts'));
+const Audit = lazy(() => import('./pages/Audit'));
+const AIModel = lazy(() => import('./pages/AIModel'));
+const Reports = lazy(() => import('./pages/Reports'));
+const DemoControls = lazy(() => import('./pages/DemoControls'));
 
 export default function AdminRoutes() {
   return (
@@ -16,9 +23,17 @@ export default function AdminRoutes() {
       <Route element={<RequireRole roles={['admin', 'supervisor']} />}>
         <Route element={<GovLayout />}>
           <Route index element={<CommandCenter />} />
-          {PAGES.map((p) => (
-            <Route key={p} path={p} element={<GovPlaceholder titleKey="nav.admin" />} />
-          ))}
+          <Route path="alerts" element={<Alerts />} />
+          <Route element={<RequireRole roles={['admin']} />}>
+            <Route path="map" element={<CityMap />} />
+            <Route path="departments" element={<Departments />} />
+            <Route path="officers" element={<Officers />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="audit" element={<Audit />} />
+            <Route path="ai" element={<AIModel />} />
+            <Route path="reports" element={<Reports />} />
+            {DEMO_MODE && <Route path="demo" element={<DemoControls />} />}
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
