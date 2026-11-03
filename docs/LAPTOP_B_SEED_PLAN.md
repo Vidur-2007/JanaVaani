@@ -4,8 +4,9 @@ What `python ml/seed_db.py` would do to the production Supabase project, so it c
 Counts come from a run against a throwaway local SQLite file (2026-11-03, default `--n 600`), not against Supabase.
 
 ## Before running
-1. Apply migrations `0001`–`0005` (`python ml/apply_migrations.py`; all are idempotent). **`0004` and `0005` must be applied
+1. Apply migrations `0001`–`0006` (`python ml/apply_migrations.py`; all are idempotent). **`0004` and `0005` must be applied
    before seeding or deploying the current API**: the code writes `grievances.fields` and `closure_type = 'disputed'`.
+   On Postgres the API no longer creates tables at startup; the schema comes only from these migrations.
 2. Run with the server's embedding mode: production reports `embeddings: lexical`, so seed with `USE_EMBEDDINGS=false`.
    Seeded vectors from another mode are skipped by duplicate matching, which would break the Miyapur demo step.
 3. Set `DATABASE_URL` (Session pooler), `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` in the shell, never in the repo.

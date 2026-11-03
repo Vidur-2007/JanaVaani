@@ -141,17 +141,21 @@ Production checks on `https://janavaani-gnbo.onrender.com` found two AI problems
 - **Disputed closures** need migration `0005_closure_type_disputed.sql`: schema 0001's CHECK on `closure_type` rejected `'disputed'`. Found by running the suite on Postgres.
 - **Tests:** `test_p15_intake.py` (19) and `test_p16_contract_closure.py` (11). Six older chat tests updated where the spec changes the flow (a question before the draft; continue after emergency → collecting). **260 passed on SQLite and 260 on a throwaway local Postgres 16** with migrations 0001–0005 applied twice (idempotent); PostGIS was stubbed there.
 
+### Production schema repair (2026-11-03)
+- The production schema had been created by the API's startup `create_all()`, not the migrations. RLS was on (Supabase default), but `geom` columns, `wards`/`departments`, the append-only trigger, the `evidence` bucket, the realtime publication and the `live_events` grant were missing, and `grievances.fields` was absent, so grievance endpoints returned 500 after the deploy.
+- **Fix:** on Postgres, `create_all()` now only reports missing tables (`run ml/apply_migrations.py`); SQLite still creates them. Migration `0006_live_events_grants.sql` adds the realtime grant. Reset rehearsed on a local copy of the production schema: all checks pass, 262 tests pass on it.
+
 ## In progress
 Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys / HF Space.
 
 ## Next
-1. Apply migrations `0004_grievance_fields.sql` and `0005_closure_type_disputed.sql` to Supabase **before** deploying this branch, then rerun `python scripts/smoke_prod.py`.
+1. Rebuild the production schema from migrations 0001–0006 (it was created by the API's `create_all`, so PostGIS columns, the audit trigger, the evidence bucket and realtime were missing), then rerun `python scripts/smoke_prod.py`.
 2. Find the Gemini main error in the Render logs (`provider=gemini failed code=`) and pin `GEMINI_MODEL_MAIN` after a benchmark run.
 3. Add the Vercel origin to `ALLOWED_ORIGINS`.
 4. With approval: seed the production DB using the server's embedding mode (`USE_EMBEDDINGS=false`).
 5. With a test account: verify Supabase sign-in → `/me` → submission → officer resolve in production.
 6. C reruns its e2e suite against the deployed backend; A checks the chat's new follow-up questions.
-7. Read-only realtime check in the Supabase SQL editor: `select has_table_privilege('authenticated','public.live_events','select'), has_table_privilege('anon','public.live_events','select');`
+7. Realtime: production showed no SELECT grant on `live_events` for `anon` or `authenticated`; migration `0006_live_events_grants.sql` adds it.
 
 ## Blockers / deviations (honest list)
 - **No Supabase project, Gemini or Groq keys were available in the build session.** The API runs in *offline mode* (SQLite file DB, deterministic AI fallbacks) until `services/api/.env` is filled. Migrations were NOT run against Supabase; run `python ml/apply_migrations.py` with `DATABASE_URL` set.

@@ -1,4 +1,5 @@
 """SQLAlchemy engine + session. SQLite by default (offline mode); Postgres via DATABASE_URL."""
+import logging
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine, event
@@ -64,5 +65,13 @@ def session_scope():
 
 
 def create_all():
+    """SQLite offline mode: create the tables. Postgres: the schema belongs to supabase/migrations (RLS, PostGIS,
+    triggers, realtime grants), so tables are never created here; missing ones are reported instead."""
     from .. import models  # noqa: F401
-    Base.metadata.create_all(engine)
+    if engine.dialect.name != "postgresql":
+        Base.metadata.create_all(engine)
+        return
+    from sqlalchemy import inspect
+    missing = sorted(set(Base.metadata.tables) - set(inspect(engine).get_table_names()))
+    if missing:
+        logging.getLogger("janavaani").error("database is missing tables %s: run ml/apply_migrations.py", missing)
