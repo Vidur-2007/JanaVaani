@@ -107,13 +107,51 @@ Production checks on `https://janavaani-gnbo.onrender.com` found two AI problems
 - **Translation `source_lang`:** `/translate` reported the target language as the source (English text sent to Telugu came back `te`). Native-script and romanised Telugu/Hindi detection now decides; for plain Latin text the LLM's answer is used unless it names the target.
 - **Gemini key:** sent in the `x-goog-api-key` header instead of `?key=` in the URL. httpx logs request URLs at INFO, so the key was written to the Render logs on every Gemini call. The `httpx` logger is now at WARNING in `main.py`. **The key in use must be rotated.**
 - Tests: `tests/test_p11_ai_stabilization.py` (Groq models through the real provider code, JSON mode, Gemini timeout → Groq fallback, `source_lang`) and `tests/test_p12_secret_handling.py` (header only, nothing in URLs, logs or exceptions, retry and fallback unchanged). HTTP is faked; no live calls. **200 passed.**
-- Still open: in production, Gemini main (`gemini-flash-latest`) times out twice at 12 s, so analysis and translation take about 25–30 s via Groq. The likely cause is the alias now pointing at a Flash model that thinks at high effort by default; this is not confirmed. A candidate benchmark is ready but has not been run (no key locally). Pin `GEMINI_MODEL_MAIN` once a model passes. Also still open: production DB not seeded; `ALLOWED_ORIGINS` has no Vercel origin; Supabase sign-in, `/me`, Storage upload and full submission not yet tested in production.
+- Still open at the time: in production, Gemini main (`gemini-flash-latest`) timed out twice at 12 s, so analysis and translation took about 25–30 s via Groq. The likely cause is the alias now pointing at a Flash model that thinks at high effort by default; this is not confirmed. A candidate benchmark is ready but has not been run (no key locally). Pin `GEMINI_MODEL_MAIN` once a model passes. Also still open: production DB not seeded; `ALLOWED_ORIGINS` has no Vercel origin; Supabase sign-in, `/me`, Storage upload and full submission not yet tested in production.
+
+### Production verification, Phase 4 re-verification, cross-phase access fixes (2026-11-03)
+- **Production (`2bc0d9d` on Render), `scripts/smoke_prod.py`: 41/41 passed.** Covered: health, metadata, public stats/map/nearby/search, 404 and 422 handling, 26 auth-rejection probes (no token, garbage token, demo-login closed), English and Telugu analysis, translation both ways, guide answer. Timings: public reads 0.1–0.4 s, analysis 7–12 s, translation 3–6.5 s, guide 1.9 s. The `source_lang` fix is live. **Gemini main failed on every analysis** (no `gemini` routing vote); Groq answered through the fallback, so the Gemini→Groq fallback is verified in production. The Gemini error code is only in the Render logs. The production DB is still empty (not seeded).
+- **Phase 4 re-checked clause by clause against Spec B §8–§9** (`tests/test_p13_phase4.py`, 19 tests; 7 of them fail on the previous code). Fixed:
+  - **Suspicious resolution** now notifies supervisors (type `alert`), as Spec B §8 and C's "Supervisor has been notified" banner say.
+  - **Proof photos** must be `resolution_proof` uploads, so a citizen's evidence photo can no longer be relabelled as proof.
+  - **One proof shared across an incident** (C's resolve-all) is copied per grievance. Before, each `/resolve` moved the photo to the latest member, so earlier members lost their proof.
+  - **Incident status** now follows its members.
+  - **"Fixed" fan-out** goes once to each merged member when the whole incident resolves. Before, every `/resolve` re-notified every member, including still-open ones.
+  - **`overdue_critical`** fires even when the case was already at level 2.
+  - **Draft replies** are capped at 80 words in whole sentences (template otherwise).
+- **Cross-phase (Spec B §10), `tests/test_p14_access.py` (10):**
+  - **Officer ward scope** now applies to every case endpoint and to `GET /grievances/{id}`, not only the inbox; the officers' incident list is filtered the same way.
+  - **`POST /uploads` with `grievance_id`** needs owner or in-scope government access; `resolution_proof` uploads need a government role.
+  - **Legacy HS256 Supabase tokens** are now verified through `GET /auth/v1/user` (spec fallback, audit N1). Only tokens issued by this project are sent; answers are cached 60 s.
+- **Logging:** uvicorn access lines no longer show guest ticket PINs (`?pin=`) or photo-link signatures (`&sig=`); checked against a real uvicorn server.
+- **Tests: 230 passed** locally (SQLite, providers faked).
+
+### Phase 4 completion and B/C contract closure (2026-11-03)
+- **`intake_turn` (Spec B §5.2), `app/pipeline/intake.py`.** One LLM turn per citizen message (Gemini main → Groq main) decides the intent (new complaint, track status, service question, small talk), extracts the department's required fields and asks one question in the citizen's language.
+  - **Rules enforced on every LLM answer:** never re-ask a given field (GPS/pin or a known place counts as location), one photo request for roads/sanitation/drainage/streetlights, at most 4 questions, "that's all" in any language ends intake.
+  - **Offline:** the same rules run without the LLM, using the 4-language questions in `field_questions.json`.
+  - **Emergencies:** the intake turn can flag one the keyword list missed, before any question.
+  - **Tracking** now ranks only the caller's own complaints. It used to show anyone's complaint for a typed ticket number.
+- **Fields persisted (spec conflict resolved).** §8 lists `fields` as a brief input, but §4 had no column for them, so migration `0004_grievance_fields.sql` adds `grievances.fields jsonb`. They are filled from chat and the quick form, used by the brief, and returned as optional `Grievance.fields`.
+- **B2:** officers verify one in-scope grievance's chain (#52).
+- **B3:** new supervisor endpoint `POST /officer/grievances/{id}/dispute`, `demand_new_proof` or `close_disputed` (`closure_type: "disputed"`).
+- **Spike alerts** store every member; `member_count` and `member_ids` match the title.
+- **`GET /meta/assets?ward=&type=`** for C's QR sheet (Spec C S8).
+- **Seed plan** documented without touching Supabase: `docs/LAPTOP_B_SEED_PLAN.md`, with exact counts from a throwaway local SQLite run.
+- **Disputed closures** need migration `0005_closure_type_disputed.sql`: schema 0001's CHECK on `closure_type` rejected `'disputed'`. Found by running the suite on Postgres.
+- **Tests:** `test_p15_intake.py` (19) and `test_p16_contract_closure.py` (11). Six older chat tests updated where the spec changes the flow (a question before the draft; continue after emergency → collecting). **260 passed on SQLite and 260 on a throwaway local Postgres 16** with migrations 0001–0005 applied twice (idempotent); PostGIS was stubbed there.
 
 ## In progress
 Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys / HF Space.
 
 ## Next
-1. Push `feat/ai-engine` (from Cursor) and open the PR. 2. Fill `services/api/.env`, run migrations + seed against Supabase. 3. Deploy the HF Space; run record_demo + latency. 4. With keys: prompt-quality pass, `--features benchmark`, LLM data augmentation for Urdu.
+1. Apply migrations `0004_grievance_fields.sql` and `0005_closure_type_disputed.sql` to Supabase **before** deploying this branch, then rerun `python scripts/smoke_prod.py`.
+2. Find the Gemini main error in the Render logs (`provider=gemini failed code=`) and pin `GEMINI_MODEL_MAIN` after a benchmark run.
+3. Add the Vercel origin to `ALLOWED_ORIGINS`.
+4. With approval: seed the production DB using the server's embedding mode (`USE_EMBEDDINGS=false`).
+5. With a test account: verify Supabase sign-in → `/me` → submission → officer resolve in production.
+6. C reruns its e2e suite against the deployed backend; A checks the chat's new follow-up questions.
+7. Read-only realtime check in the Supabase SQL editor: `select has_table_privilege('authenticated','public.live_events','select'), has_table_privilege('anon','public.live_events','select');`
 
 ## Blockers / deviations (honest list)
 - **No Supabase project, Gemini or Groq keys were available in the build session.** The API runs in *offline mode* (SQLite file DB, deterministic AI fallbacks) until `services/api/.env` is filled. Migrations were NOT run against Supabase; run `python ml/apply_migrations.py` with `DATABASE_URL` set.
