@@ -94,6 +94,13 @@
 - Verified by simulation only: staged folder with read-only code and the Dockerfile's env and command (seeded itself in 18 s; black box 236 passed, 4 known failures); fake Supabase Storage + Auth with Postgres and real migrations (black box 235 passed, same 4). **Not run: `docker build`, a real Space, real Supabase.** Tests: `tests/test_p9_storage_deploy.py`, 140 passed on SQLite and Postgres.
 - Known limits: uploads and retrained models are lost on restart without Supabase; retrained models revert on restart in any mode; each re-seed makes about 3 Supabase admin calls per seeded user.
 
+### Fix Phase 4B (Supabase compatibility, from the config audit)
+- New `sb_secret_` keys are sent on `apikey` only (they are not JWTs); legacy `service_role` JWTs keep `apikey` + `Authorization: Bearer`. One rule, `Settings.service_key_headers()`, used by every Auth admin and Storage call.
+- `ml/apply_migrations.py` reads `DATABASE_URL` through Settings (inline `.env` comments no longer leak into it) and hands psycopg a plain `postgresql://` URL.
+- `SUPABASE_URL` loses trailing slashes.
+- Seeding raises `SupabaseSeedError` with the HTTP status, Supabase's message and a hint for 401, 403 and 404, never the key. The already-exists path (422 or `email_exists`) is unchanged.
+- Tests: `tests/test_p10_supabase_compat.py` (mocked). 166 passed on SQLite and on a local Postgres. Not yet tried against a real project; JWT signing type (audit N1), `sslmode`, pool limits and the `live_events` grant are still open.
+
 ## In progress
 Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys / HF Space.
 
