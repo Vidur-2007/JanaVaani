@@ -1,0 +1,123 @@
+{
+ "emergency_keywords": {
+  "precision": 1.0,
+  "recall": 0.824,
+  "tp": 112,
+  "fp": 0,
+  "fn": 24,
+  "tn": 1199,
+  "examples": [
+   [
+    "FN",
+    "Complaint: a building is being constructed on the lake bed. Location M"
+   ],
+   [
+    "FN",
+    "దయచేసి సహాయం చేయండి, Malkajgiri లో చెరువు భూమిలో భవనం కడుతున్నారు."
+   ],
+   [
+    "FN",
+    "cheruvu land lo building kadutunnaru, Charminar area lo, a month nunch"
+   ],
+   [
+    "FN",
+    "Kondapur లో చెరువు భూమిలో భవనం కడుతున్నారు."
+   ],
+   [
+    "FN",
+    "Attapur గుడి ఎదురుగా చెరువు భూమిలో భవనం కడుతున్నారు. రెండు రోజుల నుండి"
+   ],
+   [
+    "FN",
+    "a building is being constructed on the lake bed in Madhapur near the b"
+   ],
+   [
+    "FN",
+    "Tarnaka lo cheruvu land lo building kadutunnaru sir"
+   ],
+   [
+    "FN",
+    "Complaint: the transformer near our colony makes loud noise and smokes"
+   ],
+   [
+    "FN",
+    "Please help, a building is being constructed on the lake bed at Mehdip"
+   ],
+   [
+    "FN",
+    "దయచేసి సహాయం చేయండి, Tarnaka లో చెరువు భూమిలో భవనం కడుతున్నారు."
+   ],
+   [
+    "FN",
+    "the transformer near our colony makes loud noise and smokes in Charmin"
+   ],
+   [
+    "FN",
+    "cheruvu land lo building kadutunnaru, Ameerpet area lo, 3 days nunchi"
+   ]
+  ]
+ },
+ "routing_bands": {
+  "flagged (0.50-0.75)": {
+   "n": 100,
+   "accuracy": 0.77
+  },
+  "auto (>=0.75)": {
+   "n": 194,
+   "accuracy": 0.959
+  },
+  "review (<0.50)": {
+   "n": 98,
+   "accuracy": 0.429
+  }
+ },
+ "duplicates": {
+  "mode": "lexical",
+  "pairs": 348,
+  "positives": 255,
+  "best_threshold": 0.54,
+  "best_f1": 0.984,
+  "curve": [
+   [
+    0.4,
+    0.931
+   ],
+   [
+    0.46,
+    0.959
+   ],
+   [
+    0.52,
+    0.981
+   ],
+   [
+    0.58,
+    0.927
+   ],
+   [
+    0.64,
+    0.76
+   ],
+   [
+    0.7,
+    0.522
+   ],
+   [
+    0.76,
+    0.265
+   ],
+   [
+    0.82,
+    0.053
+   ],
+   [
+    0.88,
+    0.038
+   ],
+   [
+    0.94,
+    0.008
+   ]
+  ]
+ }
+}

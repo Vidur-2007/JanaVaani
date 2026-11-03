@@ -28,13 +28,13 @@
   --border: #e3ded3;
   --text: #12141a;
   --text-muted: #5b6272;
-  --primary: #e8620c;
+  --primary: #a83c06; /* deep saffron: AA for white-on-primary and primary text on tints (P5 a11y pass) */
   --primary-fg: #ffffff;
-  --accent: #0e9f94;
-  --ai: #4f56e8;
-  --success: #138a4b;
-  --warning: #a86a00;
-  --danger: #d12a3a;
+  --accent: #0a736b;
+  --ai: #4349d6;
+  --success: #0d7038;
+  --warning: #8a5a00;
+  --danger: #b3122a;
   /* Text-safe priority colors (AA on light surfaces); chip fills use the base colors below. */
   --prio-critical-fg: #b3122a;
   --prio-high-fg: #b04a00;
@@ -57,7 +57,7 @@
   --primary: #ff7a1a;
   --primary-fg: #1a0b00;
   --accent: #22d3c5;
-  --ai: #7c83ff;
+  --ai: #8a90ff; /* AA on its own 12% tint (P5 a11y pass) */
   --success: #2bd67b;
   --warning: #ffc23d;
   --danger: #ff4d5e;
@@ -281,6 +281,62 @@ html[data-font='large'] {
   [dir='rtl'] .rtl-flip {
     transform: scaleX(-1);
   }
+}
+
+/* ---------------------------------------------------------------- P7 micro-interactions */
+/* Skeleton shimmer: a soft highlight sweeps across (direction-aware). Reduced motion → static block. */
+.jv-shimmer {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.jv-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--surface) 55%, transparent), transparent);
+  animation: jv-shimmer 1.6s var(--ease-out-expo) infinite;
+}
+[dir='rtl'] .jv-shimmer::after {
+  animation-direction: reverse;
+}
+@keyframes jv-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jv-shimmer::after {
+    display: none;
+  }
+}
+[data-motion='reduced'] .jv-shimmer::after,
+[data-contrast='high'] .jv-shimmer::after {
+  display: none;
+}
+
+/* Chip / toggle press: quick squash, springy release. */
+.jv-press {
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    color 0.15s,
+    background-color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    opacity 0.15s;
+}
+.jv-press:active {
+  transform: scale(0.94);
+  transition-duration: 0.075s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .jv-press:active {
+    transform: none;
+  }
+}
+[data-motion='reduced'] .jv-press:active {
+  transform: none;
 }
 
 /* ---------------------------------------------------------------- reduced motion */

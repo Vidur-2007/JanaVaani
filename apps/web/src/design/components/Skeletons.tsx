@@ -63,3 +63,15 @@ export function PageSkeleton({ className }: { className?: string }) {
     </div>
   );
 }
+
+/**
+ * P6: Suspense fallback for route-level lazy boundaries. Same look as PageSkeleton, plus a marker that the boot
+ * shell (index.html + app/boot.ts) waits on, so first load goes boot shell → real page with no skeleton flash.
+ */
+export function RouteFallback({ className }: { className?: string }) {
+  return (
+    <div data-route-fallback="" className="contents">
+      <PageSkeleton className={className} />
+    </div>
+  );
+}

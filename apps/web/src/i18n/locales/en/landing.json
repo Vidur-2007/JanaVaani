@@ -4,13 +4,54 @@
     "greetings": ["Speak your problem.", "మీ సమస్యను చెప్పండి.", "अपनी शिकायत बताइए।", "اپنی شکایت بتائیں۔"],
     "subhead": "Report a civic problem by voice, photo or text in Telugu, Hindi, Urdu or English. AI routes it to the right office, and you track it until it is really fixed.",
     "cta_voice": "Report by voice",
-    "cta_track": "Track a complaint"
+    "cta_track": "Track a complaint",
+    "scroll_hint": "How it works"
+  },
+  "how": {
+    "title": "From your words to a fixed street",
+    "subtitle": "Four steps, in your language, with a human in charge of every decision that matters.",
+    "steps": {
+      "speak": { "title": "Speak", "body": "Talk or type the way you normally would: Telugu, Hindi, Urdu, English or a mix." },
+      "understand": { "title": "AI understands", "body": "It detects your language, translates, and works out the department, priority and deadline." },
+      "act": { "title": "Officer acts", "body": "The right officer gets the case with a summary, replies in your language and posts proof." },
+      "verify": { "title": "You verify", "body": "A complaint closes only when you confirm the problem is really fixed." }
+    },
+    "v": {
+      "listening": "Listening…",
+      "translation": "English translation",
+      "officer": "Message from the officer",
+      "officer_note": "The officer wrote in English; you read it in Telugu.",
+      "verify_q": "Is the problem fixed?",
+      "verify_note": "Not fixed? It reopens and goes back to the officer."
+    }
   },
   "stats": {
     "title": "Live city stats",
     "total": "Complaints registered",
     "resolved": "Resolved",
-    "avg_hours": "Average resolution time"
+    "avg_hours": "Average resolution time",
+    "by_department": "Complaints by department · resolved %"
+  },
+  "languages": {
+    "title": "One complaint, any language",
+    "subtitle": "Five people describe the same pothole in five ways. JanaVaani understands all of them as one issue.",
+    "structured": "Structured complaint",
+    "card_title": "Large pothole at Miyapur X Roads",
+    "department": "Department",
+    "priority": "Priority",
+    "ward": "Ward",
+    "reports": "People reporting",
+    "merged_note": "Duplicate reports are merged, so the officer sees one case with 32 supporters."
+  },
+  "trust": {
+    "title": "Built for trust",
+    "subtitle": "Fixes are checked, records can't be quietly edited, and your identity stays private.",
+    "items": {
+      "verified": { "title": "You close it, not the office", "body": "A case is closed only after the citizen confirms the fix, or after 7 days without a reply." },
+      "ai_check": { "title": "AI checks the proof", "body": "Resolution photos are compared with yours. A reused photo or a far-away location gets flagged." },
+      "audit": { "title": "Tamper-evident history", "body": "Every step is chained with a hash, so any edit to the record breaks the chain and shows." },
+      "privacy": { "title": "Private by default", "body": "Report anonymously. Public maps show no names, no text and only approximate locations." }
+    }
   },
   "portals": {
     "title": "Four portals, one platform",
@@ -25,6 +66,7 @@
   },
   "footer": {
     "stack": "Built with free & open tech",
-    "disclaimer": "Demo data only. Ward boundaries are approximate."
+    "disclaimer": "Demo data only. Ward boundaries are approximate. Departments are illustrative; a real deployment follows official jurisdictions.",
+    "event": "Neural Storm · JNTUH · HI-02"
   }
 }

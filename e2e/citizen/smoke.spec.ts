@@ -41,8 +41,10 @@ async function signInAs(page: Page, who: keyof typeof DEMO) {
 async function expectRendered(page: Page) {
   await expect(page.locator('#root')).not.toBeEmpty();
   await expect(page.getByTestId('error-boundary')).toHaveCount(0);
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-  expect(overflow, 'no horizontal scroll').toBeLessThanOrEqual(1);
+  // Compare with the configured viewport, not innerWidth: mobile browsers zoom out (inflating innerWidth) when content is too wide.
+  const width = page.viewportSize()!.width;
+  const docWidth = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, window.innerWidth));
+  expect(docWidth, 'no horizontal scroll').toBeLessThanOrEqual(width + 1);
 }
 
 test('landing loads with hero and CTA', async ({ page }) => {
@@ -101,16 +103,17 @@ test('gov routes render for admin and supervisor', async ({ page }) => {
     '/admin/ai',
   ]) {
     await page.goto(path);
-    await expect(page.getByTestId('gov-placeholder')).toBeVisible();
+    // After the H30/H42 merges these are Laptop C's real portals (not the P0 placeholders): just check they render.
+    await expect(page.locator('main').first()).toBeVisible();
+    await expect(page.getByTestId('not-found')).toHaveCount(0);
     await expectRendered(page);
   }
-  await page.goto('/officer');
-  await expect(page.getByTestId('inbox-stub')).toBeVisible();
 });
 
 test('public dashboard renders without login', async ({ page }) => {
   await page.goto('/public');
-  await expect(page.getByTestId('gov-placeholder')).toBeVisible();
+  await expect(page.locator('main').first()).toBeVisible();
+  await expect(page).toHaveURL(/\/public/);
   await expectRendered(page);
 });
 
@@ -121,12 +124,10 @@ test('guarded route redirects to login; unknown route shows 404', async ({ page 
   await expect(page.getByTestId('not-found')).toBeVisible();
 });
 
-test('demo login → citizen home, Urdu flips to RTL', async ({ page }) => {
-  await page.goto('/login');
-  await page.getByTestId('demo-citizen-u-lakshmi').click();
-  await expect(page).toHaveURL(/\/app$/);
+test('signed-in citizen switches to Urdu → RTL', async ({ page }) => {
+  await signInAs(page, 'citizen');
   await page.goto('/app/settings');
-  await page.getByRole('radio', { name: 'اردو' }).click();
+  await page.getByRole('radiogroup', { name: 'Language', exact: true }).getByRole('radio', { name: 'اردو' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ur');
   await expectRendered(page);

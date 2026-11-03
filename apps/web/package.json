@@ -9,7 +9,10 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "lint": "eslint .",
-    "test:mocks": "vite-node scripts/check-mocks.ts"
+    "test:mocks": "vite-node scripts/check-mocks.ts",
+    "test:voice": "vite-node scripts/check-voice-words.ts",
+    "test:i18n": "vite-node scripts/check-i18n.ts",
+    "analyze": "node scripts/bundle-report.mjs"
   },
   "dependencies": {
     "@fontsource-variable/anek-devanagari": "^5.3.0",

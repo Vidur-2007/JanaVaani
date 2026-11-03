@@ -22,6 +22,15 @@ export interface Prefs {
   onboarded: boolean;
   consent_location: boolean | null;
   consent_microphone: boolean | null;
+  // ---- added in P1 (additive)
+  /** Language the bot/officers reply in; 'ui' = same as ui_lang. */
+  reply_lang: DeepLang | 'ui';
+  /** Voice-first: start reports in voice mode. */
+  voice_first: boolean;
+  /** Default for the "report anonymously" toggle. */
+  anonymous_default: boolean;
+  /** Consent screen accepted (what we store, how AI is used). */
+  consent_privacy: boolean;
 }
 
 interface PrefsState extends Prefs {
@@ -38,6 +47,16 @@ const detectInitialLang = (): DeepLang => {
   return (['en', 'te', 'hi', 'ur'] as const).includes(l as DeepLang) ? (l as DeepLang) : 'en';
 };
 
+/**
+ * P7: the surface the current URL starts on (mirrors the boot script in index.html): the landing and gov portals
+ * are Ink, the citizen app is Paper. Starting from 'paper' everywhere flashed the landing light before it set Ink.
+ */
+function initialSurface(): Theme {
+  if (typeof window === 'undefined') return 'paper';
+  const path = window.location.pathname;
+  return path === '/' || path === '' || /^\/(officer|supervisor|admin|public)(\/|$)/.test(path) ? 'ink' : 'paper';
+}
+
 export const DEFAULT_PREFS: Prefs = {
   ui_lang: detectInitialLang(),
   theme: 'auto',
@@ -51,13 +70,20 @@ export const DEFAULT_PREFS: Prefs = {
   onboarded: false,
   consent_location: null,
   consent_microphone: null,
+  reply_lang: 'ui',
+  voice_first: false,
+  anonymous_default: false,
+  consent_privacy: false,
 };
+
+/** Effective reply language. */
+export const replyLang = (p: Pick<Prefs, 'reply_lang' | 'ui_lang'>): DeepLang => (p.reply_lang === 'ui' ? p.ui_lang : p.reply_lang);
 
 export const usePrefs = create<PrefsState>()(
   persist(
     (set) => ({
       ...DEFAULT_PREFS,
-      surface_theme: 'paper',
+      surface_theme: initialSurface(),
       set: (patch) => set(patch),
       setSurfaceTheme: (surface_theme) => set({ surface_theme }),
       reset: () => set({ ...DEFAULT_PREFS, onboarded: true }),
