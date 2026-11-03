@@ -567,13 +567,22 @@ def translate(body: TranslateIn):
     class T(BM):
         text: str
         source_lang: str = "other"
-    src = safety.identify_language(body.text)["language"]
+    lid = safety.identify_language(body.text)
+    src = lid["language"]
     if src == body.target_lang:
         return {"text": body.text, "source_lang": src}
     r, _ = gateway.run("translate", prompts.TRANSLATE.format(target=body.target_lang, text=safety.mask_pii(body.text)), T)
     if not r:
         raise err(503, "translation_unavailable", "Translation is temporarily unavailable.")
-    return {"text": r["text"], "source_lang": r.get("source_lang") or src}
+    return {"text": r["text"], "source_lang": _source_lang(lid, r.get("source_lang"), body.target_lang)}
+
+
+def _source_lang(lid: dict, llm_lang: str | None, target: str) -> str:
+    """Native-script and romanised-lexicon detection beat the LLM (as in analyze.py). Plain Latin text is only a guess,
+    so the LLM's answer is used there, unless it names the target: models tend to echo the target as the source."""
+    if lid["method"] != "default_latin":
+        return lid["language"]
+    return llm_lang if llm_lang and llm_lang != target else lid["language"]
 
 
 @router.get("/search")

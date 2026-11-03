@@ -16,6 +16,7 @@ from .core.db import create_all, engine, session_scope
 from .core.ratelimit import limiter
 
 logging.basicConfig(level=logging.INFO, format='{"t":"%(asctime)s","lvl":"%(levelname)s","log":"%(name)s","msg":"%(message)s"}')
+logging.getLogger("httpx").setLevel(logging.WARNING)     # its INFO lines carry full request URLs
 log = logging.getLogger("janavaani")
 
 

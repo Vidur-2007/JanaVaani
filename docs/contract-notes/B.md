@@ -2,6 +2,8 @@
 
 Additive changes to the shared contract (new optional fields, new endpoints). Newest first.
 
+- **2026-11-03 (AI stabilization)** `POST /translate` → `{text, source_lang}`: same shape, more accurate `source_lang`. Native-script and romanised Telugu/Hindi input report the detected language; plain Latin text reports the LLM's answer unless it names `target_lang` (then `en`). Previously English sent to Telugu could come back as `source_lang: "te"`. No other API change; the Groq model defaults and the Gemini key header are backend-only.
+
 - **2026-11-02 (Fix Phase 4A)** `Media.url` and `PublicStats.recent_resolved[].after_url` are now absolute and expire after 24 h (`…/api/v1/uploads/{id}?exp=&sig=`), replacing the relative path. Use them directly as an image source; C's `mediaUrl()` passes them through unchanged. Don't store them, refetch instead. `GET /uploads/{id}` may answer 307 to a Supabase signed URL; a bad or expired link gets 403. `/health` gains `providers.storage` (`supabase|local`).
 
 - **2026-11-02 (Fix Phase 2)** Behaviour now matches what A's portal sends: `POST /grievances/{id}/support` and chat `support_existing` accept an incident id (support lands on the oldest open member; #5 returns the incident total). Chat `edit` applies `action_payload.text` and `location`. `split_confirm` files one grievance per `action_payload.draft_ids` entry, with `related_ids` cross-filled and its own `guest_pin` for guests. `continue_after_emergency` with no text goes straight on. While the location is missing, `missing_fields` is always `["location_detail"]`. `stage: emergency` can now also come from the AI's `is_emergency`, in which case `matched_terms` holds hazard ids such as `live_wire`.

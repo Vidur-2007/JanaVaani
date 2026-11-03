@@ -101,6 +101,14 @@
 - Seeding raises `SupabaseSeedError` with the HTTP status, Supabase's message and a hint for 401, 403 and 404, never the key. The already-exists path (422 or `email_exists`) is unchanged.
 - Tests: `tests/test_p10_supabase_compat.py` (mocked). 166 passed on SQLite and on a local Postgres. Not yet tried against a real project; JWT signing type (audit N1), `sslmode`, pool limits and the `live_events` grant are still open.
 
+### AI stabilization after the Render deployment (2026-11-03)
+Production checks on `https://janavaani-gnbo.onrender.com` found two AI problems and one secret leak. The fixes:
+- **Groq defaults:** `GROQ_MODEL_MAIN=openai/gpt-oss-120b` and `GROQ_MODEL_SMALL=openai/gpt-oss-20b` in `config.py` and `.env.example`. Groq shut down `llama-3.3-70b-versatile` and `llama-3.1-8b-instant` on 2026-08-16, so every Groq chat call was failing. In production (Render env set to the new models), Groq main answered complaint analysis and translation with valid JSON. Groq small passes the mocked tests only.
+- **Translation `source_lang`:** `/translate` reported the target language as the source (English text sent to Telugu came back `te`). Native-script and romanised Telugu/Hindi detection now decides; for plain Latin text the LLM's answer is used unless it names the target.
+- **Gemini key:** sent in the `x-goog-api-key` header instead of `?key=` in the URL. httpx logs request URLs at INFO, so the key was written to the Render logs on every Gemini call. The `httpx` logger is now at WARNING in `main.py`. **The key in use must be rotated.**
+- Tests: `tests/test_p11_ai_stabilization.py` (Groq models through the real provider code, JSON mode, Gemini timeout → Groq fallback, `source_lang`) and `tests/test_p12_secret_handling.py` (header only, nothing in URLs, logs or exceptions, retry and fallback unchanged). HTTP is faked; no live calls. **200 passed.**
+- Still open: in production, Gemini main (`gemini-flash-latest`) times out twice at 12 s, so analysis and translation take about 25–30 s via Groq. The likely cause is the alias now pointing at a Flash model that thinks at high effort by default; this is not confirmed. A candidate benchmark is ready but has not been run (no key locally). Pin `GEMINI_MODEL_MAIN` once a model passes. Also still open: production DB not seeded; `ALLOWED_ORIGINS` has no Vercel origin; Supabase sign-in, `/me`, Storage upload and full submission not yet tested in production.
+
 ## In progress
 Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys / HF Space.
 
@@ -116,7 +124,7 @@ Nothing in code. Waiting on: push access / Supabase project / Gemini + Groq keys
 - Hugging Face Space not deployed (needs the team's HF account) — no public API URL yet.
 
 ## API URL / live endpoints
-- URL: _not deployed yet_ (local: `http://localhost:8000/api/v1`).
+- URL: `https://janavaani-gnbo.onrender.com/api/v1` (Render, Docker; docs at `/docs`). Local: `http://localhost:8000/api/v1`.
 - Live after P5: all 57 endpoints (#1–#57).
 - Live after P4: #35–#40, #43–#49, #55, #56.
 - Live after P3: #7–#11, #14–#19, #28–#34, #41, #42.

@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     gemini_model_main: str = "gemini-flash-latest"
     gemini_model_lite: str = "gemini-flash-lite-latest"
     groq_api_key: str = ""
-    groq_model_main: str = "llama-3.3-70b-versatile"
-    groq_model_small: str = "llama-3.1-8b-instant"
+    groq_model_main: str = "openai/gpt-oss-120b"     # Llama 3.x models were retired by Groq on 2026-08-16
+    groq_model_small: str = "openai/gpt-oss-20b"
     groq_whisper_model: str = "whisper-large-v3-turbo"
     embedding_model: str = "intfloat/multilingual-e5-small"
     use_embeddings: bool = True            # try sentence-transformers; fall back to lexical
