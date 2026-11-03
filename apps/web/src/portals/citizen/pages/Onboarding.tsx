@@ -25,6 +25,7 @@ import { easeOutExpo } from '@/design/motion';
 import { DEEP_LANGS, LANGUAGE_NAMES, setLanguage } from '@/lib/i18n';
 import { usePrefs, useReducedMotion } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
+import { OnboardingArt } from '../components/OnboardingArt';
 
 const MORE: (keyof typeof LANGUAGE_NAMES)[] = ['ta', 'kn', 'ml', 'mr', 'bn', 'gu'];
 
@@ -55,6 +56,7 @@ function LanguageStep() {
   return (
     <div className="space-y-5">
       <header className="space-y-1">
+        <OnboardingArt kind="language" className="-ms-2 mb-2" />
         <h1 className="font-display text-2xl font-semibold md:text-3xl">{t('onboarding.title')}</h1>
         <p className="text-muted-foreground">{t('onboarding.subtitle')}</p>
       </header>
@@ -112,6 +114,7 @@ function ConsentStep() {
   return (
     <div className="space-y-5">
       <header className="space-y-1">
+        <OnboardingArt kind="consent" className="-ms-2 mb-2" />
         <h1 className="font-display text-2xl font-semibold md:text-3xl">{t('onboarding.consent_title')}</h1>
         <p className="text-muted-foreground">{t('onboarding.consent_subtitle')}</p>
       </header>
@@ -185,6 +188,7 @@ function AccessibilityStep() {
   return (
     <div className="space-y-5">
       <header className="space-y-1">
+        <OnboardingArt kind="access" className="-ms-2 mb-2" />
         <h1 className="font-display text-2xl font-semibold md:text-3xl">{t('onboarding.a11y_title')}</h1>
         <p className="text-muted-foreground">{t('onboarding.a11y_subtitle')}</p>
       </header>
