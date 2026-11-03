@@ -19,6 +19,9 @@ import { matchConfirmWord } from './voiceWords';
 import { useBackToClose } from '../../components/useBackToClose';
 import { DEMO_MODE } from '@/lib/api/client';
 import { DEMO_KUKATPALLY, DEMO_PHRASES } from '../../demo/demoKit';
+import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
+import { matchNavCommand, NAV_PATHS } from './navCommands';
 
 type Phase = 'consent' | 'ready' | 'listening' | 'thinking' | 'speaking' | 'denied' | 'unsupported';
 
@@ -37,6 +40,7 @@ export function VoiceMode({
   onEdit: () => void;
 }) {
   const { t } = useTranslation('citizen');
+  const navigate = useNavigate();
   const prefs = usePrefs();
   const [vlang, setVlang] = useState<VoiceLang>(uiLang);
   const [phase, setPhase] = useState<Phase>(prefs.consent_microphone === true ? 'ready' : 'consent');
@@ -74,9 +78,17 @@ export function VoiceMode({
           return;
         }
       }
+      // S10: "open my complaints" / "నా ఫిర్యాదులు" etc. navigate instead of becoming a complaint.
+      const nav = matchNavCommand(text);
+      if (nav) {
+        toast(t('voice.nav_opening', { page: t(`nav.${nav}`, { ns: 'common' }) }));
+        onClose();
+        navigate(NAV_PATHS[nav]);
+        return;
+      }
       chat.send({ text, input_mode: 'voice' });
     },
-    [chat, onEdit],
+    [chat, onEdit, onClose, navigate, t],
   );
 
   const input = useVoiceInput({ lang: vlang, onFinal });
@@ -272,6 +284,10 @@ export function VoiceMode({
             >
               {t(`voice.status.${phase}`)}
             </p>
+
+            {!chat.response && (phase === 'ready' || phase === 'listening') && (
+              <p className="max-w-xs text-center text-xs text-white/50">{t('voice.nav_hint')}</p>
+            )}
 
             {/* P7 demo mode: stage fallback when the room mic fails — sends the rehearsed Telugu phrase as the voice turn. */}
             {DEMO_MODE && !chat.response && phase !== 'thinking' && (
