@@ -47,7 +47,8 @@
     "ai": "AI ماڈل",
     "reports": "رپورٹس",
     "demo": "ڈیمو کنٹرول",
-    "public": "عوامی پورٹل"
+    "public": "عوامی پورٹل",
+    "assets": "اثاثے اور QR"
   },
   "filters": {
     "all": "سب",
@@ -77,5 +78,19 @@
       "critical": "سنگین"
     },
     "critical_case": "کھلا سنگین معاملہ"
+  },
+  "surge": {
+    "banner_title": "سرج موڈ: ایک اچانک اضافے پر مربوط کارروائی درکار ہے",
+    "open_war_room": "وار روم کھولیں",
+    "mode": "سرج موڈ · وار روم",
+    "complaints_one": "{{count}} شکایت",
+    "complaints_other": "{{count}} شکایات"
+  },
+  "rootcause": {
+    "title": "بنیادی وجہ کا گراف"
+  },
+  "assets": {
+    "sheet_title": "اثاثہ QR شیٹ",
+    "scan_to_report": "مسئلہ درج کرنے کے لیے اسکین کریں"
   }
 }
