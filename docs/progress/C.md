@@ -6,13 +6,27 @@ Branch: `feat/gov-portals` · Numbers like `#28` are endpoints from master §9.
 
 - **Done:** P0 planning. P1: gov shell, P1 `gov-shared` components, inbox, incidents tab, en/te/hi `gov.json`, `e2e/gov/p1-inbox.spec.ts`. P2: case cockpit with actions panel, supervisor queues, My stats, gov mock handlers, `e2e/gov/p2-case.spec.ts`. P3 Step 2: Command Center, city map, departments, officers, analytics, `e2e/gov/p3-admin.spec.ts`. P4: alerts, audit explorer and block chain, AI model page, demo controls, CSV/Excel/PDF exports, report builder, `e2e/gov/p4-trust.spec.ts`. P5: public portal, realtime highlights, gov.json (en/te/hi complete; Urdu for the public portal, nav and charts), accessibility pass, `e2e/gov/p5-public.spec.ts`. P6 (except the merge and deployed API): §16 run on B's local API, bug fixes, `e2e/gov/p6-suite.spec.ts`, chart memoization, KPI tween, error-state gaps. P7: polish (alert cascade, staggered map pulses, audit walk timing, palette legend, skyline empty states), demo shortcuts, `e2e/gov/p7-demo.spec.ts`. P8 partly: `docs/demo-script.md` and `docs/slides-outline.md` drafted; the deployed click-through is not done. P3 Step 1 partly: gov API calls checked against B's code run locally; mismatches fixed or logged in `docs/contract-notes/C.md`.
 - **In progress:** P3 Step 1 is unfinished: B has no deployed URL, so `.env.local` is not set and the UI has not run in hybrid mode.
-- **Next:** open the gov PR. After the merge and deployment: click through every gov route in Chrome and Edge on desktop and phone, fill in the blanks in `docs/demo-script.md`, and do two full run-throughs.
+- **Next:** get these post-merge additions into `main` (integrator). After deployment: click through every gov route in Chrome and Edge on desktop and phone, fill in the blanks in `docs/demo-script.md`, and do two full run-throughs.
 - **Blockers:**
   - **The H30 merge has not happened.** `origin/main` is still the scaffold, PRs #1 (B) and #2 (A) are open, and there is no gov PR. `git merge origin/main` was a no-op, so this branch still has `v0-scaffold` shared code.
   - **B's API is not deployed** (needs Supabase project, keys and HF Space, per B's handover).
   - After the merge, two tests in A's `e2e/citizen/smoke.spec.ts` fail because they expect P0 placeholder test ids (`gov-placeholder`, `inbox-stub`). Fix at H30: assert the real pages instead.
   - Items B2 and B3 below need B's human. B1 is resolved: B allows supervisors on the admin GETs.
 - **Contract notes:** see section 6 and `docs/contract-notes/C.md`.
+
+### Spec C audit (after the final merge)
+
+`main` has the final B, A and C merge (tagged `v1.0-submission` by A), and this branch merged it back. Checked section by section against Spec C:
+
+- **Done:** §3 shell, §4 components, §5.1–5.4 department portal, §6.1–6.10 admin, §7 public, §8 charts (every chart now has a table view), §9 en/te/hi (541 keys each, none missing), §10 tests 1–7.
+- **Added in this pass:** S8 asset page `/admin/assets/:id` with history and citizen QR code, a printable ward QR sheet `/admin/assets/sheet`, the case page links its asset for admins, export menus on the inbox and analytics, and table views for the department-drawer trend and the spike mini-chart.
+- **Not done, with reasons:**
+  - Urdu for most gov screens (about 478 strings). Spec §9 marks it optional; the public portal, nav, charts and map are in Urdu.
+  - Stretch S1 Surge Mode, S2 root-cause graph, S6 monthly AI report and S9 field visits need endpoints B never built.
+  - The QR sheet starts from assets named in complaints, because there is no endpoint that lists assets.
+  - Real virtualization: tables are server-paged with `content-visibility` instead.
+  - "Verify sample of 50" verifies every chain instead.
+- After the merge, all tests on Chromium, Edge and mobile Chrome: 511 passed, 146 skipped, 3 failed, then fixed. The 3 were a wrong assertion in the new asset test. A's smoke tests now pass.
 
 ### P8 rehearsal
 

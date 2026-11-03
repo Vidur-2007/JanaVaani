@@ -8,16 +8,11 @@ import type { RowSelectionState } from '@tanstack/react-table';
 import type { Grievance } from '@contracts/types';
 import { Button } from '@/design/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/design/ui/select';
-import {
-  DepartmentBadge,
-  ErrorState,
-  ListSkeleton,
-  PageTransition,
-  PriorityChip,
-} from '@/design/components';
+import { DepartmentBadge, ErrorState, ListSkeleton, PageTransition, PriorityChip } from '@/design/components';
 import { useLangFormat } from '@/lib/i18n/useLangFormat';
 import { useLiveEvent } from '@/lib/live/useLiveEvents';
 import { DataTable, type DataColumn } from '@/portals/gov-shared/components/DataTable';
+import { ExportMenu } from '@/portals/gov-shared/components/ExportMenu';
 import { FilterBar } from '@/portals/gov-shared/components/FilterBar';
 import { GovEmpty } from '@/portals/gov-shared/components/GovEmpty';
 import { GovStatusChip } from '@/portals/gov-shared/components/GovStatusChip';
@@ -141,9 +136,7 @@ export default function Inbox() {
 
       <SummaryStrip
         filters={filters}
-        onSelect={(f) =>
-          setFilters({ ...Object.fromEntries(FILTER_KEYS.map((k) => [k, ''])), ...f })
-        }
+        onSelect={(f) => setFilters({ ...Object.fromEntries(FILTER_KEYS.map((k) => [k, ''])), ...f })}
       />
 
       <InboxTabs />
@@ -182,11 +175,40 @@ export default function Inbox() {
                 <BulkBar selected={selected} onClear={() => setSelection({})} />
               ) : (
                 <div className="flex items-center gap-2">
+                  <ExportMenu
+                    sheets={[
+                      {
+                        name: t('nav.inbox'),
+                        columns: [
+                          t('audit.ticket'),
+                          t('inbox.column.case'),
+                          t('inbox.column.priority'),
+                          t('inbox.column.department'),
+                          t('inbox.column.status'),
+                          t('case.due'),
+                        ],
+                        rows: data.items.map((g) => [
+                          g.id,
+                          g.title.en,
+                          g.priority_score,
+                          g.category,
+                          g.status,
+                          g.sla.due_at,
+                        ]),
+                      },
+                    ]}
+                    filename="inbox"
+                    title={t('nav.inbox')}
+                  />
                   <span className="text-muted-foreground tabular text-xs" data-testid="inbox-count">
                     {t('inbox.count', { count: data.total })}
                   </span>
                   <Select value={sort} onValueChange={(v) => setParam('sort', v === 'priority' ? '' : v)}>
-                    <SelectTrigger size="sm" aria-label={t('inbox.sort.label')} className="min-h-11 min-w-11 md:min-h-9 md:min-w-0">
+                    <SelectTrigger
+                      size="sm"
+                      aria-label={t('inbox.sort.label')}
+                      className="min-h-11 min-w-11 md:min-h-9 md:min-w-0"
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

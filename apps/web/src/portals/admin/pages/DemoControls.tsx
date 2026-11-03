@@ -74,7 +74,9 @@ export default function DemoControls() {
           ) : (
             <p className="flex items-center gap-2 text-sm">
               <Clock className="text-muted-foreground size-4" aria-hidden />
-              <span className="tabular font-mono" data-testid="virtual-now">{fmt.dateTime(clock.data.now)}</span>
+              <span className="tabular font-mono" data-testid="virtual-now">
+                {fmt.dateTime(clock.data.now)}
+              </span>
               <span className="text-muted-foreground text-xs">
                 {t('demo.offset', { hours: fmt.number(Math.round(clock.data.offset_minutes / 60)) })}
               </span>
@@ -98,7 +100,13 @@ export default function DemoControls() {
         </Panel>
         <Panel title={t('demo.data')}>
           <p className="text-muted-foreground text-sm">{t('demo.reset_hint')}</p>
-          <Button variant="destructive" size="sm" className="min-h-11 md:min-h-9" onClick={() => setConfirming(true)} data-testid="reset-open">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="min-h-11 md:min-h-9"
+            onClick={() => setConfirming(true)}
+            data-testid="reset-open"
+          >
             <RotateCcw className="size-4" aria-hidden />
             {t('demo.reset')}
           </Button>
@@ -113,7 +121,12 @@ export default function DemoControls() {
               {Object.entries(health.data.providers).map(([name, state]) => (
                 <div key={name} className="flex justify-between gap-2">
                   <dt className="capitalize">{name}</dt>
-                  <dd className={cn('font-mono text-xs', HEALTHY.includes(String(state)) ? 'text-success' : 'text-warning')}>
+                  <dd
+                    className={cn(
+                      'font-mono text-xs',
+                      HEALTHY.includes(String(state)) ? 'text-success' : 'text-warning',
+                    )}
+                  >
                     {String(state)}
                   </dd>
                 </div>
@@ -125,11 +138,15 @@ export default function DemoControls() {
           <dl className="space-y-1 text-sm">
             <div className="flex justify-between gap-2">
               <dt>{t('demo.api_mode')}</dt>
-              <dd className="font-mono text-xs" data-testid="api-mode">{API_MODE}</dd>
+              <dd className="font-mono text-xs" data-testid="api-mode">
+                {API_MODE}
+              </dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt>{t('demo.fallbacks')}</dt>
-              <dd className="tabular font-mono text-xs" data-testid="fallback-count">{fmt.number(fallbacks)}</dd>
+              <dd className="tabular font-mono text-xs" data-testid="fallback-count">
+                {fmt.number(fallbacks)}
+              </dd>
             </div>
           </dl>
         </Panel>
@@ -144,7 +161,13 @@ export default function DemoControls() {
             <Button variant="ghost" className="min-h-11" onClick={() => setConfirming(false)}>
               {tc('actions.cancel')}
             </Button>
-            <Button variant="destructive" className="min-h-11" disabled={reset.isPending} onClick={() => reset.mutate()} data-testid="reset-confirm">
+            <Button
+              variant="destructive"
+              className="min-h-11"
+              disabled={reset.isPending}
+              onClick={() => reset.mutate()}
+              data-testid="reset-confirm"
+            >
               {reset.isPending ? t('demo.resetting') : t('demo.reset')}
             </Button>
           </DialogFooter>

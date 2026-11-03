@@ -46,7 +46,10 @@ function InsightsCard({ days }: { days: number }) {
       action={
         <span className="flex items-center gap-1">
           {q.data?.numbers_verified && (
-            <span className="text-success inline-flex items-center gap-1 text-[11px] font-medium" data-testid="numbers-verified">
+            <span
+              className="text-success inline-flex items-center gap-1 text-[11px] font-medium"
+              data-testid="numbers-verified"
+            >
               <BadgeCheck className="size-3.5" aria-hidden />
               {t('admin.numbers_verified')}
             </span>
@@ -111,7 +114,11 @@ export default function CommandCenter() {
     queryFn: ({ signal }) => api.departmentPerformance({ days }, signal),
   });
 
-  const fresh = useFreshIds((alerts.data ?? []).map((a) => a.id), 'alerts', !alerts.isPending);
+  const fresh = useFreshIds(
+    (alerts.data ?? []).map((a) => a.id),
+    'alerts',
+    !alerts.isPending,
+  );
   const created = trends.data?.map((p) => p.created);
   const resolved = trends.data?.map((p) => p.resolved);
   const wardValues = useMemo(
@@ -124,7 +131,9 @@ export default function CommandCenter() {
     <PageTransition className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">{t('nav.command_center')}</h1>
+          <h1 className="font-display text-xl font-semibold tracking-tight md:text-2xl">
+            {t('nav.command_center')}
+          </h1>
           <LiveIndicator />
         </div>
         <DaysSelector />
@@ -139,13 +148,54 @@ export default function CommandCenter() {
           ) : (
             <>
               <KPIStatGov label={t('kpi.total')} value={k.total} delta={k.deltas.total} trend={created} />
-              <KPIStatGov label={t('kpi.open')} value={k.open} delta={k.deltas.open} upIsGood={false} to="/officer" />
-              <KPIStatGov label={t('kpi.resolved')} value={k.resolved} delta={k.deltas.resolved} trend={resolved} to="/officer?status=closed" />
-              <KPIStatGov label={t('kpi.overdue')} value={k.overdue} delta={k.deltas.overdue} upIsGood={false} to="/officer?overdue=true" />
-              <KPIStatGov label={t('kpi.critical_open')} value={k.critical_open} upIsGood={false} to="/officer?priority=critical" />
-              <KPIStatGov label={t('kpi.sla')} value={k.sla_compliance_pct} delta={k.deltas.sla_compliance_pct} decimals={1} suffix="%" />
-              <KPIStatGov label={t('kpi.avg_resolution')} value={k.avg_resolution_hours} delta={k.deltas.avg_resolution_hours} upIsGood={false} decimals={1} suffix=" h" />
-              <KPIStatGov label={t('kpi.satisfaction')} value={k.satisfaction_avg} decimals={1} suffix=" / 5" />
+              <KPIStatGov
+                label={t('kpi.open')}
+                value={k.open}
+                delta={k.deltas.open}
+                upIsGood={false}
+                to="/officer"
+              />
+              <KPIStatGov
+                label={t('kpi.resolved')}
+                value={k.resolved}
+                delta={k.deltas.resolved}
+                trend={resolved}
+                to="/officer?status=closed"
+              />
+              <KPIStatGov
+                label={t('kpi.overdue')}
+                value={k.overdue}
+                delta={k.deltas.overdue}
+                upIsGood={false}
+                to="/officer?overdue=true"
+              />
+              <KPIStatGov
+                label={t('kpi.critical_open')}
+                value={k.critical_open}
+                upIsGood={false}
+                to="/officer?priority=critical"
+              />
+              <KPIStatGov
+                label={t('kpi.sla')}
+                value={k.sla_compliance_pct}
+                delta={k.deltas.sla_compliance_pct}
+                decimals={1}
+                suffix="%"
+              />
+              <KPIStatGov
+                label={t('kpi.avg_resolution')}
+                value={k.avg_resolution_hours}
+                delta={k.deltas.avg_resolution_hours}
+                upIsGood={false}
+                decimals={1}
+                suffix=" h"
+              />
+              <KPIStatGov
+                label={t('kpi.satisfaction')}
+                value={k.satisfaction_avg}
+                decimals={1}
+                suffix=" / 5"
+              />
             </>
           )}
         </div>
@@ -180,7 +230,10 @@ export default function CommandCenter() {
             <span className="flex items-center gap-1">
               <ScoreFormula />
               {admin && (
-                <Link to="/admin/departments" className="text-signal min-h-11 content-center text-xs font-medium hover:underline md:min-h-0">
+                <Link
+                  to="/admin/departments"
+                  className="text-signal min-h-11 content-center text-xs font-medium hover:underline md:min-h-0"
+                >
                   {t('admin.see_all')}
                 </Link>
               )}

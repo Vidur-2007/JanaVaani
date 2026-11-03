@@ -29,7 +29,15 @@ const PRESETS: { key: string; icon: typeof Waves; category: DepartmentId }[] = [
   { key: 'drainage', icon: Waves, category: 'drainage' },
 ];
 
-function PanelShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+function PanelShell({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
   const { t } = useTranslation('gov');
   return (
     <aside
@@ -83,7 +91,10 @@ function WardPanel({
     () =>
       feature
         ? points.filter((p) =>
-            booleanPointInPolygon([p.lng, p.lat], feature as unknown as Parameters<typeof booleanPointInPolygon>[1]),
+            booleanPointInPolygon(
+              [p.lng, p.lat],
+              feature as unknown as Parameters<typeof booleanPointInPolygon>[1],
+            ),
           )
         : [],
     [feature, points],
@@ -176,7 +187,9 @@ function ClusterPanel({ points, onClose }: { points: MapPoint[]; onClose: () => 
         ))}
       </ul>
       {ids.length > MAX_LISTED && (
-        <p className="text-muted-foreground text-xs">{t('admin.more_cases', { count: ids.length - MAX_LISTED })}</p>
+        <p className="text-muted-foreground text-xs">
+          {t('admin.more_cases', { count: ids.length - MAX_LISTED })}
+        </p>
       )}
     </PanelShell>
   );
@@ -236,15 +249,18 @@ export default function CityMap() {
 
   useEffect(() => {
     if (!playing || !replayReady) return;
-    const id = window.setInterval(() => {
-      setFrame((f) => {
-        if (f >= WINDOWS.length - 1) {
-          setPlaying(false);
-          return f;
-        }
-        return f + 1;
-      });
-    }, reduced ? FRAME_MS * 2 : FRAME_MS);
+    const id = window.setInterval(
+      () => {
+        setFrame((f) => {
+          if (f >= WINDOWS.length - 1) {
+            setPlaying(false);
+            return f;
+          }
+          return f + 1;
+        });
+      },
+      reduced ? FRAME_MS * 2 : FRAME_MS,
+    );
     return () => window.clearInterval(id);
   }, [playing, replayReady, reduced]);
 
@@ -300,7 +316,13 @@ export default function CityMap() {
           />
         )}
         {ward && (
-          <WardPanel wardId={ward} points={base.data ?? []} geo={geo.data} days={days} onClose={() => setWard(null)} />
+          <WardPanel
+            wardId={ward}
+            points={base.data ?? []}
+            geo={geo.data}
+            days={days}
+            onClose={() => setWard(null)}
+          />
         )}
         {cluster && <ClusterPanel points={cluster} onClose={() => setCluster(null)} />}
       </div>
@@ -334,7 +356,11 @@ export default function CityMap() {
             setFrame(Number(e.target.value));
           }}
         />
-        <span className="text-muted-foreground tabular shrink-0 text-xs" data-testid="replay-label" aria-live="polite">
+        <span
+          className="text-muted-foreground tabular shrink-0 text-xs"
+          data-testid="replay-label"
+          aria-live="polite"
+        >
           {replay && !replayReady
             ? t('admin.replay_loading')
             : t('admin.replay_frame', { day: ((replay ? frame : WINDOWS.length - 1) + 1) * 5 })}
