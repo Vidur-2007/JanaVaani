@@ -31,7 +31,10 @@ function SpikeDetail({ alert, trends }: { alert: Alert; trends?: TrendPoint[] })
       queryFn: ({ signal }: { signal: AbortSignal }) => api.getGrievance(id, {}, signal),
     })),
   });
-  const series = (trends ?? []).map((p) => ({ date: p.date, count: alert.category ? (p.by_category?.[alert.category] ?? 0) : p.created }));
+  const series = (trends ?? []).map((p) => ({
+    date: p.date,
+    count: alert.category ? (p.by_category?.[alert.category] ?? 0) : p.created,
+  }));
   const today = series.at(-1)?.count ?? 0;
   const prior = series.slice(0, -1);
   const baseline = prior.length ? prior.reduce((a, p) => a + p.count, 0) / prior.length : 0;
@@ -39,7 +42,10 @@ function SpikeDetail({ alert, trends }: { alert: Alert; trends?: TrendPoint[] })
     <div className="bg-surface-2/50 mt-1 space-y-2 rounded-[var(--radius-sm)] p-3" data-testid="spike-detail">
       <p className="text-xs">
         <span className="font-medium">{t('alerts.today', { count: today })}</span>
-        <span className="text-muted-foreground"> · {t('alerts.baseline', { value: fmt.number(+baseline.toFixed(1)) })}</span>
+        <span className="text-muted-foreground">
+          {' '}
+          · {t('alerts.baseline', { value: fmt.number(+baseline.toFixed(1)) })}
+        </span>
       </p>
       <ResponsiveContainer width="100%" height={96}>
         <BarChart data={series} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
@@ -70,9 +76,19 @@ function SpikeDetail({ alert, trends }: { alert: Alert; trends?: TrendPoint[] })
           )}
         </ul>
       </div>
-      <Link to={alertTarget(alert)} className="text-signal text-xs font-medium hover:underline">
-        {t('alerts.open_incident')}
-      </Link>
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <Link to={alertTarget(alert)} className="text-signal text-xs font-medium hover:underline">
+          {t('alerts.open_incident')}
+        </Link>
+        {/* S1: every spike can be worked as a war room (Surge Mode when it qualifies). */}
+        <Link
+          to={`/admin/surge/${encodeURIComponent(alert.id)}`}
+          className="text-danger text-xs font-medium hover:underline"
+          data-testid="alert-war-room"
+        >
+          {t('surge.open_war_room')}
+        </Link>
+      </div>
     </div>
   );
 }
@@ -91,7 +107,11 @@ export default function Alerts() {
     () => (q.data ?? []).filter((a) => severity === 'all' || a.severity === severity),
     [q.data, severity],
   );
-  const fresh = useFreshIds((q.data ?? []).map((a) => a.id), 'alerts', !q.isPending);
+  const fresh = useFreshIds(
+    (q.data ?? []).map((a) => a.id),
+    'alerts',
+    !q.isPending,
+  );
   const count = (s: Severity) => (q.data ?? []).filter((a) => s === 'all' || a.severity === s).length;
   return (
     <PageTransition className="space-y-3">
