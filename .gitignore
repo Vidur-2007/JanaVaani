@@ -22,3 +22,4 @@ services/api/janavaani.db*
 services/api/uploads/
 services/api/.ai_cache/
 .pytest_cache/
+dist-analyze/

@@ -178,14 +178,15 @@ export const api = {
     get<GrievanceDetail>(`/grievances/${enc(id)}`, opts, signal),
   /* 7 */ myGrievances: (q: MyGrievancesQuery = {}, signal?: AbortSignal) =>
     get<Paged<Grievance>>('/me/grievances', { ...q }, signal),
-  /* 8 */ submitFeedback: (id: string, body: FeedbackRequest) =>
-    post<GrievanceDetail>(`/grievances/${enc(id)}/feedback`, body),
-  /* 9 */ reopenGrievance: (id: string, body: { reason: string; media_ids?: string[] }) =>
-    post<GrievanceDetail>(`/grievances/${enc(id)}/reopen`, body),
-  /* 10 */ fileAppeal: (id: string, body: { reason: string }) =>
-    post<Appeal>(`/grievances/${enc(id)}/appeal`, body),
-  /* 11 */ sendMessage: (id: string, body: { text: string; ui_lang: DeepLang }) =>
-    post<Message>(`/grievances/${enc(id)}/messages`, body),
+  // Owner actions (#8–#11): `opts.pin` (added in P4, optional) lets a guest act with ticket + PIN (sent as ?pin=).
+  /* 8 */ submitFeedback: (id: string, body: FeedbackRequest, opts: { pin?: string } = {}) =>
+    post<GrievanceDetail>(`/grievances/${enc(id)}/feedback`, body, opts),
+  /* 9 */ reopenGrievance: (id: string, body: { reason: string; media_ids?: string[] }, opts: { pin?: string } = {}) =>
+    post<GrievanceDetail>(`/grievances/${enc(id)}/reopen`, body, opts),
+  /* 10 */ fileAppeal: (id: string, body: { reason: string }, opts: { pin?: string } = {}) =>
+    post<Appeal>(`/grievances/${enc(id)}/appeal`, body, opts),
+  /* 11 */ sendMessage: (id: string, body: { text: string; ui_lang: DeepLang }, opts: { pin?: string } = {}) =>
+    post<Message>(`/grievances/${enc(id)}/messages`, body, opts),
   /* 12 */ upload: ({ file, purpose, grievance_id, lat, lng }: UploadRequest) => {
     const fd = new FormData();
     fd.append('file', file);

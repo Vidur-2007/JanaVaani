@@ -1,5 +1,5 @@
 // Controls: ListenButton (TTS), LanguageSwitcher, ThemeToggle, PageTransition, Logo.
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, Languages, Loader2, Moon, Square, Sun, Volume2, VolumeX } from 'lucide-react';
@@ -113,10 +113,13 @@ export function LanguageSwitcher({
           variant="ghost"
           size="sm"
           className={cn('touch-target gap-1.5', className)}
-          aria-label={t('lang.choose')}
+          aria-label={`${t('lang.choose')}: ${LANGUAGE_NAMES[current].native}`}
         >
           <Languages className="size-4" aria-hidden />
-          <span lang={current}>{LANGUAGE_NAMES[current].native}</span>
+          {/* Icon-only below 390px so the header fits large text; the name stays in the accessible label. */}
+          <span lang={current} className="max-sm:hidden">
+            {LANGUAGE_NAMES[current].native}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -161,10 +164,13 @@ export function ThemeToggle({ className }: { className?: string }) {
 /** Wrap each routed page. Pair with `<AnimatePresence mode="wait">` keyed by location (done in the app router). */
 export function PageTransition({ children, className }: { children: ReactNode; className?: string }) {
   const reduced = useReducedMotion();
+  // P6: the first page replaces the static boot shell (index.html) — show it as-is instead of fading in from
+  // blank, so the screen never dims between the shell and the app.
+  const [firstPaint] = useState(() => typeof document !== 'undefined' && !!document.getElementById('boot'));
   return (
     <motion.div
       variants={reduced ? pageTransitionReduced : pageTransition}
-      initial="initial"
+      initial={firstPaint ? false : 'initial'}
       animate="animate"
       exit="exit"
       className={className}

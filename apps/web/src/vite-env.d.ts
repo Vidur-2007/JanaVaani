@@ -11,3 +11,9 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+interface ImportMetaEnv {
+  /** Optional basemap tile URL template (default: OpenStreetMap). */
+  readonly VITE_TILE_URL?: string;
+  readonly VITE_TILE_ATTRIBUTION?: string;
+}

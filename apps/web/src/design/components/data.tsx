@@ -24,6 +24,7 @@ import { pickLocalized } from '@/lib/localized';
 import { useReducedMotion } from '@/lib/prefs/store';
 import { cn } from '@/lib/utils';
 import { countUpMs, easeOutExpo, listItem, stagger } from '@/design/motion';
+import { mediaUrl } from '@/lib/api/client';
 
 // ---------------------------------------------------------------- KPIStat
 
@@ -41,6 +42,24 @@ export interface KPIStatProps {
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
   hint?: ReactNode;
   className?: string;
+}
+
+/**
+ * P7: animate a number from `from` to `value` over 900 ms (expo-out) — for counts that just changed, e.g.
+ * "33 people affected" right after the citizen adds support. Instant under reduced motion.
+ */
+export function useCountUp(value: number, from = 0): number {
+  const reduced = useReducedMotion();
+  const [shown, setShown] = useState(reduced ? value : from);
+  useEffect(() => {
+    if (reduced) {
+      setShown(value);
+      return;
+    }
+    const controls = animate(from, value, { duration: countUpMs / 1000, ease: easeOutExpo, onUpdate: (v) => setShown(Math.round(v)) });
+    return () => controls.stop();
+  }, [value, from, reduced]);
+  return shown;
 }
 
 export function KPIStat({
@@ -302,14 +321,14 @@ export function BeforeAfterSlider({ before, after, beforeAlt, afterAlt, classNam
       dir="ltr"
     >
       <img
-        src={after}
+        src={mediaUrl(after)}
         alt={afterAlt ?? t('before_after.after')}
         className="absolute inset-0 size-full object-cover"
         draggable={false}
       />
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <img
-          src={before}
+          src={mediaUrl(before)}
           alt={beforeAlt ?? t('before_after.before')}
           className="absolute inset-0 size-full object-cover"
           draggable={false}

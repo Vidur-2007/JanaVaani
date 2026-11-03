@@ -67,3 +67,23 @@ export function mockGuest(): MockProfile {
   if (existing?.role === 'guest') return existing;
   return { ...GUEST_PROFILE, id: `u-guest-${Math.random().toString(36).slice(2, 8)}` };
 }
+
+// ---- P6: app tokens from B's DEMO_MODE `/auth/demo-login` (hybrid/live without Supabase Auth).
+const TOKEN_KEY = 'jv.apiToken';
+
+export function readApiToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function writeApiToken(token: string | null) {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* storage blocked: stay token-less (mock fallbacks still work) */
+  }
+}
