@@ -8,7 +8,7 @@
 
 **Neural Storm 2026 (JNTUH) · Track: Human Impact · Problem Statement HI-02 — Multilingual Citizen Grievance Chatbot**
 
-**Live demo:** *coming soon* · [**Demo video**](https://drive.google.com/file/d/1B0nkLYo7i5t_8-uhb5MTGe_d1eEqREDQ/view?usp=drive_link) · [**API docs**](https://janavaani-gnbo.onrender.com/docs) · [**Model metrics**](ml/models/metrics.json)
+[**Live demo**](https://jana-vaani.vercel.app/) · [**Demo video**](https://drive.google.com/file/d/1B0nkLYo7i5t_8-uhb5MTGe_d1eEqREDQ/view?usp=drive_link) · [**API docs**](https://jana-vaani.vercel.app/docs) · [**Model metrics**](ml/models/metrics.json)
 
 ![Python](https://img.shields.io/badge/AI%2FML-Python%203.11-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
@@ -297,10 +297,10 @@ flowchart LR
         W["React 19 app<br/>Citizen · Department · Admin · Public"]
         SP["Web Speech API<br/>(speech in/out)"]
     end
-    subgraph RD["Render (Docker web service, free tier)"]
-        API["FastAPI (Python)<br/>AI gateway + pipeline"]
-        ML["Our classifier +<br/>multilingual embeddings"]
-        JOB["Scheduler<br/>escalation · spikes · auto-close"]
+    subgraph VC["Vercel (free tier): one domain, two services"]
+        API["FastAPI service (Python)<br/>AI gateway + pipeline, at /api"]
+        ML["Our classifier<br/>(TF-IDF on Vercel; e5 embeddings in Docker)"]
+        JOB["Escalation · spikes · auto-close<br/>(scheduler in Docker; on demand on Vercel)"]
     end
     subgraph SB["Supabase (free tier)"]
         DB[("Postgres + PostGIS + pgvector")]
@@ -350,7 +350,7 @@ Everything below is free and open source, or used on a free tier.
 | **Charts & export** | Recharts, SheetJS, jsPDF, html-to-image, qrcode |
 | **Offline** | vite-plugin-pwa, IndexedDB (idb-keyval) |
 | **Testing** | pytest, Playwright (Chromium, Microsoft Edge, mobile Chrome) |
-| **Hosting** | Vercel (frontend), Render (backend, Docker), Supabase |
+| **Hosting** | Vercel (web app + FastAPI as two services on one domain), Supabase; the same API also runs as a Docker image (e.g. Render) |
 | **Fonts** | Anek (Latin, Telugu, Devanagari), Noto Sans family, Noto Nastaliq Urdu, Noto Naskh Arabic, JetBrains Mono |
 
 ---
@@ -564,7 +564,8 @@ All AI-generated code was reviewed, run and tested by the team.
 - **Synthetic data.** The training data and demo complaints are template-generated, and the hand-written test set is small (48 complaints). Real accuracy must be measured on real, consented complaints.
 - **Approximate boundaries.** The 30 demo wards are generated from locality centres, not official GHMC boundaries, and are labelled as such in the app.
 - **Illustrative departments.** Department and officer mappings are examples; a real deployment must follow the city's official jurisdiction mapping.
-- **Free-tier limits.** Gemini and Groq free tiers are rate-limited, and Gemini's main Flash model is sometimes overloaded, so the live demo relies on caching and the Groq fallback. The free backend server sleeps when idle, so the first request after a pause can take about a minute.
+- **Free-tier limits.** Gemini and Groq free tiers are rate-limited, and Gemini's main Flash model is sometimes overloaded, so the live demo relies on caching and the Groq fallback. After a quiet period, the first API request takes several seconds while the serverless function starts.
+- **Serverless trade-offs on Vercel.** The live demo uses the TF-IDF version of our classifier (the e5 model is too large for a serverless bundle). SLA escalations run when an admin advances the demo clock, not on a timer. Retraining can't save a new model there. The Docker deployment has none of these limits.
 - **Four full languages.** Six more Indian languages are understood, but the app's screens, voice phrases and safety keywords are only in Telugu, Hindi, Urdu and English.
 - **Browser voices.** Text-to-speech depends on the voices installed on the device; Telugu and Urdu voices may be missing on some Windows machines.
 
