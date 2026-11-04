@@ -472,8 +472,20 @@ npm run test:mocks && npm run test:voice && npm run test:i18n   # mock API, voic
 
 ### 9.6 Deploy (optional)
 
-- **Frontend (Vercel):** import the repo and keep the **repo root** as the root directory; `vercel.json` sets the install, build, output and page routing. Add the `VITE_*` variables (`VITE_API_MODE=live`, `VITE_API_BASE_URL=<your API>/api/v1`, Supabase URL and anon key, `VITE_DEMO_MODE=true`) and deploy. Values are baked in at build time, so redeploy after changing them.
-- **Backend (Render):** create a Docker web service from this repo using `services/api/Dockerfile` (build context: repo root). Add the backend variables in **Environment**, and include your Vercel address in `ALLOWED_ORIGINS`. Then run `python ml/apply_migrations.py` and `python ml/seed_db.py` once against the production database.
+**Option A: frontend and backend together on Vercel (one domain).** `vercel.json` defines two [Vercel services](https://vercel.com/docs/services): `web` (the Vite app) and `api` (FastAPI, entry `vercel_api.py`). `/api/*` and `/docs` go to the API, and everything else to the app. Both services are rooted at the repo root, because the API reads `data/` and `ml/models/`. The API installs the slim root `requirements.txt`: no PyTorch, to stay under Vercel's 500 MB Python limit, so it uses the TF-IDF classifier.
+
+1. Import the repo into Vercel with the **repo root** as the root directory.
+2. Add the environment variables:
+   - **App:** `VITE_API_MODE=live`, `VITE_API_BASE_URL=/api/v1`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_DEMO_MODE=true`.
+   - **API:** `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `GROQ_API_KEY`, `APP_JWT_SECRET`, `USE_EMBEDDINGS=false`, `ENABLE_SCHEDULER=false`, `AUTO_SEED=false`, `DEMO_MODE=true`, `UPLOAD_DIR=/tmp/uploads`, `AI_CACHE_DIR=/tmp/ai_cache`, `ALLOWED_ORIGINS=https://<project>.vercel.app`, `PUBLIC_API_URL=https://<project>.vercel.app`.
+3. Deploy, then run `python ml/apply_migrations.py` and `python ml/seed_db.py` once against the production database (same `APP_JWT_SECRET`, `USE_EMBEDDINGS=false`).
+
+Serverless functions don't keep a scheduler running, and Vercel's free plan runs cron jobs only once a day. So SLA escalations run when an admin advances the demo clock, not every 2 minutes. For the same reason, **Retrain** on the AI model page can't save a new model there (the bundle is read-only).
+
+**Option B: frontend on Vercel, backend on Render (Docker).**
+
+- **Frontend (Vercel):** the same import, with `VITE_API_BASE_URL=<your API>/api/v1`. Values are baked in at build time, so redeploy after changing them. The `api` service still deploys on Vercel, but the app doesn't use it.
+- **Backend (Render):** create a Docker web service from this repo using `services/api/Dockerfile` (build context: repo root). Add the backend variables in **Environment**, and include your Vercel address in `ALLOWED_ORIGINS`. The scheduler runs normally here. Then run `python ml/apply_migrations.py` and `python ml/seed_db.py` once against the production database.
 
 ---
 

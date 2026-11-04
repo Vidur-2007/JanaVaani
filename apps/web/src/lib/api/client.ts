@@ -11,7 +11,15 @@ const MODES: readonly string[] = ['mock', 'hybrid', 'live'];
 export const API_MODE: ApiMode = (
   env.VITE_API_MODE && MODES.includes(env.VITE_API_MODE) ? env.VITE_API_MODE : 'mock'
 ) as ApiMode;
-export const API_BASE: string = (env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
+const RAW_API_BASE = (env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1').replace(/\/$/, '');
+/**
+ * Absolute API base. A same-origin path (`/api/v1`, used when web and API share one Vercel domain) is resolved
+ * against the page origin, so `new URL(x, API_BASE)` and `new URL(API_BASE)` keep working everywhere.
+ */
+export const API_BASE: string =
+  RAW_API_BASE.startsWith('/') && typeof window !== 'undefined'
+    ? `${window.location.origin}${RAW_API_BASE}`
+    : RAW_API_BASE;
 export const DEMO_MODE: boolean = String(env.VITE_DEMO_MODE ?? 'true') === 'true';
 
 /** Normalized error thrown by every API call. */
